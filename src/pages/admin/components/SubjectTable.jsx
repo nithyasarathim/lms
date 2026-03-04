@@ -1,61 +1,212 @@
-import React from "react";
-import { ArrowLeft, BookOpen, Users, ClipboardCheck } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Pencil,
+  ArrowLeft,
+  Settings,
+  Loader2,
+  BookX,
+} from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { getSubjects } from "../api/admin.api";
+import EditDepartmentModal from "../modal/EditDepartmentModal";
+import AddSubjectModal from "../modal/AddSubjectModal";
 
-const SubjectTable = ({ departmentName }) => {
+const SubjectTable = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState("");
+  const [isEditDeptOpen, setIsEditDeptOpen] = useState(false);
+  const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const deptId = searchParams.get("deptId");
 
-  const handleBack = () => {
-    navigate("/admin/dashboard?tab=semester-registration");
+  useEffect(() => {
+    if (deptId) fetchSubjects();
+  }, [deptId]);
+
+  const fetchSubjects = async () => {
+    setLoading(true);
+    try {
+      const data = await getSubjects();
+      const filteredByDept = data.filter(
+        (sub) =>
+          sub.departmentId?._id === deptId || sub.departmentId === deptId,
+      );
+      setSubjects(filteredByDept);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <div className="px-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <button
-        onClick={handleBack}
-        className="flex items-center gap-2 text-[#08384F] font-medium hover:underline mb-6"
-      >
-        <ArrowLeft size={18} />
-        Back to Departments
-      </button>
+  const handleBack = () => navigate("/admin/dashboard?tab=subject-management");
 
-      <div className="bg-white border border-[#CACACA] rounded-2xl p-8 shadow-sm">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-4 bg-[#08384F] text-white rounded-xl shadow-lg">
-            <BookOpen size={32} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-[#282526]">
-              {departmentName}
-            </h2>
-            <p className="text-[#0B56A4]">Semester Registration Management</p>
+  const getCourseTypeLabel = (type) => {
+    const types = {
+      T: "Theory",
+      P: "Prac",
+      TP: "Th+Pr",
+      TPJ: "Th+Pr+Proj",
+      PJ: "Project",
+      I: "Intern",
+    };
+    const label = types[type?.toUpperCase()] || type;
+    return (
+      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#08384F]/5 text-[#08384F] border border-[#08384F]/10">
+        {label}
+      </span>
+    );
+  };
+
+  const filteredSubjects = subjects.filter(
+    (item) =>
+      item.name?.toLowerCase().includes(search.toLowerCase()) ||
+      item.code?.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  return (
+    <div className="px-4 py-2 animate-in fade-in slide-in-from-bottom-2 duration-300 font-['Poppins'] max-w-[1600px] mx-auto">
+      <div className="flex justify-between items-center mb-4">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-[#08384F] font-bold hover:text-[#0a4a69] transition-colors text-sm"
+        >
+          <ArrowLeft size={16} />
+          Back to Departments
+        </button>
+        <button
+          onClick={() => setIsEditDeptOpen(true)}
+          className="flex items-center gap-2 text-gray-500 hover:text-[#08384F] transition-colors text-sm font-bold bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm"
+        >
+          <Settings size={14} />
+          Edit Department
+        </button>
+      </div>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-gray-50">
+          <h2 className="text-lg font-bold text-gray-800">
+            Subject Details
+            <span className="ml-2 text-sm  font-medium text-gray-400">
+              ({filteredSubjects.length})
+            </span>
+          </h2>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Search code or name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#08384F]/5 focus:border-[#08384F] w-64 transition-all"
+              />
+            </div>
+            <button
+              onClick={() => setIsAddSubjectOpen(true)}
+              className="flex items-center gap-2 bg-[#08384F] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#0b3a53] transition-all active:scale-95"
+            >
+              <Plus size={16} />
+              Add Subject
+            </button>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 bg-[#F9F9F9] border border-gray-100 rounded-xl flex flex-col items-center text-center">
-            <Users className="text-[#08384F] mb-2" size={28} />
-            <h3 className="font-semibold text-gray-800">Student List</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              View and manage enrolled students
-            </p>
-          </div>
-          <div className="p-6 bg-[#F9F9F9] border border-gray-100 rounded-xl flex flex-col items-center text-center">
-            <ClipboardCheck className="text-[#08384F] mb-2" size={28} />
-            <h3 className="font-semibold text-gray-800">Course Selection</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Approve subject registrations
-            </p>
-          </div>
-          <div className="p-6 bg-[#F9F9F9] border border-gray-100 rounded-xl flex flex-col items-center text-center">
-            <BookOpen className="text-[#08384F] mb-2" size={28} />
-            <h3 className="font-semibold text-gray-800">Curriculum</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Manage department syllabus
-            </p>
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr className="bg-gray-50/50 text-[#08384F] text-[11px] uppercase tracking-wider border-b border-gray-100">
+                <th className="text-left px-4 py-3 w-[120px] font-bold">
+                  Code
+                </th>
+                <th className="text-left px-4 py-3 font-bold">Subject Name</th>
+                <th className="text-center px-4 py-3 w-[100px] font-bold">
+                  Type
+                </th>
+                <th className="text-center px-4 py-3 w-[80px] font-bold">
+                  Credits
+                </th>
+                <th className="text-right px-4 py-3 w-[100px] font-bold">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="py-20 text-center">
+                    <Loader2
+                      className="animate-spin mx-auto text-[#08384F] mb-2"
+                      size={24}
+                    />
+                    <p className="text-xs text-gray-400">
+                      Fetching subjects...
+                    </p>
+                  </td>
+                </tr>
+              ) : filteredSubjects.length > 0 ? (
+                filteredSubjects.map((item) => (
+                  <tr
+                    key={item._id}
+                    className="hover:bg-blue-50/20 transition-colors group"
+                  >
+                    <td className="px-4 py-3 font-mono text-md font-bold text-[#08384F] w-[120px]">
+                      {item.code}
+                    </td>
+                    <td className="px-4 py-3 text-md text-gray-700 font-medium">
+                      {item.name}
+                    </td>
+                    <td className="px-4 py-3 text-center w-[100px]">
+                      {getCourseTypeLabel(item.courseType)}
+                    </td>
+                    <td className="px-4 py-3 text-center font-bold text-gray-600 text-md w-[80px]">
+                      {item.credits}
+                    </td>
+                    <td className="px-4 py-3 w-[100px]">
+                      <div className="flex justify-end gap-2 opacity-0 opacity-100 transition-opacity">
+                        <button className="p-2 text-emerald-600 bg-emerald-50 rounded-lg transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button className="p-2 text-rose-600 bg-rose-50 rounded-lg transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="py-20 text-center">
+                    <div className="flex flex-col items-center text-gray-300">
+                      <BookX size={40} strokeWidth={1} />
+                      <p className="text-md font-semibold mt-2 text-gray-400">
+                        No subjects found
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
+      <EditDepartmentModal
+        isOpen={isEditDeptOpen}
+        onClose={() => setIsEditDeptOpen(false)}
+        deptId={deptId}
+        onSuccess={() => window.location.reload()}
+      />
+      <AddSubjectModal
+        isOpen={isAddSubjectOpen}
+        onClose={() => setIsAddSubjectOpen(false)}
+        fetchSubjects={fetchSubjects}
+      />
     </div>
   );
 };

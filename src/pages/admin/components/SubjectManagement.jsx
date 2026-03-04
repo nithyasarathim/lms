@@ -11,7 +11,7 @@ const SubjectManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const selectedDept = searchParams.get("dept");
+  const selectedDeptId = searchParams.get("deptId");
   const currentPath = window.location.pathname + window.location.search;
 
   return (
@@ -21,7 +21,7 @@ const SubjectManagement = () => {
 
         <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
           <div className="w-full mx-auto py-4">
-            {!selectedDept ? (
+            {!selectedDeptId ? (
               <>
                 <div className="px-6 mb-6 flex justify-between sticky top-0 items-center bg-[#FBFBFB]/80 backdrop-blur-md py-3 gap-4 z-10">
                   <div className="relative flex-1 max-w-md group">
@@ -50,7 +50,7 @@ const SubjectManagement = () => {
                 <DepartmentList basePath={currentPath} filter={searchTerm} />
               </>
             ) : (
-              <SubjectTable departmentName={selectedDept} />
+              <SubjectTable deptId={selectedDeptId} />
             )}
           </div>
         </main>
@@ -59,6 +59,7 @@ const SubjectManagement = () => {
       <AddDepartmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={() => window.location.reload()}
       />
     </section>
   );

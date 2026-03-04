@@ -1,11 +1,137 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Plus, Search, BookMarked, ChevronDown } from "lucide-react";
+import HeaderComponent from "../../shared/components/HeaderComponent";
+import DepartmentList from "./DepartmentList";
+import AddRegulationModal from "../modal/AddRegulationModal";
+import { fetchRegulation } from "../api/admin.api";
 
 const RegulationManagement = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [regulations, setRegulations] = useState([]);
 
-export default RegulationManagement
+  const selectedDeptId = searchParams.get("deptId");
+  const selectedRegId = searchParams.get("regulationId") || "";
+  const currentPath = window.location.pathname;
+
+  useEffect(() => {
+    const loadRegulations = async () => {
+      try {
+        const data = await fetchRegulation();
+        setRegulations(data || []);
+      } catch (err) {
+        console.error("Failed to load regulations", err);
+      }
+    };
+    loadRegulations();
+  }, []);
+
+  const handleRegulationChange = (e) => {
+    const regId = e.target.value;
+    const newParams = new URLSearchParams(searchParams);
+    if (regId) {
+      newParams.set("regulationId", regId);
+    } else {
+      newParams.delete("regulationId");
+    }
+    setSearchParams(newParams);
+  };
+
+  return (
+    <section className="flex w-full h-screen overflow-hidden relative font-['Poppins']">
+      <div className="w-full h-full flex flex-col">
+        <HeaderComponent title="Regulation Management" />
+
+        <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
+          <div className="w-full mx-auto py-4">
+            {!selectedDeptId ? (
+              <>
+                <div className="px-6 mb-6 flex justify-between sticky top-0 items-center bg-[#FBFBFB]/80 backdrop-blur-md py-3 gap-4 z-10">
+                  <div className="relative flex-1 max-w-md group">
+                    <Search
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#08384F]"
+                      size={18}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Search Department..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#CACACA] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#08384F]/10 focus:border-[#08384F] transition-all text-sm shadow-sm"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="relative group">
+                      <BookMarked
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                        size={16}
+                      />
+                      <select
+                        value={selectedRegId}
+                        onChange={handleRegulationChange}
+                        className="pl-9 pr-8 py-2.5 bg-white border border-[#CACACA] rounded-xl text-sm font-semibold text-[#08384F] focus:outline-none focus:ring-2 focus:ring-[#08384F]/10 appearance-none cursor-pointer shadow-sm min-w-[150px]"
+                      >
+                        <option value="">Choose Regulation</option>
+                        {regulations.map((reg) => (
+                          <option key={reg._id} value={reg._id}>
+                            {reg.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                        size={16}
+                      />
+                    </div>
+
+                    <button
+                      className="flex items-center gap-2 bg-[#08384F] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#0a4763] transition-all shrink-0 shadow-md active:scale-95"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      <Plus size={18} strokeWidth={2.5} />
+                      Add Regulation
+                    </button>
+                  </div>
+                </div>
+
+                <DepartmentList
+                  basePath={currentPath + window.location.search}
+                  filter={searchTerm}
+                />
+              </>
+            ) : (
+              <div className="px-6 py-4">
+                <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Regulation View
+                  </h2>
+                  <div className="flex gap-4 mt-2">
+                    <span className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-500 font-mono">
+                      Dept ID: {selectedDeptId}
+                    </span>
+                    {selectedRegId && (
+                      <span className="text-xs bg-blue-50 px-3 py-1 rounded-full text-[#08384F] font-bold border border-blue-100">
+                        Regulation ID: {selectedRegId}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+      <AddRegulationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => window.location.reload()}
+      />
+    </section>
+  );
+};
+
+export default RegulationManagement;

@@ -1,0 +1,108 @@
+import axios from "axios";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+apiClient.interceptors.request.use((config) => {
+  const userdata = JSON.parse(localStorage.getItem("lms-user"));
+  const token = userdata?.token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const getDepartments = async () => {
+  try {
+    const response = await apiClient.get("api/departments");
+    return response.data.data.departments;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const getSubjects = async () => {
+  try {
+    const response = await apiClient.get("api/subjects");
+    return response.data.data.subjects;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const getDepartmentById = async (id) => {
+  try {
+    const response = await apiClient.get(`api/departments/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const bulkUploadSubjects = async (deptId, formData) => {
+  try {
+    const response = await apiClient.post(
+      `api/subjects/upload/${deptId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const addSubject = async (subjectData) => {
+  try {
+    const response = await apiClient.post("api/subjects", subjectData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createDepartment = async (deptData) => {
+  try {
+    const response = await apiClient.post("api/departments", deptData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const editDepartment = async (id, deptData) => {
+  try {
+    const response = await apiClient.put(`api/departments/${id}`, deptData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createRegulation = async (regulationData) => {
+  try {
+    const response = await apiClient.post("api/regulations", regulationData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const fetchRegulation = async () => {
+  try {
+    const response = await apiClient.get("api/regulations");
+    return response.data.data.regulations;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
