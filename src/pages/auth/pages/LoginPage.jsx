@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { login } from "../api/auth.api";
 import loginBackground from "../../../assets/loginBackground.svg";
@@ -11,7 +11,6 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -27,17 +26,24 @@ const LoginPage = () => {
     try {
       const res = await login(formData);
 
-      if (res.success) {
-        localStorage.setItem("usertoken", res.data.token);
-        localStorage.setItem("role", res.data.role);
-
-        toast.success("Login successful!");
-
-        const redirectTo = location.state?.redirectTo || "/dashboard";
-        navigate(redirectTo, { replace: true });
+      if (!res?.success) {
+        toast.error(res?.message || "Invalid credentials");
+        return;
       }
+
+      const { token, role, _id, email } = res.data;
+
+      // Store single auth object
+      localStorage.setItem(
+        "lms-user",
+        JSON.stringify({ token, role, _id, email }),
+      );
+
+      toast.success("Login successful!");
+
+      navigate(`/${role.toLowerCase()}/dashboard`, { replace: true });
     } catch (error) {
-      toast.error(error.message || "Invalid credentials");
+      toast.error(error || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -46,6 +52,7 @@ const LoginPage = () => {
   return (
     <section className="w-full min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="w-full h-full md:flex gap-8">
+        {/* Left Image */}
         <div className="hidden md:block md:w-[60%]">
           <div className="h-full rounded-3xl overflow-hidden shadow-lg">
             <img
@@ -56,6 +63,7 @@ const LoginPage = () => {
           </div>
         </div>
 
+        {/* Right Form */}
         <div className="w-full md:w-[40%] flex items-center justify-center">
           <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-10">
             <div className="mb-8 text-center">
@@ -68,17 +76,15 @@ const LoginPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email Address"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B56A4] focus:border-transparent transition"
-                />
-              </div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B56A4] focus:border-transparent transition"
+              />
 
               <div className="relative">
                 <input
