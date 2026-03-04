@@ -5,8 +5,8 @@ import GuestRoute from "./routes/GuestRoute";
 import RoleRoute from "./routes/RoleRoute";
 
 import LoginPage from "./pages/auth/pages/LoginPage";
+import AdminDashboard from "./pages/admin/pages/AdminDashboard";
 
-const AdminDashboard = () => <h1>Admin Dashboard</h1>;
 const StudentDashboard = () => <h1>Student Dashboard</h1>;
 const FacultyDashboard = () => <h1>Faculty Dashboard</h1>;
 const HodDashboard = () => <h1>HOD Dashboard</h1>;
