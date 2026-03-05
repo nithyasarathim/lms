@@ -19,7 +19,7 @@ const SubjectManagement = () => {
       <div className="w-full h-full flex flex-col">
         <HeaderComponent title="Subject Management" />
 
-        <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
+        <main className="flex-1 overflow-y-auto pt-4 hide-scroll bg-[#FBFBFB]">
           <div className="w-full mx-auto">
             {!selectedDeptId ? (
               <>

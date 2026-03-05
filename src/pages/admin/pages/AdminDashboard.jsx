@@ -5,7 +5,7 @@ import DashboardOverview from "../components/DashboardOverview";
 import RegulationManagement from "../components/RegulationManagement";
 import SubjectManagement from "../components/SubjectManagement";
 import FacultyManagement from "../components/FacultyManagement";
-import StudentManagement from "../modal/StudentManagement";
+import StudentManagement from "../components/StudentManagement";
 import BatchManagement from "../components/BatchManagement";
 
 const AdminDashboard = () => {

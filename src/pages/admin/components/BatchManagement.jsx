@@ -25,8 +25,7 @@ const BatchManagement = () => {
         const data = response?.data?.batches || response || [];
         setBatches(data);
       } catch (err) {
-        console.error("Failed to load Batches", err);
-        toast.error("Error loading batches");
+        toast("Error loading batches");
       }
     };
     loadBatches();
@@ -47,15 +46,9 @@ const BatchManagement = () => {
     if (!selectedBatchId) {
       e.preventDefault();
       e.stopPropagation();
+
       toast("Please select a Batch before choosing a department.", {
-        id: "batch-selection-error",
-        style: {
-          borderRadius: "12px",
-          background: "#08384F",
-          color: "#fff",
-          fontSize: "12px",
-          fontFamily: "Poppins",
-        },
+        id: "select-batch-warning",
       });
     }
   };

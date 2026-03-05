@@ -7,8 +7,8 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowLeft,
-  Sparkles,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { createRegulation } from "../api/admin.api";
 
 const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
@@ -18,19 +18,23 @@ const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
 
   if (!isOpen) return null;
 
   const validateAndReview = (e) => {
     e.preventDefault();
-    setError("");
 
-    if (!formData.name.trim()) return setError("Regulation name is required");
+    if (!formData.name.trim()) {
+      toast.error("Regulation name is required", { id: "reg-name-error" });
+      return;
+    }
 
     if (formData.startYear < 1990 || formData.startYear > 2100) {
-      return setError("Please enter a valid academic year");
+      toast.error("Please enter a valid academic year", {
+        id: "year-error",
+      });
+      return;
     }
 
     setShowConfirm(true);
@@ -38,7 +42,6 @@ const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleFinalSubmit = async () => {
     setLoading(true);
-    setError("");
 
     try {
       const payload = {
@@ -48,13 +51,20 @@ const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
 
       await createRegulation(payload);
 
-      setFormData({ name: "", startYear: new Date().getFullYear() });
+      toast.success("Regulation created successfully");
+
+      setFormData({
+        name: "",
+        startYear: new Date().getFullYear(),
+      });
 
       if (onSuccess) onSuccess();
 
       handleClose();
     } catch (err) {
-      setError(err.message || "Failed to create regulation");
+      toast.error(err?.message || "Failed to create regulation", {
+        id: "create-regulation-error",
+      });
       setShowConfirm(false);
     } finally {
       setLoading(false);
@@ -64,37 +74,22 @@ const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
   const handleClose = () => {
     if (loading) return;
     setShowConfirm(false);
-    setError("");
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 ">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
       <div
-        className="absolute inset-0 bg-[#08384F]/30 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-[#08384F]/30 backdrop-blur-sm"
         onClick={handleClose}
       />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.15)] w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-[#08384F]/5 to-transparent">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#08384F] text-white shadow-md">
-              <Sparkles size={18} />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-[#08384F]">
-                {showConfirm ? "Confirm Regulation" : "Create Regulation"}
-              </h3>
-              <p className="text-xs text-gray-400">
-                {showConfirm
-                  ? "Review details before saving"
-                  : "Define a new academic regulation"}
-              </p>
-            </div>
+      <div className="relative bg-white rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.15)] w-full max-w-lg overflow-hidden">
+        <div className="flex items-center justify-between px-8 pt-5 border-b border-gray-100">
+          <div>
+            <h3 className="text-lg font-bold text-[#08384F]">
+              {showConfirm ? "Confirm Regulation" : "Create Regulation"}
+            </h3>
           </div>
 
           <button
@@ -106,9 +101,8 @@ const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
           </button>
         </div>
 
-        {/* CONFIRM SCREEN */}
         {showConfirm ? (
-          <div className="p-8 space-y-6 animate-in slide-in-from-right-5 duration-300">
+          <div className="p-8 space-y-6">
             <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex items-start gap-3">
               <AlertCircle className="text-gray-600 mt-0.5" size={18} />
               <p className="text-sm text-gray-800">
@@ -165,19 +159,8 @@ const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           </div>
         ) : (
-          /* FORM SCREEN */
-
           <form onSubmit={validateAndReview} className="p-8 space-y-6">
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-center gap-2">
-                <AlertCircle size={16} />
-                {error}
-              </div>
-            )}
-
             <div className="space-y-5">
-              {/* Regulation Name */}
-
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Regulation Name
@@ -201,8 +184,6 @@ const AddRegulationModal = ({ isOpen, onClose, onSuccess }) => {
                   />
                 </div>
               </div>
-
-              {/* Academic Year */}
 
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">

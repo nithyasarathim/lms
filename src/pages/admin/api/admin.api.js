@@ -177,7 +177,9 @@ export const createBatch = async (batchData) => {
 
 export const getBatchProgram = async (batchId, deptId) => {
   try {
-    const response = await apiClient.get(`api/batch-programs/${batchId}/${deptId}`);
+    const response = await apiClient.get(
+      `api/batch-programs/${batchId}/${deptId}`,
+    );
     return response.data;
   } catch (error) {
     if (error.response && error.response.data) {
@@ -206,11 +208,52 @@ export const getSections = async (batchProgramId) => {
   }
 };
 
-export const createSection = async (sectionData) => {
+export const createSection = async (payload) => {
   try {
-    const response = await apiClient.post("api/sections", sectionData);
+    const response = await apiClient.post(`api/sections`, payload);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error.response?.data || error.data;
   }
 };
+
+export const getFacultyDashboardStats = async () => {
+  try {
+    const response = await apiClient.get(`/api/faculty/dashboard/stats`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const getDeptWiseStats = async (deptId) => {
+  try {
+    const response = await apiClient.get(
+      `api/faculty/department-wise/${deptId}`,
+    );
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const getAllFaculties = async () => {
+  try {
+    const response = await apiClient.get(`api/faculty`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const addFaculty = async (facultyData) => {
+  try {
+    const response = await apiClient.post(`/api/faculty`, facultyData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const updateFaculty = async () => {};

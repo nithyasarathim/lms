@@ -4,7 +4,6 @@ import {
   Loader2,
   ChevronDown,
   BookMarked,
-  CheckCircle2,
   AlertTriangle,
   Plus,
   Layers,
@@ -17,6 +16,8 @@ import {
   createBatchProgram,
 } from "../api/admin.api";
 import toast from "react-hot-toast";
+import SectionList from "./SectionList";
+import AddSectionModal from "../modal/AddSectionModal";
 
 const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -27,6 +28,8 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const [deptData, setDeptData] = useState(null);
   const [isFixing, setIsFixing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -35,13 +38,13 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
       try {
         const regData = await fetchRegulation();
         setRegulations(regData || []);
-        
+
         const bpRes = await getBatchProgram(batchId, deptId);
-        
+
         if (bpRes?.data?.batchProgram) {
           const bp = bpRes.data.batchProgram;
           setDeptData(bp.departmentId);
-          
+
           if (bpRes.success) {
             setBatchProgramId(bp._id);
             setSelectedReg(bp.regulationId?._id || bp.regulationId);
@@ -83,7 +86,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         if (bpRes?.success) {
           const bp = bpRes.data.batchProgram;
           setBatchProgramId(bp._id);
-          setSelectedReg(bp.regulationId?._id);
+          setSelectedReg(bp.regulationId?._id || bp.regulationId);
           setDeptData(bp.departmentId);
         }
       }
@@ -175,6 +178,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         </div>
 
         <button
+          onClick={() => setIsModalOpen(true)}
           disabled={!batchProgramId}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition
           ${
@@ -189,7 +193,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
       </div>
 
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white border border-gray-100 rounded-3xl p-20 text-center shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-3xl p-10 md:p-20 text-center shadow-sm min-h-[400px] flex flex-col items-center justify-center">
           {loading ? (
             <Loader2
               className="animate-spin mx-auto text-[#08384F]"
@@ -205,50 +209,58 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
                 Regulation Required
               </h3>
               <p className="text-sm text-gray-400 max-w-xs mx-auto">
-                Select a regulation for <span className="font-semibold text-[#08384F]">{deptData?.name || "this department"}</span> to unlock management tools.
+                Select a regulation for{" "}
+                <span className="font-semibold text-[#08384F]">
+                  {deptData?.name || "this department"}
+                </span>{" "}
+                to unlock management tools.
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              <CheckCircle2
-                size={42}
-                className="mx-auto text-emerald-500 bg-emerald-50 p-3 rounded-2xl"
-              />
-              <h3 className="text-lg font-semibold text-gray-800">
-                Configuration Active
-              </h3>
-              <div className="text-sm text-gray-400 max-w-sm mx-auto leading-relaxed">
-                Batch <span className="font-semibold text-[#08384F]">{regName}</span> for{" "}
-                <span className="font-semibold text-[#08384F]">{deptData?.name}</span> is locked with{" "}
-                <span className="font-semibold text-[#08384F]">{selectedRegName}</span>.
-              </div>
-            </div>
+            <SectionList key={refreshKey} batchProgramId={batchProgramId} />
           )}
         </div>
       </div>
 
+      <AddSectionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        batchProgramId={batchProgramId}
+        onSuccess={() => setRefreshKey((prev) => prev + 1)}
+      />
+
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="text-amber-500" size={22} />
-              <h3 className="font-semibold text-gray-800">
+              <div className="bg-amber-50 p-2 rounded-xl">
+                <AlertTriangle className="text-amber-500" size={24} />
+              </div>
+              <h3 className="font-bold text-xl text-gray-800">
                 Confirm Regulation
               </h3>
             </div>
 
-            <p className="text-sm text-gray-500 mb-6">
-              Fix <span className="font-semibold">{selectedRegName}</span> for
-              <span className="font-semibold"> {deptData?.code}</span>. This action cannot be changed later.
+            <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+              Fix{" "}
+              <span className="font-bold text-[#08384F]">
+                {selectedRegName}
+              </span>{" "}
+              for
+              <span className="font-bold text-[#08384F]">
+                {" "}
+                {deptData?.code}
+              </span>
+              . This action links the batch to this regulation permanently.
             </p>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowConfirm(false);
                   setSelectedReg("");
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+                className="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-colors"
               >
                 Cancel
               </button>
@@ -256,9 +268,9 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
               <button
                 onClick={handleConfirmRegulation}
                 disabled={isFixing}
-                className="px-4 py-2 bg-[#08384F] text-white text-sm rounded-lg flex items-center gap-2"
+                className="flex-[1.5] py-3 bg-[#08384F] text-white text-sm font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-[#0a4763] transition-all"
               >
-                {isFixing && <Loader2 size={14} className="animate-spin" />}
+                {isFixing && <Loader2 size={16} className="animate-spin" />}
                 Confirm
               </button>
             </div>
