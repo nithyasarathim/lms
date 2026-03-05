@@ -15,7 +15,7 @@ const SubjectManagement = () => {
   const currentPath = window.location.pathname + window.location.search;
 
   return (
-    <section className="flex w-full h-screen overflow-hidden relative font-['Poppins']">
+    <section className="flex w-full h-screen overflow-hidden relative ">
       <div className="w-full h-full flex flex-col">
         <HeaderComponent title="Subject Management" />
 

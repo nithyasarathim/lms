@@ -45,7 +45,7 @@ const EditSubjectModal = ({ isOpen, onClose, subject, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-['Poppins']">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 ">
       <div
         className="absolute inset-0 bg-[#08384F]/20 backdrop-blur-sm"
         onClick={onClose}

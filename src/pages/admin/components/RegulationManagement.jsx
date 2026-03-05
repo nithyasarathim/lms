@@ -58,7 +58,7 @@ const RegulationManagement = () => {
   };
 
   return (
-    <section className="flex w-full h-screen overflow-hidden relative font-['Poppins']">
+    <section className="flex w-full h-screen overflow-hidden relative ">
       <div className="w-full h-full flex flex-col">
         <HeaderComponent title="Regulation Management" />
         <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">

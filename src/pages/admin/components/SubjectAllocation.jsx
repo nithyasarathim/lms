@@ -144,7 +144,7 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
   });
 
   return (
-    <div className="px-4 font-['Poppins'] animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="px-4  animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="flex items-center justify-between ">
         <div className="flex items-center gap-5">
           <button
@@ -154,9 +154,9 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
             <ArrowLeft size={18} /> Back
           </button>
           <div className="h-5 w-[1.5px] bg-gray-300"></div>
-          <p className="text-sm font-semibold text-gray-500">
-            Regulation:{" "}
-            <span className="text-[#08384F] font-semibold text-base">
+          <p className="text-sm font-semibold gap-10 text-gray-500">
+            Regulation -
+            <span className="text-[#08384F] px-1 font-semibold text-base">
               {regName}
             </span>
           </p>

@@ -156,3 +156,61 @@ export const deleteSubject = async (id) => {
     throw error.response?.data || error.message;
   }
 };
+
+export const fetchBatch = async () => {
+  try {
+    const response = await apiClient.get(`/api/batches`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createBatch = async (batchData) => {
+  try {
+    const response = await apiClient.post("api/batches", batchData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const getBatchProgram = async (batchId, deptId) => {
+  try {
+    const response = await apiClient.get(`api/batch-programs/${batchId}/${deptId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      return error.response.data;
+    }
+    throw error.response?.data || error.data || error;
+  }
+};
+export const createBatchProgram = async (data) => {
+  try {
+    const response = await apiClient.post("api/batch-programs", data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const getSections = async (batchProgramId) => {
+  try {
+    const response = await apiClient.get(`api/sections`, {
+      params: { batchProgramId },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createSection = async (sectionData) => {
+  try {
+    const response = await apiClient.post("api/sections", sectionData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

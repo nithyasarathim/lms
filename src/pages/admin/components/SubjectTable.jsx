@@ -76,14 +76,14 @@ const SubjectTable = () => {
   );
 
   return (
-    <div className="px-4 animate-in fade-in slide-in-from-bottom-2 duration-300 font-['Poppins'] max-w-[1600px] mx-auto">
+    <div className="px-4 animate-in fade-in slide-in-from-bottom-2 duration-300  max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={handleBack}
           className="flex items-center gap-2 text-[#08384F] font-bold hover:text-[#0a4a69] transition-colors text-sm"
         >
           <ArrowLeft size={16} />
-          Back to Departments
+          Back
         </button>
         <button
           onClick={() => setIsEditDeptOpen(true)}
