@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Search, BookMarked, ChevronDown } from "lucide-react";
+import { Plus, Search, ChevronDown } from "lucide-react";
+import toast from "react-hot-toast";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";
 import AddRegulationModal from "../modal/AddRegulationModal";
+import SubjectAllocation from "./SubjectAllocation";
 import { fetchRegulation } from "../api/admin.api";
 
 const RegulationManagement = () => {
@@ -39,11 +41,26 @@ const RegulationManagement = () => {
     setSearchParams(newParams);
   };
 
+  const handleDeptClickCapture = (e) => {
+    if (!selectedRegId) {
+      e.preventDefault();
+      e.stopPropagation();
+      toast("Please select a Regulation before choosing a department.", {
+        id: "reg-selection-error",
+        style: {
+          borderRadius: "12px",
+          background: "#08384F",
+          color: "#fff",
+          fontSize: "12px",
+        },
+      });
+    }
+  };
+
   return (
     <section className="flex w-full h-screen overflow-hidden relative font-['Poppins']">
       <div className="w-full h-full flex flex-col">
         <HeaderComponent title="Regulation Management" />
-
         <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
           <div className="w-full mx-auto py-4">
             {!selectedDeptId ? (
@@ -65,14 +82,14 @@ const RegulationManagement = () => {
 
                   <div className="flex items-center gap-3">
                     <div className="relative group">
-                      <BookMarked
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                        size={16}
-                      />
                       <select
                         value={selectedRegId}
                         onChange={handleRegulationChange}
-                        className="pl-9 pr-8 py-2.5 bg-white border border-[#CACACA] rounded-xl text-sm font-semibold text-[#08384F] focus:outline-none focus:ring-2 focus:ring-[#08384F]/10 appearance-none cursor-pointer shadow-sm min-w-[150px]"
+                        className={`pl-4 pr-8 py-2.5 bg-white border rounded-xl text-sm font-bold appearance-none cursor-pointer shadow-sm min-w-[150px] transition-all ${
+                          !selectedRegId
+                            ? "border-red-300 text-red-500 animate-pulse"
+                            : "border-[#CACACA] text-[#08384F]"
+                        } focus:outline-none focus:ring-2 focus:ring-[#08384F]/10`}
                       >
                         <option value="">Choose Regulation</option>
                         {regulations.map((reg) => (
@@ -97,29 +114,22 @@ const RegulationManagement = () => {
                   </div>
                 </div>
 
-                <DepartmentList
-                  basePath={currentPath + window.location.search}
-                  filter={searchTerm}
-                />
+                <div
+                  onClickCapture={handleDeptClickCapture}
+                  className={!selectedRegId ? "opacity-60 grayscale-[0.5]" : ""}
+                >
+                  <DepartmentList
+                    basePath={currentPath + "?" + searchParams.toString()}
+                    filter={searchTerm}
+                  />
+                </div>
               </>
             ) : (
-              <div className="px-6 py-4">
-                <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4">
-                  <h2 className="text-xl font-bold text-gray-800">
-                    Regulation View
-                  </h2>
-                  <div className="flex gap-4 mt-2">
-                    <span className="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-500 font-mono">
-                      Dept ID: {selectedDeptId}
-                    </span>
-                    {selectedRegId && (
-                      <span className="text-xs bg-blue-50 px-3 py-1 rounded-full text-[#08384F] font-bold border border-blue-100">
-                        Regulation ID: {selectedRegId}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <SubjectAllocation
+                deptId={selectedDeptId}
+                regId={selectedRegId}
+                regName={regulations.find((r) => r._id === selectedRegId)?.name}
+              />
             )}
           </div>
         </main>

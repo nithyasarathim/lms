@@ -106,3 +106,53 @@ export const fetchRegulation = async () => {
     throw error.response?.data || error.message;
   }
 };
+
+export const getCurriculum = async (deptId, regId) => {
+  try {
+    const response = await apiClient.get("api/curriculums", {
+      params: { departmentId: deptId, regulationId: regId },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const createCurriculum = async (curriculumData) => {
+  try {
+    const response = await apiClient.post("api/curriculums", curriculumData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const updateCurriculum = async (id, curriculumData) => {
+  try {
+    const response = await apiClient.put(
+      `api/curriculums/${id}`,
+      curriculumData,
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const updateSubject = async (id, subjectData) => {
+  try {
+    const response = await apiClient.put(`api/subjects/${id}`, subjectData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const deleteSubject = async (id) => {
+  try {
+    const response = await apiClient.delete(`api/subjects/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

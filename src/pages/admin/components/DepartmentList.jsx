@@ -72,7 +72,7 @@ const DepartmentList = ({ basePath, filter = "" }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6 overflow-y-auto hide-scroll">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 overflow-y-auto hide-scroll">
       {filteredDepartments.map((dept) => {
         const separator = basePath.includes("?") ? "&" : "?";
         const targetUrl = `${basePath}${separator}deptId=${dept._id}`;

@@ -7,10 +7,11 @@ body {
 }
 
 .hide-scroll {
-  -ms-overflow-style: none; 
+  -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 .hide-scroll::-webkit-scrollbar {
   display: none;
 }
+

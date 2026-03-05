@@ -13,6 +13,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { getSubjects } from "../api/admin.api";
 import EditDepartmentModal from "../modal/EditDepartmentModal";
 import AddSubjectModal from "../modal/AddSubjectModal";
+import EditSubjectModal from "../modal/EditSubjectModal";
+import DeleteConfirmModal from "../modal/DeleteConfirmModal";
 
 const SubjectTable = () => {
   const navigate = useNavigate();
@@ -20,6 +22,10 @@ const SubjectTable = () => {
   const [search, setSearch] = useState("");
   const [isEditDeptOpen, setIsEditDeptOpen] = useState(false);
   const [isAddSubjectOpen, setIsAddSubjectOpen] = useState(false);
+
+  const [editSubjectData, setEditSubjectData] = useState(null);
+  const [deleteSubjectData, setDeleteSubjectData] = useState(null);
+
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const deptId = searchParams.get("deptId");
@@ -57,7 +63,7 @@ const SubjectTable = () => {
     };
     const label = types[type?.toUpperCase()] || type;
     return (
-      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#08384F]/5 text-[#08384F] border border-[#08384F]/10">
+      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#08384F]/5 text-[#08384F] border border-[#08384F]/10 uppercase">
         {label}
       </span>
     );
@@ -70,7 +76,7 @@ const SubjectTable = () => {
   );
 
   return (
-    <div className="px-4 py-2 animate-in fade-in slide-in-from-bottom-2 duration-300 font-['Poppins'] max-w-[1600px] mx-auto">
+    <div className="px-4 animate-in fade-in slide-in-from-bottom-2 duration-300 font-['Poppins'] max-w-[1600px] mx-auto">
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={handleBack}
@@ -81,17 +87,17 @@ const SubjectTable = () => {
         </button>
         <button
           onClick={() => setIsEditDeptOpen(true)}
-          className="flex items-center gap-2 text-gray-500 hover:text-[#08384F] transition-colors text-sm font-bold bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm"
+          className="flex items-center gap-2 text-gray-500 hover:text-[#08384F] transition-colors text-sm font-bold bg-white border border-gray-200 px-3 py-1.5 rounded-lg "
         >
           <Settings size={14} />
           Edit Department
         </button>
       </div>
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-300 overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-gray-50">
           <h2 className="text-lg font-bold text-gray-800">
             Subject Details
-            <span className="ml-2 text-sm  font-medium text-gray-400">
+            <span className="ml-2 text-sm font-medium text-gray-400">
               ({filteredSubjects.length})
             </span>
           </h2>
@@ -156,7 +162,7 @@ const SubjectTable = () => {
                     key={item._id}
                     className="hover:bg-blue-50/20 transition-colors group"
                   >
-                    <td className="px-4 py-3 font-mono text-md font-bold text-[#08384F] w-[120px]">
+                    <td className="px-4 py-3 font-mono text-md font-bold text-[#08384F] w-[120px] uppercase">
                       {item.code}
                     </td>
                     <td className="px-4 py-3 text-md text-gray-700 font-medium">
@@ -170,10 +176,16 @@ const SubjectTable = () => {
                     </td>
                     <td className="px-4 py-3 w-[100px]">
                       <div className="flex justify-end gap-2 opacity-0 opacity-100 transition-opacity">
-                        <button className="p-2 text-emerald-600 bg-emerald-50 rounded-lg transition-colors">
+                        <button
+                          onClick={() => setEditSubjectData(item)}
+                          className="p-2 text-emerald-600 bg-emerald-50 rounded-lg bg-emerald-100 transition-colors"
+                        >
                           <Pencil size={14} />
                         </button>
-                        <button className="p-2 text-rose-600 bg-rose-50 rounded-lg transition-colors">
+                        <button
+                          onClick={() => setDeleteSubjectData(item)}
+                          className="p-2 text-rose-600 bg-rose-50 rounded-lg bg-rose-100 transition-colors"
+                        >
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -196,16 +208,33 @@ const SubjectTable = () => {
           </table>
         </div>
       </div>
+
       <EditDepartmentModal
         isOpen={isEditDeptOpen}
         onClose={() => setIsEditDeptOpen(false)}
         deptId={deptId}
-        onSuccess={() => window.location.reload()}
+        onSuccess={() => fetchSubjects()}
       />
+
       <AddSubjectModal
         isOpen={isAddSubjectOpen}
         onClose={() => setIsAddSubjectOpen(false)}
         fetchSubjects={fetchSubjects}
+      />
+
+      <EditSubjectModal
+        isOpen={!!editSubjectData}
+        subject={editSubjectData}
+        onClose={() => setEditSubjectData(null)}
+        onSuccess={fetchSubjects}
+      />
+
+      <DeleteConfirmModal
+        isOpen={!!deleteSubjectData}
+        subjectId={deleteSubjectData?._id}
+        subjectName={deleteSubjectData?.name}
+        onClose={() => setDeleteSubjectData(null)}
+        onSuccess={fetchSubjects}
       />
     </div>
   );
