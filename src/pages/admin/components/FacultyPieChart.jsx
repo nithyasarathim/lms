@@ -23,7 +23,6 @@ const FacultyPieChart = () => {
     const fetchDepts = async () => {
       try {
         const res = await getDepartments();
-        // Accessing nested data based on your previous getDepartments response
         const deptList = res?.data?.departments || res || [];
 
         if (deptList.length > 0) {
@@ -117,7 +116,7 @@ const FacultyPieChart = () => {
                 outerRadius="95%"
                 paddingAngle={2}
                 dataKey="value"
-                cx="40%"
+                cx="45%"
                 cy="50%"
               >
                 {chartData.map((entry, index) => (
@@ -130,7 +129,7 @@ const FacultyPieChart = () => {
               </Pie>
 
               <text
-                x="23%"
+                x="25%"
                 y="48%"
                 textAnchor="middle"
                 dominantBaseline="middle"
@@ -140,7 +139,7 @@ const FacultyPieChart = () => {
                 {String(total).padStart(2, "0")}
               </text>
               <text
-                x="24%"
+                x="25%" 
                 y="62%"
                 textAnchor="middle"
                 dominantBaseline="middle"
@@ -165,10 +164,11 @@ const FacultyPieChart = () => {
                 iconType="circle"
                 iconSize={8}
                 wrapperStyle={{
+                  width: "45%",
                   fontSize: "11px",
                   fontWeight: "700",
                   lineHeight: "24px",
-                  paddingLeft: "10px",
+                  paddingLeft: "20px",
                 }}
               />
             </PieChart>

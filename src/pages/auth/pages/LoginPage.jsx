@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { login } from "../api/auth.api";
@@ -27,32 +27,31 @@ const LoginPage = () => {
       const res = await login(formData);
 
       if (!res?.success) {
-        toast.error(res?.message || "Invalid credentials");
-        return;
+        return toast.error(res?.message || "Invalid credentials");
       }
 
       const { token, role, _id, email } = res.data;
 
-      // Store single auth object
       localStorage.setItem(
         "lms-user",
         JSON.stringify({ token, role, _id, email }),
       );
 
-      toast.success("Login successful!");
-
+      toast.success("Welcome back!");
       navigate(`/${role.toLowerCase()}/dashboard`, { replace: true });
     } catch (error) {
-      toast.error(error || "Something went wrong");
+      const errorMsg =
+        error.message ||
+        "Something went wrong. Please try again.";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className="w-full min-h-screen bg-gray-50 p-4 md:p-8">
+    <section className="w-full min-h-screen bg-gray-50 p-4 md:p-8 font-['Poppins']">
       <div className="w-full h-full md:flex gap-8">
-        {/* Left Image */}
         <div className="hidden md:block md:w-[60%]">
           <div className="h-full rounded-3xl overflow-hidden shadow-lg">
             <img
@@ -63,7 +62,6 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Right Form */}
         <div className="w-full md:w-[40%] flex items-center justify-center">
           <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-10">
             <div className="mb-8 text-center">
@@ -76,39 +74,49 @@ const LoginPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B56A4] focus:border-transparent transition"
-              />
-
-              <div className="relative">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600 ml-1">
+                  Email
+                </label>
                 <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
+                  type="email"
+                  name="email"
+                  placeholder="name@university.edu"
+                  value={formData.email}
                   onChange={handleChange}
                   required
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B56A4] focus:border-transparent transition"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0B56A4] transition"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600 ml-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B56A4] focus:border-transparent transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0B56A4] transition"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               <div className="text-right">
                 <button
                   type="button"
-                  className="text-sm text-[#0B56A4] hover:underline"
+                  className="text-xs font-medium text-[#0B56A4] hover:underline"
                 >
                   Forgot password?
                 </button>
@@ -117,13 +125,10 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition ${
-                  loading
-                    ? "bg-[#0b55a4b4] cursor-not-allowed"
-                    : "bg-[#0B56A4] hover:bg-[#084b8c]"
-                }`}
+                className="w-full py-3 rounded-xl text-white text-sm font-semibold transition bg-[#0B56A4] hover:bg-[#084b8c] disabled:bg-[#0b55a4b4] disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading && <Loader2 size={18} className="animate-spin" />}
+                {loading ? "Verifying..." : "Login"}
               </button>
             </form>
           </div>

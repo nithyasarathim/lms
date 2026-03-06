@@ -256,4 +256,47 @@ export const addFaculty = async (facultyData) => {
   }
 };
 
-export const updateFaculty = async () => {};
+export const updateFaculty = async (id, facultyData) => {
+  try {
+    const response = await apiClient.put(`/api/faculty/${id}`, facultyData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const updateSection = async (sectionId, updatedData) => {
+  try {
+    const response = await apiClient.put(
+      `/api/sections/${sectionId}`,
+      updatedData,
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const facultyBulkUpload = async (formData) => {
+  try {
+    const response = await apiClient.post(`/api/faculty/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+
+export const deleteFaculty = async (facultyId) => {
+  try {
+    const response = await apiClient.delete(`/api/faculty/${facultyId}`,)
+    return response.data;
+  }
+  catch (err) {
+    throw err.response?.data || err.data;
+  }
+}
