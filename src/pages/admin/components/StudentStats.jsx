@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Users, Crown, GraduationCap, UserCheck, UserCog } from "lucide-react";
-import { getFacultyDashboardStats } from "../api/admin.api";
+import { Users, BookOpen, School, GraduationCap, Award } from "lucide-react";
+import { getStudentStats } from "../api/admin.api";
 
-let statsCache = null;
-
-const FacultyStats = () => {
-  const [loading, setLoading] = useState(!statsCache);
-  const [stats, setStats] = useState(statsCache || {
-    totalFaculty: 0,
-    deansAndHods: 0,
-    professors: 0,
-    associateAssistant: 0,
-    others: 0,
+const StudentStats = () => {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    yearWise: {
+      firstYear: 0,
+      secondYear: 0,
+      thirdYear: 0,
+      fourthYear: 0,
+    },
   });
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await getFacultyDashboardStats();
+        setLoading(true);
+        const res = await getStudentStats();
         if (res.success) {
-          statsCache = res.data; // Update global cache
-          setStats(res.data);    // Update local state
+          setStats(res.data);
         }
       } catch (err) {
         console.error(err);
@@ -37,13 +37,16 @@ const FacultyStats = () => {
     </section>
   );
 
-  if (loading && !statsCache) {
+  if (loading) {
     return (
       <Container>
         <div className="col-span-6 bg-gray-200 rounded-2xl animate-pulse"></div>
         <div className="col-span-14 grid grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-gray-100 rounded-2xl animate-pulse"></div>
+            <div
+              key={i}
+              className="bg-gray-100 rounded-2xl animate-pulse"
+            ></div>
           ))}
         </div>
       </Container>
@@ -59,11 +62,11 @@ const FacultyStats = () => {
           </div>
           <div className="space-y-1">
             <h2 className="text-[12px] font-bold text-[#6B6684] uppercase tracking-[0.1em]">
-              Total Faculty
+              Total Students
             </h2>
             <div className="flex items-baseline gap-2">
               <p className="text-6xl font-black text-[#08384F] tracking-tight leading-none">
-                {stats.totalFaculty}
+                {stats.totalStudents}
               </p>
             </div>
           </div>
@@ -73,56 +76,56 @@ const FacultyStats = () => {
       <div className="col-span-14 grid grid-cols-2 gap-4">
         <div className="bg-[#D9EBFE] rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#59AAFF] rounded-xl flex items-center justify-center shrink-0">
-            <Crown size={22} className="text-white" />
+            <BookOpen size={22} className="text-white" />
           </div>
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase leading-none mb-1">
-              Deans & HODs
+              1st Year
             </h3>
             <p className="text-2xl font-bold text-[#08384F] leading-none">
-              {stats.deansAndHods}
+              {stats.yearWise.firstYear}
             </p>
           </div>
         </div>
 
         <div className="bg-[#D2F8ED] rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#58A08B] rounded-xl flex items-center justify-center shrink-0">
-            <GraduationCap size={22} className="text-white" />
+            <School size={22} className="text-white" />
           </div>
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase leading-none mb-1">
-              Professors
+              2nd Year
             </h3>
             <p className="text-2xl font-bold text-[#08384F] leading-none">
-              {stats.professors}
+              {stats.yearWise.secondYear}
             </p>
           </div>
         </div>
 
         <div className="bg-[#FFEED9] rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#FFA73A] rounded-xl flex items-center justify-center shrink-0">
-            <UserCheck size={22} className="text-white" />
+            <GraduationCap size={22} className="text-white" />
           </div>
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase leading-none mb-1">
-              Assoc. & Assist.
+              3rd Year
             </h3>
             <p className="text-2xl font-bold text-[#08384F] leading-none">
-              {stats.associateAssistant}
+              {stats.yearWise.thirdYear}
             </p>
           </div>
         </div>
 
         <div className="bg-[#F5F5F5] border border-gray-100 rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#707070] rounded-xl flex items-center justify-center shrink-0">
-            <UserCog size={22} className="text-white" />
+            <Award size={22} className="text-white" />
           </div>
           <div>
             <h3 className="text-xs font-semibold text-gray-500 uppercase leading-none mb-1">
-              Others
+              4th Year
             </h3>
             <p className="text-2xl font-bold text-[#08384F] leading-none">
-              {stats.others}
+              {stats.yearWise.fourthYear}
             </p>
           </div>
         </div>
@@ -131,4 +134,4 @@ const FacultyStats = () => {
   );
 };
 
-export default FacultyStats;
+export default StudentStats;

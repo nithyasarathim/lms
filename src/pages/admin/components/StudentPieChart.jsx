@@ -8,66 +8,66 @@ import {
   Legend,
 } from "recharts";
 import { ChevronDown, PieChart as PieIcon } from "lucide-react";
-import { getDepartments, getDeptWiseStats } from "../api/admin.api";
 
 const COLORS = ["#59AAFF", "#58A08B", "#FFA73A", "#707070"];
 
-let deptsCache = [];
-let pieStatsCache = {}; 
+const DUMMY_DEPTS = [
+  { _id: "1", code: "CSE", name: "Computer Science" },
+  { _id: "2", code: "ECE", name: "Electronics" },
+  { _id: "3", code: "MECH", name: "Mechanical" },
+];
 
-const FacultyPieChart = () => {
-  const [depts, setDepts] = useState(deptsCache);
-  const [selectedDeptId, setSelectedDeptId] = useState(deptsCache[0]?._id || "");
-  const [loading, setLoading] = useState(selectedDeptId ? !pieStatsCache[selectedDeptId] : true);
-  const [chartData, setChartData] = useState(pieStatsCache[selectedDeptId]?.chartData || []);
-  const [total, setTotal] = useState(pieStatsCache[selectedDeptId]?.total || 0);
+const DUMMY_STATS = {
+  1: {
+    total: 450,
+    yearWise: {
+      firstYear: 120,
+      secondYear: 110,
+      thirdYear: 120,
+      fourthYear: 100,
+    },
+  },
+  2: {
+    total: 320,
+    yearWise: { firstYear: 80, secondYear: 90, thirdYear: 75, fourthYear: 75 },
+  },
+  3: {
+    total: 280,
+    yearWise: { firstYear: 70, secondYear: 70, thirdYear: 70, fourthYear: 70 },
+  },
+};
+
+const StudentPieChart = () => {
+  const [depts, setDepts] = useState([]);
+  const [selectedDeptId, setSelectedDeptId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState([]);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const fetchDepts = async () => {
-      try {
-        const res = await getDepartments();
-        const deptList = res?.data?.departments || res || [];
-        if (deptList.length > 0) {
-          deptsCache = deptList;
-          setDepts(deptList);
-          if (!selectedDeptId) setSelectedDeptId(deptList[0]._id);
-        }
-      } catch (err) {
-        console.error("Error fetching departments", err);
-      }
-    };
-    fetchDepts();
+    setDepts(DUMMY_DEPTS);
+    setSelectedDeptId(DUMMY_DEPTS[0]._id);
   }, []);
 
   useEffect(() => {
-    const fetchDeptStats = async () => {
-      if (!selectedDeptId) return;
-      
-      if (!pieStatsCache[selectedDeptId]) setLoading(true);
-
-      try {
-        const res = await getDeptWiseStats(selectedDeptId);
-        if (res.success && res.data) {
-          const summary = res.data.categorySummary;
-          const formattedData = [
-            { name: "Deans & HODs", value: summary?.deansAndHods || 0 },
-            { name: "Professors", value: summary?.professors || 0 },
-            { name: "Assoc. & Assist.", value: summary?.associateAssistant || 0 },
-            { name: "Others", value: summary?.others || 0 },
-          ].filter((item) => item.value > 0);
-
-          pieStatsCache[selectedDeptId] = { chartData: formattedData, total: res.data.total || 0 };
-          
-          setChartData(formattedData);
-          setTotal(res.data.total || 0);
-        }
-      } catch (err) {
-        console.error("Error fetching stats", err);
-      } finally {
-        setLoading(false);
+    if (!selectedDeptId) return;
+    setLoading(true);
+    const timer = setTimeout(() => {
+      const res = DUMMY_STATS[selectedDeptId];
+      if (res) {
+        const { yearWise } = res;
+        const formattedData = [
+          { name: "1st Year", value: yearWise.firstYear },
+          { name: "2nd Year", value: yearWise.secondYear },
+          { name: "3rd Year", value: yearWise.thirdYear },
+          { name: "4th Year", value: yearWise.fourthYear },
+        ].filter((item) => item.value > 0);
+        setChartData(formattedData);
+        setTotal(res.total);
       }
-    };
-    fetchDeptStats();
+      setLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
   }, [selectedDeptId]);
 
   return (
@@ -78,7 +78,7 @@ const FacultyPieChart = () => {
             <PieIcon size={16} className="text-[#08384F]" />
           </div>
           <h3 className="text-[11px] font-bold text-[#08384F] uppercase tracking-wider">
-            Dept Stats
+            Year Distribution
           </h3>
         </div>
         <div className="relative">
@@ -101,24 +101,20 @@ const FacultyPieChart = () => {
       </div>
 
       <div className="flex-1 relative">
-        {loading && !pieStatsCache[selectedDeptId] ? (
+        {loading ? (
           <div className="w-full h-full bg-gray-100/50 rounded-xl animate-pulse" />
         ) : chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
-                innerRadius="70%"
+                innerRadius="65%"
                 outerRadius="95%"
                 paddingAngle={2}
                 dataKey="value"
-                cx="46%"
+                cx="45%"
                 cy="50%"
                 stroke="none"
-                isAnimationActive={true}
-                animationBegin={0}
-                animationDuration={800} 
-                animationEasing="ease-in-out"
               >
                 {chartData.map((entry, index) => (
                   <Cell
@@ -174,7 +170,7 @@ const FacultyPieChart = () => {
           </ResponsiveContainer>
         ) : (
           <div className="flex h-full items-center justify-center text-[11px] text-gray-400 font-medium">
-            No faculty data found
+            No student data found
           </div>
         )}
       </div>
@@ -182,4 +178,4 @@ const FacultyPieChart = () => {
   );
 };
 
-export default FacultyPieChart;
+export default StudentPieChart;

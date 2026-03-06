@@ -290,13 +290,36 @@ export const facultyBulkUpload = async (formData) => {
   }
 };
 
-
 export const deleteFaculty = async (facultyId) => {
   try {
-    const response = await apiClient.delete(`/api/faculty/${facultyId}`,)
+    const response = await apiClient.delete(`/api/faculty/${facultyId}`);
     return response.data;
-  }
-  catch (err) {
+  } catch (err) {
     throw err.response?.data || err.data;
   }
+};
+
+export const getStudentStats = async () => {
+  try {
+    const response = await apiClient.get(`/api/students/stats/year-wise`);
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.data;
+  }
+};
+
+export const updateStudent = async () => {
+
+}
+
+export const getStudentDeptStats = async () => {
+
+}
+
+export const createStudent = async () => {
+
+}
+
+export const getAllStudents = async () => {
+  
 }

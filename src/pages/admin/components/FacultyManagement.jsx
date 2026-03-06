@@ -4,7 +4,7 @@ import FacultyStats from "./FacultyStats";
 import FacultyPieChart from "./FacultyPieChart";
 import FacultyTable from "./FacultyTable";
 import AddFacultyModal from "../modal/AddFacultyModal";
-import InactivateFacultyModal from "../modal/InactivateFacultyModal";
+import FacultyStatusModal from "../modal/FacultyStatusModal";
 import { updateFaculty } from "../api/admin.api";
 import toast from "react-hot-toast";
 
@@ -32,7 +32,6 @@ const FacultyManagement = () => {
     setIsUpdating(true);
     try {
       const newStatus = !statusModal.data.isActive;
-      // Note: Backend expectation for status toggle should be verified (Boolean vs String)
       await updateFaculty(statusModal.data._id, { isActive: newStatus });
       toast.success(
         `Faculty ${newStatus ? "activated" : "deactivated"} successfully`,
@@ -50,11 +49,11 @@ const FacultyManagement = () => {
     <div className="min-h-screen font-['Poppins'] bg-gray-50/30">
       <HeaderComponent title="Faculty Management" />
       <div className="px-6 py-8 space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[30vh]">
-          <div className="lg:w-[70%] w-full flex">
+        <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[200px]">
+          <div className="lg:w-[70%] w-full">
             <FacultyStats />
           </div>
-          <div className="lg:w-[30%] w-full flex">
+          <div className="lg:w-[30%] w-full">
             <FacultyPieChart />
           </div>
         </div>
@@ -75,7 +74,7 @@ const FacultyManagement = () => {
           editData={editData}
         />
       )}
-      <InactivateFacultyModal
+      <FacultyStatusModal
         isOpen={statusModal.isOpen}
         onClose={() => setStatusModal({ isOpen: false, data: null })}
         onConfirm={handleStatusToggle}

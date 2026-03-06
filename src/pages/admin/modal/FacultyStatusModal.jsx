@@ -1,7 +1,7 @@
 import React from "react";
 import { Power, Loader2 } from "lucide-react";
 
-const InactivateFacultyModal = ({
+const FacultyStatusModal = ({
   isOpen,
   onClose,
   onConfirm,
@@ -61,4 +61,4 @@ const InactivateFacultyModal = ({
   );
 };
 
-export default InactivateFacultyModal;
+export default FacultyStatusModal;
