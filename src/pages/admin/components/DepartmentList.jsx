@@ -14,29 +14,37 @@ import {
 } from "lucide-react";
 import { getDepartments } from "../api/admin.api";
 
+let departmentCache = null;
+
 const DepartmentList = ({ basePath, filter = "" }) => {
-  const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState(departmentCache || []);
+  const [loading, setLoading] = useState(!departmentCache);
 
   useEffect(() => {
-    const fetchDepts = async () => {
-      try {
-        const response = await getDepartments();
-        const deptArray = Array.isArray(response)
-          ? response
-          : Array.isArray(response?.data)
-            ? response.data
-            : [];
-        setDepartments(deptArray);
-      } catch (err) {
-        console.error("Error fetching departments:", err);
-        setDepartments([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDepts();
   }, []);
+
+  const fetchDepts = async () => {
+    try {
+      if (!departmentCache) setLoading(true);
+      const response = await getDepartments();
+      const deptArray = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response?.data?.departments)
+            ? response.data.departments
+            : [];
+
+      departmentCache = deptArray;
+      setDepartments(deptArray);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+      if (!departmentCache) setDepartments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getIcon = (code) => {
     const iconMap = {
@@ -54,11 +62,13 @@ const DepartmentList = ({ basePath, filter = "" }) => {
     return iconMap[code?.toUpperCase()] || <BookOpen size={20} />;
   };
 
-  const filteredDepartments = departments.filter((dept) =>
-    dept?.name?.toLowerCase().includes(filter.toLowerCase()),
+  const filteredDepartments = departments.filter(
+    (dept) =>
+      dept?.name?.toLowerCase().includes(filter.toLowerCase()) ||
+      dept?.code?.toLowerCase().includes(filter.toLowerCase()),
   );
 
-  if (loading) {
+  if (loading && !departmentCache) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6">
         {Array.from({ length: 10 }).map((_, i) => (
@@ -109,6 +119,11 @@ const DepartmentList = ({ basePath, filter = "" }) => {
           </Link>
         );
       })}
+      {filteredDepartments.length === 0 && !loading && (
+        <div className="col-span-full py-10 text-center text-gray-400">
+          No departments found.
+        </div>
+      )}
     </div>
   );
 };

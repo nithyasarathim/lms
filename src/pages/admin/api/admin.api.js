@@ -308,6 +308,35 @@ export const getStudentStats = async () => {
   }
 };
 
+
+export const getAllAcademicYears = async () => {
+  try {
+    const response = await apiClient.get(`/api/academic-years`,)
+    return response.data;
+  } catch (error) {
+    throw err.response?.data || err.data;
+  }
+}
+
+export const AddAcademicYear = async (formData) => {
+  try {
+    const response = await apiClient.post(`/api/academic-years`,formData)
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.data;
+  }
+}
+
+export const updateAcademicYear = async (academicCalendarId, formdata) => {
+  try {
+    const response = await apiClient.put(`/api/academic-years/${academicCalendarId}`, formdata)
+    return response.data;
+  } catch (err) {
+    throw err.response?.data||err.data
+  }
+}
+
+
 export const updateStudent = async () => {
 
 }

@@ -15,8 +15,24 @@ const RegulationManagement = () => {
   const [regulations, setRegulations] = useState([]);
 
   const selectedDeptId = searchParams.get("deptId");
-  const selectedRegId = searchParams.get("regulationId") || "";
+  const [selectedRegId, setSelectedRegId] = useState(
+    searchParams.get("regulationId") ||
+      sessionStorage.getItem("selectedRegId") ||
+      "",
+  );
+
   const currentPath = window.location.pathname;
+  useEffect(() => {
+    const urlRegId = searchParams.get("regulationId");
+    const cachedRegId = sessionStorage.getItem("selectedRegId");
+
+    if (!urlRegId && cachedRegId) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("regulationId", cachedRegId);
+      setSearchParams(newParams);
+      setSelectedRegId(cachedRegId);
+    }
+  }, []);
 
   useEffect(() => {
     const loadRegulations = async () => {
@@ -33,10 +49,15 @@ const RegulationManagement = () => {
   const handleRegulationChange = (e) => {
     const regId = e.target.value;
     const newParams = new URLSearchParams(searchParams);
+
     if (regId) {
       newParams.set("regulationId", regId);
+      sessionStorage.setItem("selectedRegId", regId); 
+      setSelectedRegId(regId);
     } else {
       newParams.delete("regulationId");
+      sessionStorage.removeItem("selectedRegId"); 
+      setSelectedRegId("");
     }
     setSearchParams(newParams);
   };
@@ -58,7 +79,7 @@ const RegulationManagement = () => {
   };
 
   return (
-    <section className="flex w-full h-screen overflow-hidden relative ">
+    <section className="flex w-full h-screen overflow-hidden relative">
       <div className="w-full h-full flex flex-col">
         <HeaderComponent title="Regulation Management" />
         <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
