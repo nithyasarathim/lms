@@ -226,7 +226,7 @@ const StudentTable = ({
   );
 
   return (
-    <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-350px)] min-h-[400px] font-['Poppins'] relative">
+    <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-300px)] min-h-[400px] font-['Poppins'] relative">
       <div className="px-8 py-5 border-b border-gray-50 bg-white print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">

@@ -76,7 +76,7 @@ const StudentManagement = () => {
   };
 
   return (
-    <div className=" overflow-hidden  font-['Poppins'] bg-gray-50/30">
+    <div className=" overflow-hidden font-['Poppins'] bg-gray-50/30">
       <HeaderComponent
         title="Student Management"
         showAcademicYear={true}
