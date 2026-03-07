@@ -96,6 +96,7 @@ const StudentManagement = () => {
       </div>
       {isCanvas && (
         <AddStudentModal
+          academicYearId={selectedYear}
           onClose={() => setIsCanvas(false)}
           isEdit={isEdit}
           editData={editData}

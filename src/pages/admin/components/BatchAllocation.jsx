@@ -206,16 +206,16 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
             </div>
 
             <div
-              className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-xl transition-all duration-500 border-2 ${
+              className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm transition-all duration-500 border-2 ${
                 shouldHighlightReg
-                  ? "relative z-[50] border-sky-500 ring-8 ring-sky-500/20 animate-pulse scale-110"
+                  ? "relative z-[50] border-[#08384F] ring-8 ring-[#08384F]/20 animate-pulse scale-110"
                   : "border-gray-100"
               }`}
             >
               <BookMarked
                 size={16}
                 className={
-                  shouldHighlightReg ? "text-sky-500" : "text-gray-400"
+                  shouldHighlightReg ? "text-[#08384F]" : "text-gray-400"
                 }
               />
               <span className="text-[10px] text-gray-400 font-bold uppercase">

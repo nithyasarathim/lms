@@ -328,6 +328,17 @@ export const AddAcademicYear = async (formData) => {
   }
 };
 
+export const getAcademicYear = async (academicYearId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/academic-years/${academicYearId}`,
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.data;
+  }
+};
+
 export const updateAcademicYear = async (academicCalendarId, formdata) => {
   try {
     const response = await apiClient.put(
@@ -363,11 +374,19 @@ export const getStudentByDeptStats = async (departmentId, academicYearId) => {
     const response = await apiClient.get(
       `api/students/stats/department-wise?academicYearId=${academicYearId}&departmentId=${departmentId}`,
     );
-    console.log(response.data);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
   }
 };
 
-export const getAllStudents = async () => {};
+export const getAllStudents = async (academicYearId) => {
+  try {
+    const response = await apiClient.get(
+      `api/students?academicYearId=${academicYearId}`,
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

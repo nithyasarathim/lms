@@ -15,14 +15,22 @@ import {
   fetchBatch,
   getBatchProgram,
   getSections,
+  getAcademicYear,
 } from "../api/admin.api";
 import toast from "react-hot-toast";
 
-const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
+const AddStudentModal = ({
+  academicYearId,
+  onClose,
+  isEdit,
+  editData,
+  handleApicall,
+}) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("single");
   const [departments, setDepartments] = useState([]);
   const [batches, setBatches] = useState([]);
+  const [academicYear, setacademicYear] = useState(null);
   const [sections, setSections] = useState([]);
   const [loadingSections, setLoadingSections] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +45,7 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
     sectionId: "",
     semesterNumber: "",
     gender: "",
-    dob: "",
+    dateOfBirth: "",
     email: "",
     password: "sece@123",
   });
@@ -45,18 +53,20 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [deptRes, batchRes] = await Promise.all([
+        const [deptRes, batchRes, academicYearRes] = await Promise.all([
           getDepartments(),
           fetchBatch(),
+          getAcademicYear(academicYearId),
         ]);
         setDepartments(deptRes?.data?.departments || deptRes || []);
         setBatches(batchRes?.data?.batches || batchRes || []);
+        setacademicYear(academicYearRes?.data?.academicYear);
       } catch (err) {
         console.error("Initialization error:", err);
       }
     };
     loadInitialData();
-  }, []);
+  }, [academicYearId]);
 
   useEffect(() => {
     const fetchLinkedData = async () => {
@@ -91,15 +101,17 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
       setFormData({
         firstName: editData.firstName || "",
         lastName: editData.lastName || "",
-        registerNumber: editData.studentId || "",
+        registerNumber: editData.registerNumber || "",
         rollNumber: editData.rollNumber || "",
-        departmentId: editData.departmentId?._id || "",
-        batchId: editData.batchId?._id || "",
-        sectionId: editData.sectionId?._id || editData.sectionId || "",
-        semesterNumber: editData.currentSemester || "",
-        gender: editData.gender || "",
-        dob: editData.dob ? editData.dob.split("T")[0] : "",
-        email: editData.userId?.email || "",
+        departmentId: editData.department?._id || "",
+        batchId: editData.batch?._id || "",
+        sectionId: editData.section?._id || editData.sectionId || "",
+        semesterNumber: editData.semesterNumber || "",
+        gender: editData.user?.gender || "",
+        dateOfBirth: editData.user?.dateOfBirth
+          ? editData.user.dateOfBirth.split("T")[0]
+          : "",
+        email: editData.user?.email || "",
         password: "sece@123",
       });
     }
@@ -108,6 +120,30 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const getAvailableSemesters = () => {
+    if (!formData.batchId || !academicYear) return [];
+
+    const selectedBatch = batches.find((b) => b._id === formData.batchId);
+    if (!selectedBatch) return [];
+
+    const batchStart = selectedBatch.startYear;
+    const acadStart = academicYear.startYear;
+
+    const diffInYears = acadStart - batchStart;
+
+    if (diffInYears < 0) return [];
+
+    const semStart = diffInYears * 2 + 1;
+    const semEnd = semStart + 1;
+
+    const totalPossibleSems = selectedBatch.programDuration * 2;
+    const result = [];
+    if (semStart <= totalPossibleSems) result.push(semStart);
+    if (semEnd <= totalPossibleSems) result.push(semEnd);
+
+    return result;
   };
 
   const handleRedirectToManagement = () => {
@@ -163,6 +199,8 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
       },
     );
   };
+
+  const availableSemesters = getAvailableSemesters();
 
   return (
     <>
@@ -313,7 +351,7 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
                     <button
                       type="button"
                       onClick={handleRedirectToManagement}
-                      className="flex items-center gap-2 w-full px-17 py-2 bg-white border border-[#08384F] text-[#08384F] rounded-xl text-[10px] text-center font-bold uppercase hover:bg-sky-50 transition-all text-left"
+                      className="flex items-center gap-2 w-full px-4 py-2 bg-white border border-[#08384F] text-[#08384F] rounded-xl text-[10px] text-center font-bold uppercase hover:bg-sky-50 transition-all text-left"
                     >
                       <AlertCircle size={14} />
                       Setup Sections
@@ -339,13 +377,20 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
                     Semester
                   </label>
-                  <input
-                    type="number"
+                  <select
                     name="semesterNumber"
                     value={formData.semesterNumber}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
-                  />
+                    disabled={!formData.batchId}
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer disabled:opacity-50"
+                  >
+                    <option value="">Select Semester</option>
+                    {availableSemesters.map((sem) => (
+                      <option key={sem} value={sem}>
+                        Semester {sem}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -372,8 +417,8 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
                   </label>
                   <input
                     type="date"
-                    name="dob"
-                    value={formData.dob}
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
                     onChange={handleChange}
                     className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   />
@@ -443,9 +488,10 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
             onClick={handleSubmit}
             disabled={
               activeTab === "single" &&
-              formData.departmentId &&
-              formData.batchId &&
-              sections.length === 0
+              (!formData.departmentId ||
+                !formData.batchId ||
+                sections.length === 0 ||
+                !formData.semesterNumber)
             }
           >
             {isEdit
