@@ -4,6 +4,7 @@ import {
   Loader2,
   ChevronDown,
   BookMarked,
+  CheckCircle2,
   AlertTriangle,
   Plus,
   Layers,
@@ -38,6 +39,9 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const [statusModal, setStatusModal] = useState({ isOpen: false, data: null });
   const [actionLoading, setActionLoading] = useState(false);
 
+  const shouldHighlightReg =
+    searchParams.get("highlight") === "reg" && !batchProgramId;
+
   useEffect(() => {
     const init = async () => {
       if (!deptId || !batchId) return;
@@ -51,18 +55,19 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
           const bp = bpRes.data.batchProgram;
           setDeptData(bp.departmentId);
 
-          if (bpRes.success) {
+          if (bpRes.success && bp._id) {
             setBatchProgramId(bp._id);
             setSelectedReg(bp.regulationId?._id || bp.regulationId);
           } else {
             setBatchProgramId(null);
             setSelectedReg("");
           }
+        } else {
+          setBatchProgramId(null);
         }
       } catch (err) {
+        console.error("Fetch Error:", err);
         setBatchProgramId(null);
-        setSelectedReg("");
-        setDeptData(null);
       } finally {
         setLoading(false);
       }
@@ -70,11 +75,20 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
     init();
   }, [deptId, batchId]);
 
+  const removeHighlightParam = () => {
+    if (searchParams.get("highlight")) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("highlight");
+      setSearchParams(newParams);
+    }
+  };
+
   const handleRegSelect = (e) => {
     const val = e.target.value;
     if (!val) return;
     setSelectedReg(val);
     setShowConfirm(true);
+    removeHighlightParam();
   };
 
   const handleConfirmRegulation = async () => {
@@ -93,7 +107,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
           const bp = bpRes.data.batchProgram;
           setBatchProgramId(bp._id);
           setSelectedReg(bp.regulationId?._id);
-          setDeptData(bp.departmentId);
+          removeHighlightParam();
         }
       }
       setShowConfirm(false);
@@ -144,13 +158,21 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const handleBack = () => {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete("deptId");
+    newParams.delete("highlight");
     setSearchParams(newParams);
   };
 
   const selectedRegName = regulations.find((r) => r._id === selectedReg)?.name;
 
   return (
-    <div className="px-6 py-6 font-['Poppins'] w-full">
+    <div className="relative px-6 py-6 font-['Poppins'] w-full min-h-screen">
+      {shouldHighlightReg && (
+        <div
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-[2px] z-[40] transition-all duration-500"
+          onClick={removeHighlightParam}
+        />
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div className="flex flex-wrap items-center gap-4">
           <button
@@ -183,8 +205,19 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
               </span>
             </div>
 
-            <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-              <BookMarked size={16} className="text-gray-400" />
+            <div
+              className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-xl transition-all duration-500 border-2 ${
+                shouldHighlightReg
+                  ? "relative z-[50] border-sky-500 ring-8 ring-sky-500/20 animate-pulse scale-110"
+                  : "border-gray-100"
+              }`}
+            >
+              <BookMarked
+                size={16}
+                className={
+                  shouldHighlightReg ? "text-sky-500" : "text-gray-400"
+                }
+              />
               <span className="text-[10px] text-gray-400 font-bold uppercase">
                 Reg
               </span>
@@ -197,6 +230,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
                   <select
                     value={selectedReg}
                     onChange={handleRegSelect}
+                    onFocus={removeHighlightParam}
                     className="appearance-none bg-transparent pr-5 font-bold text-xs text-[#08384F] outline-none cursor-pointer uppercase"
                   >
                     <option value="">Select</option>
@@ -219,11 +253,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         <button
           onClick={() => setIsAddModalOpen(true)}
           disabled={!batchProgramId}
-          className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            batchProgramId
-              ? "bg-[#08384F] text-white hover:bg-[#0a4763] shadow-md"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          }`}
+          className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all bg-[#08384F] text-white hover:bg-[#0a4763] shadow-md active:scale-95 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
         >
           <Plus size={18} strokeWidth={2.5} /> Add Section
         </button>
@@ -231,7 +261,11 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
 
       <div className="w-full">
         <div
-          className={`bg-white border border-gray-100 rounded-3xl shadow-sm min-h-[550px] w-full flex flex-col ${!batchProgramId || loading ? "items-center justify-center p-20" : "p-6"}`}
+          className={`bg-white border border-gray-100 rounded-3xl shadow-sm min-h-[500px] w-full flex flex-col ${
+            !batchProgramId || loading
+              ? "items-center justify-center p-20"
+              : "p-6"
+          }`}
         >
           {loading ? (
             <Loader2 className="animate-spin text-[#08384F]" size={48} />
@@ -248,11 +282,10 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
             />
           ) : (
             <div className="text-center space-y-4">
-              <BookMarked
-                size={42}
-                className="mx-auto text-gray-500 bg-gray-50 p-3 rounded-2xl"
-              />
-              <h3 className="text-lg font-semibold text-gray-800">
+              <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-2xl bg-gray-50 text-gray-400">
+                <BookMarked size={42} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 tracking-tight">
                 Regulation Required
               </h3>
               <p className="text-sm text-gray-400 max-w-xs mx-auto">
@@ -267,6 +300,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         </div>
       </div>
 
+      
       {showConfirm && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
@@ -310,7 +344,6 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         batchProgramId={batchProgramId}
         onSuccess={() => setRefreshKey((prev) => prev + 1)}
       />
-
       <EditSectionModal
         isOpen={editModal.isOpen}
         section={editModal.data}
@@ -318,7 +351,6 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         onSave={handleUpdateSection}
         loading={actionLoading}
       />
-
       <StatusConfirmationModal
         isOpen={statusModal.isOpen}
         section={statusModal.data}
@@ -331,3 +363,4 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
 };
 
 export default BatchAllocation;
+

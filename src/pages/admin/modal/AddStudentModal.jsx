@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { X, UploadCloud, Loader2, Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  X,
+  UploadCloud,
+  Loader2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+} from "lucide-react";
 import {
   createStudent,
   updateStudent,
@@ -11,6 +19,7 @@ import {
 import toast from "react-hot-toast";
 
 const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("single");
   const [departments, setDepartments] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -62,7 +71,8 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
 
           if (bpId) {
             const secRes = await getSections(bpId);
-            setSections(secRes?.data?.sections || secRes || []);
+            const sectionList = secRes?.data?.sections || secRes || [];
+            setSections(sectionList);
           } else {
             setSections([]);
           }
@@ -90,7 +100,7 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
         gender: editData.gender || "",
         dob: editData.dob ? editData.dob.split("T")[0] : "",
         email: editData.userId?.email || "",
-        password: editData.password || "sece@123",
+        password: "sece@123",
       });
     }
   }, [isEdit, editData]);
@@ -98,6 +108,14 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleRedirectToManagement = () => {
+    const { batchId, departmentId } = formData;
+    navigate(
+      `/admin/dashboard?tab=batch-management&batchId=${batchId}&deptId=${departmentId}&highlight=reg`,
+    );
+    onClose();
   };
 
   const handleSubmit = async () => {
@@ -288,20 +306,34 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
                       <Loader2 size={10} className="animate-spin" />
                     )}
                   </label>
-                  <select
-                    name="sectionId"
-                    value={formData.sectionId}
-                    onChange={handleChange}
-                    disabled={!sections.length}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none disabled:opacity-50 cursor-pointer"
-                  >
-                    <option value="">Select Section</option>
-                    {sections.map((sec) => (
-                      <option key={sec._id} value={sec._id}>
-                        {sec.name}
-                      </option>
-                    ))}
-                  </select>
+                  {formData.departmentId &&
+                  formData.batchId &&
+                  !loadingSections &&
+                  sections.length === 0 ? (
+                    <button
+                      type="button"
+                      onClick={handleRedirectToManagement}
+                      className="flex items-center gap-2 w-full px-17 py-2 bg-white border border-[#08384F] text-[#08384F] rounded-xl text-[10px] text-center font-bold uppercase hover:bg-sky-50 transition-all text-left"
+                    >
+                      <AlertCircle size={14} />
+                      Setup Sections
+                    </button>
+                  ) : (
+                    <select
+                      name="sectionId"
+                      value={formData.sectionId}
+                      onChange={handleChange}
+                      disabled={!sections.length}
+                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none disabled:opacity-50 cursor-pointer"
+                    >
+                      <option value="">Select Section</option>
+                      {sections.map((sec) => (
+                        <option key={sec._id} value={sec._id}>
+                          {sec.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
@@ -407,8 +439,14 @@ const AddStudentModal = ({ onClose, isEdit, editData, handleApicall }) => {
             Cancel
           </button>
           <button
-            className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-900/10 hover:bg-[#0b4a68] transition-all"
+            className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-900/10 hover:bg-[#0b4a68] transition-all disabled:opacity-50"
             onClick={handleSubmit}
+            disabled={
+              activeTab === "single" &&
+              formData.departmentId &&
+              formData.batchId &&
+              sections.length === 0
+            }
           >
             {isEdit
               ? "Update Changes"
