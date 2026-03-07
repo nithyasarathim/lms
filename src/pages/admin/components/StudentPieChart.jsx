@@ -7,37 +7,12 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { ChevronDown, PieChart as PieIcon } from "lucide-react";
+import { ChevronDown, PieChart as PieIcon, Ban } from "lucide-react";
+import { getDepartments, getStudentByDeptStats } from "../api/admin.api";
 
 const COLORS = ["#59AAFF", "#58A08B", "#FFA73A", "#707070"];
 
-const DUMMY_DEPTS = [
-  { _id: "1", code: "CSE", name: "Computer Science" },
-  { _id: "2", code: "ECE", name: "Electronics" },
-  { _id: "3", code: "MECH", name: "Mechanical" },
-];
-
-const DUMMY_STATS = {
-  1: {
-    total: 450,
-    yearWise: {
-      firstYear: 120,
-      secondYear: 110,
-      thirdYear: 120,
-      fourthYear: 100,
-    },
-  },
-  2: {
-    total: 320,
-    yearWise: { firstYear: 80, secondYear: 90, thirdYear: 75, fourthYear: 75 },
-  },
-  3: {
-    total: 280,
-    yearWise: { firstYear: 70, secondYear: 70, thirdYear: 70, fourthYear: 70 },
-  },
-};
-
-const StudentPieChart = () => {
+const StudentPieChart = ({ academicYearId }) => {
   const [depts, setDepts] = useState([]);
   const [selectedDeptId, setSelectedDeptId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -45,36 +20,60 @@ const StudentPieChart = () => {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    setDepts(DUMMY_DEPTS);
-    setSelectedDeptId(DUMMY_DEPTS[0]._id);
+    const fetchDepts = async () => {
+      try {
+        const res = await getDepartments();
+        const deptList = res?.data?.departments || res || [];
+        if (deptList.length > 0) {
+          setDepts(deptList);
+          setSelectedDeptId(deptList[0]._id);
+        }
+      } catch (err) {
+        console.error("Error fetching departments", err);
+      }
+    };
+    fetchDepts();
   }, []);
 
   useEffect(() => {
-    if (!selectedDeptId) return;
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const res = DUMMY_STATS[selectedDeptId];
-      if (res) {
-        const { yearWise } = res;
-        const formattedData = [
-          { name: "1st Year", value: yearWise.firstYear },
-          { name: "2nd Year", value: yearWise.secondYear },
-          { name: "3rd Year", value: yearWise.thirdYear },
-          { name: "4th Year", value: yearWise.fourthYear },
-        ].filter((item) => item.value > 0);
-        setChartData(formattedData);
-        setTotal(res.total);
+    const fetchStats = async () => {
+      if (!selectedDeptId || !academicYearId) return;
+      setLoading(true);
+      try {
+        const res = await getStudentByDeptStats(selectedDeptId, academicYearId);
+        if (res.success && res.data) {
+          const deptStats = res.data.departments?.find(
+            (d) => d.departmentId === selectedDeptId,
+          );
+
+          const formattedData = [
+            { name: "1st Year", value: deptStats?.yearWise?.firstYear || 0 },
+            { name: "2nd Year", value: deptStats?.yearWise?.secondYear || 0 },
+            { name: "3rd Year", value: deptStats?.yearWise?.thirdYear || 0 },
+            { name: "4th Year", value: deptStats?.yearWise?.fourthYear || 0 },
+          ];
+
+          setChartData(formattedData);
+          setTotal(deptStats?.totalStudents || 0);
+        }
+      } catch (err) {
+        console.error("Error fetching stats", err);
+        setChartData([]);
+        setTotal(0);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [selectedDeptId]);
+    };
+    fetchStats();
+  }, [selectedDeptId, academicYearId]);
+
+  const hasData = total > 0;
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm h-full flex flex-col w-full overflow-hidden font-['Poppins']">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-gray-50 rounded-lg">
+          <div className="p-1.5 bg-gray-100 rounded-lg">
             <PieIcon size={16} className="text-[#08384F]" />
           </div>
           <h3 className="text-[11px] font-bold text-[#08384F] uppercase tracking-wider">
@@ -85,7 +84,7 @@ const StudentPieChart = () => {
           <select
             value={selectedDeptId}
             onChange={(e) => setSelectedDeptId(e.target.value)}
-            className="appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-2 pr-6 py-1 text-[10px] font-bold text-[#08384F] outline-none cursor-pointer min-w-[80px]"
+            className="appearance-none bg-gray-100 border border-gray-200 rounded-lg pl-2 pr-6 py-1 text-[10px] font-bold text-[#08384F] outline-none cursor-pointer min-w-[80px]"
           >
             {depts.map((d) => (
               <option key={d._id} value={d._id}>
@@ -102,8 +101,10 @@ const StudentPieChart = () => {
 
       <div className="flex-1 relative">
         {loading ? (
-          <div className="w-full h-full bg-gray-100/50 rounded-xl animate-pulse" />
-        ) : chartData.length > 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div className="w-full h-full bg-gray-50 rounded-xl animate-pulse" />
+          </div>
+        ) : hasData ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -119,7 +120,11 @@ const StudentPieChart = () => {
                 {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={
+                      entry.value > 0
+                        ? COLORS[index % COLORS.length]
+                        : "#d7d7d7ff"
+                    }
                     stroke="none"
                   />
                 ))}
@@ -169,8 +174,13 @@ const StudentPieChart = () => {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex h-full items-center justify-center text-[11px] text-gray-400 font-medium">
-            No student data found
+          <div className="flex flex-col h-full items-center justify-center gap-2">
+            <div className="p-3 bg-gray-50 rounded-full text-gray-300">
+              <Ban size={24} />
+            </div>
+            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+              No Students Found
+            </p>
           </div>
         )}
       </div>

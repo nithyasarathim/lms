@@ -299,56 +299,75 @@ export const deleteFaculty = async (facultyId) => {
   }
 };
 
-export const getStudentStats = async () => {
+export const getStudentStats = async (academicYearId) => {
   try {
-    const response = await apiClient.get(`/api/students/stats/year-wise`);
+    const response = await apiClient.get(
+      `/api/students/stats/year-wise?academicYearId=${academicYearId}`,
+    );
     return response.data;
   } catch (err) {
     throw err.response?.data || err.data;
   }
 };
 
-
 export const getAllAcademicYears = async () => {
   try {
-    const response = await apiClient.get(`/api/academic-years`,)
+    const response = await apiClient.get(`/api/academic-years`);
     return response.data;
   } catch (error) {
     throw err.response?.data || err.data;
   }
-}
+};
 
 export const AddAcademicYear = async (formData) => {
   try {
-    const response = await apiClient.post(`/api/academic-years`,formData)
+    const response = await apiClient.post(`/api/academic-years`, formData);
     return response.data;
   } catch (err) {
     throw err.response?.data || err.data;
   }
-}
+};
 
 export const updateAcademicYear = async (academicCalendarId, formdata) => {
   try {
-    const response = await apiClient.put(`/api/academic-years/${academicCalendarId}`, formdata)
+    const response = await apiClient.put(
+      `/api/academic-years/${academicCalendarId}`,
+      formdata,
+    );
     return response.data;
   } catch (err) {
-    throw err.response?.data||err.data
+    throw err.response?.data || err.data;
   }
-}
+};
 
+export const createStudent = async (formData) => {
+  try {
+    const response = await apiClient.post(`api/students`, formData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
 
-export const updateStudent = async () => {
+export const updateStudent = async (studentId, formData) => {
+  try {
+    const response = await apiClient.put(`api/students/${studentId}`, formData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
 
-}
+export const getStudentByDeptStats = async (departmentId, academicYearId) => {
+  try {
+    const response = await apiClient.get(
+      `api/students/stats/department-wise?academicYearId=${academicYearId}&departmentId=${departmentId}`,
+    );
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
 
-export const getStudentDeptStats = async () => {
-
-}
-
-export const createStudent = async () => {
-
-}
-
-export const getAllStudents = async () => {
-  
-}
+export const getAllStudents = async () => {};

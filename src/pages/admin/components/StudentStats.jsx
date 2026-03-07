@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Users, BookOpen, School, GraduationCap, Award } from "lucide-react";
 import { getStudentStats } from "../api/admin.api";
 
-const StudentStats = () => {
+const StudentStats = ({ academicYearId }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -16,9 +16,10 @@ const StudentStats = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (!academicYearId) return;
       try {
         setLoading(true);
-        const res = await getStudentStats();
+        const res = await getStudentStats(academicYearId);
         if (res.success) {
           setStats(res.data);
         }
@@ -29,7 +30,7 @@ const StudentStats = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [academicYearId]);
 
   const Container = ({ children }) => (
     <section className="w-full h-[200px] font-['Poppins']">
@@ -56,6 +57,7 @@ const StudentStats = () => {
   return (
     <Container>
       <div className="col-span-6 relative overflow-hidden flex flex-col justify-center bg-gradient-to-br from-[#DED9F9] to-[#F2F0FF] rounded-2xl py-6 px-8 transition-all hover:shadow-lg group">
+       
         <div className="relative z-10 space-y-5">
           <div className="w-14 h-14 bg-white text-[#927DFF] rounded-2xl flex items-center justify-center shadow-sm border border-[#927DFF]/10">
             <Users size={28} strokeWidth={2.5} />
