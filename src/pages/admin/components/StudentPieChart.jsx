@@ -12,19 +12,36 @@ import { getDepartments, getStudentByDeptStats } from "../api/admin.api";
 
 const COLORS = ["#59AAFF", "#58A08B", "#FFA73A", "#707070"];
 
+let deptsCache = [];
+let pieStatsCache = {};
+
 const StudentPieChart = ({ academicYearId }) => {
-  const [depts, setDepts] = useState([]);
-  const [selectedDeptId, setSelectedDeptId] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [chartData, setChartData] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [depts, setDepts] = useState(deptsCache);
+  const [selectedDeptId, setSelectedDeptId] = useState(
+    deptsCache[0]?._id || "",
+  );
+
+  const cacheKey = `${selectedDeptId}_${academicYearId}`;
+
+  const [loading, setLoading] = useState(!pieStatsCache[cacheKey]);
+  const [chartData, setChartData] = useState(
+    pieStatsCache[cacheKey]?.chartData || [],
+  );
+  const [total, setTotal] = useState(pieStatsCache[cacheKey]?.total || 0);
 
   useEffect(() => {
     const fetchDepts = async () => {
+      if (deptsCache.length > 0) {
+        setDepts(deptsCache);
+        if (!selectedDeptId) setSelectedDeptId(deptsCache[0]._id);
+        return;
+      }
+
       try {
         const res = await getDepartments();
         const deptList = res?.data?.departments || res || [];
         if (deptList.length > 0) {
+          deptsCache = deptList;
           setDepts(deptList);
           setSelectedDeptId(deptList[0]._id);
         }
@@ -38,7 +55,18 @@ const StudentPieChart = ({ academicYearId }) => {
   useEffect(() => {
     const fetchStats = async () => {
       if (!selectedDeptId || !academicYearId) return;
+
+      const key = `${selectedDeptId}_${academicYearId}`;
+
+      if (pieStatsCache[key]) {
+        setChartData(pieStatsCache[key].chartData);
+        setTotal(pieStatsCache[key].total);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+
       try {
         const res = await getStudentByDeptStats(selectedDeptId, academicYearId);
         if (res.success && res.data) {
@@ -52,6 +80,11 @@ const StudentPieChart = ({ academicYearId }) => {
             { name: "3rd Year", value: deptStats?.yearWise?.thirdYear || 0 },
             { name: "4th Year", value: deptStats?.yearWise?.fourthYear || 0 },
           ];
+
+          pieStatsCache[key] = {
+            chartData: formattedData,
+            total: deptStats?.totalStudents || 0,
+          };
 
           setChartData(formattedData);
           setTotal(deptStats?.totalStudents || 0);
@@ -100,7 +133,7 @@ const StudentPieChart = ({ academicYearId }) => {
       </div>
 
       <div className="flex-1 relative">
-        {loading ? (
+        {loading && !pieStatsCache[cacheKey] ? (
           <div className="absolute inset-0 flex items-center justify-center p-6">
             <div className="w-full h-full bg-gray-50 rounded-xl animate-pulse" />
           </div>

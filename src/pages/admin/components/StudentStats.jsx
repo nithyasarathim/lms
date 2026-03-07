@@ -22,6 +22,13 @@ const StudentStats = ({ academicYearId }) => {
   useEffect(() => {
     const fetchStats = async () => {
       if (!academicYearId) return;
+
+      if (globalStudentCache[cacheKey]) {
+        setStats(globalStudentCache[cacheKey]);
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await getStudentStats(academicYearId);
         if (res.success) {

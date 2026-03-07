@@ -16,12 +16,19 @@ const StudentManagement = () => {
   const [editData, setEditData] = useState(null);
   const [statusModal, setStatusModal] = useState({ isOpen: false, data: null });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [academicYears, setAcademicYears] = useState(yearsCache || []);
   const [selectedYear, setSelectedYear] = useState("");
 
   useEffect(() => {
     const fetchYears = async () => {
+      if (yearsCache) {
+        setAcademicYears(yearsCache);
+        const active = yearsCache.find((y) => y.isActive) || yearsCache[0];
+        if (active && !selectedYear) setSelectedYear(active._id);
+        return;
+      }
       try {
         const res = await getAllAcademicYears();
         if (res.success && res.data?.academicYears) {
@@ -36,7 +43,7 @@ const StudentManagement = () => {
       }
     };
     fetchYears();
-  }, [selectedYear]);
+  }, []);
 
   const handleAddClick = () => {
     setIsEdit(false);
@@ -60,7 +67,7 @@ const StudentManagement = () => {
         `Student ${newStatus ? "activated" : "deactivated"} successfully`,
       );
       setStatusModal({ isOpen: false, data: null });
-      window.location.reload();
+      setRefreshKey((prev) => prev + 1);
     } catch (err) {
       toast.error(err.message || "Failed to update status");
     } finally {
@@ -80,14 +87,21 @@ const StudentManagement = () => {
       <div className=" py-8 px-6 min-h-screen space-y-6">
         <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
           <div className="lg:w-[70%] w-full flex">
-            <StudentStats academicYearId={selectedYear} />
+            <StudentStats
+              key={`stats-${refreshKey}`}
+              academicYearId={selectedYear}
+            />
           </div>
           <div className="lg:w-[30%] w-full flex">
-            <StudentPieChart academicYearId={selectedYear} />
+            <StudentPieChart
+              key={`pie-${refreshKey}`}
+              academicYearId={selectedYear}
+            />
           </div>
         </div>
         <div className="lg:w-[100%] w-full">
           <StudentTable
+            key={`table-${refreshKey}`}
             academicYearId={selectedYear}
             onAddClick={handleAddClick}
             onEditClick={handleEditClick}
@@ -103,7 +117,7 @@ const StudentManagement = () => {
           onClose={() => setIsCanvas(false)}
           isEdit={isEdit}
           editData={editData}
-          handleApicall={() => window.location.reload()}
+          handleApicall={() => setRefreshKey((prev) => prev + 1)}
         />
       )}
       <StudentStatusModal
