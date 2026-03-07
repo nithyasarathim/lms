@@ -2,25 +2,30 @@ import React, { useState, useEffect } from "react";
 import { Users, BookOpen, School, GraduationCap, Award } from "lucide-react";
 import { getStudentStats } from "../api/admin.api";
 
+let globalStudentCache = {};
+
 const StudentStats = ({ academicYearId }) => {
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalStudents: 0,
-    yearWise: {
-      firstYear: 0,
-      secondYear: 0,
-      thirdYear: 0,
-      fourthYear: 0,
+  const cacheKey = academicYearId || "default";
+  const [loading, setLoading] = useState(!globalStudentCache[cacheKey]);
+  const [stats, setStats] = useState(
+    globalStudentCache[cacheKey] || {
+      totalStudents: 0,
+      yearWise: {
+        firstYear: 0,
+        secondYear: 0,
+        thirdYear: 0,
+        fourthYear: 0,
+      },
     },
-  });
+  );
 
   useEffect(() => {
     const fetchStats = async () => {
       if (!academicYearId) return;
       try {
-        setLoading(true);
         const res = await getStudentStats(academicYearId);
         if (res.success) {
+          globalStudentCache[cacheKey] = res.data;
           setStats(res.data);
         }
       } catch (err) {
@@ -30,7 +35,7 @@ const StudentStats = ({ academicYearId }) => {
       }
     };
     fetchStats();
-  }, [academicYearId]);
+  }, [academicYearId, cacheKey]);
 
   const Container = ({ children }) => (
     <section className="w-full h-[200px] font-['Poppins']">
@@ -38,7 +43,7 @@ const StudentStats = ({ academicYearId }) => {
     </section>
   );
 
-  if (loading) {
+  if (loading && !globalStudentCache[cacheKey]) {
     return (
       <Container>
         <div className="col-span-6 bg-gray-200 rounded-2xl animate-pulse"></div>
@@ -57,7 +62,6 @@ const StudentStats = ({ academicYearId }) => {
   return (
     <Container>
       <div className="col-span-6 relative overflow-hidden flex flex-col justify-center bg-gradient-to-br from-[#DED9F9] to-[#F2F0FF] rounded-2xl py-6 px-8 transition-all hover:shadow-lg group">
-       
         <div className="relative z-10 space-y-5">
           <div className="w-14 h-14 bg-white text-[#927DFF] rounded-2xl flex items-center justify-center shadow-sm border border-[#927DFF]/10">
             <Users size={28} strokeWidth={2.5} />

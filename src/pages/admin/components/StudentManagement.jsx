@@ -8,6 +8,8 @@ import StudentStatusModal from "../modal/StudentStatusModal";
 import { updateStudent, getAllAcademicYears } from "../api/admin.api";
 import toast from "react-hot-toast";
 
+let yearsCache = null;
+
 const StudentManagement = () => {
   const [isCanvas, setIsCanvas] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -15,7 +17,7 @@ const StudentManagement = () => {
   const [statusModal, setStatusModal] = useState({ isOpen: false, data: null });
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const [academicYears, setAcademicYears] = useState([]);
+  const [academicYears, setAcademicYears] = useState(yearsCache || []);
   const [selectedYear, setSelectedYear] = useState("");
 
   useEffect(() => {
@@ -24,16 +26,17 @@ const StudentManagement = () => {
         const res = await getAllAcademicYears();
         if (res.success && res.data?.academicYears) {
           const years = res.data.academicYears;
+          yearsCache = years;
           setAcademicYears(years);
           const active = years.find((y) => y.isActive) || years[0];
-          if (active) setSelectedYear(active._id);
+          if (active && !selectedYear) setSelectedYear(active._id);
         }
       } catch (err) {
         console.error("Failed to load academic years", err);
       }
     };
     fetchYears();
-  }, []);
+  }, [selectedYear]);
 
   const handleAddClick = () => {
     setIsEdit(false);
