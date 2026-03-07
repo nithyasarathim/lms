@@ -66,14 +66,8 @@ const RegulationManagement = () => {
     if (!selectedRegId) {
       e.preventDefault();
       e.stopPropagation();
-      toast("Please select a Regulation before choosing a department.", {
-        id: "reg-selection-error",
-        style: {
-          borderRadius: "12px",
-          background: "#08384F",
-          color: "#fff",
-          fontSize: "12px",
-        },
+      toast("Please select a regulation.", {
+        id: "reg-selection-error"
       });
     }
   };
