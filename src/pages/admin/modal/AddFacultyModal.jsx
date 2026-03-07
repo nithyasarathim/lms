@@ -20,7 +20,7 @@ import {
   getDepartments,
   addFaculty,
   updateFaculty,
-  facultyBulkUpload,
+  BulkUploadFaculty,
   getAllFaculties,
 } from "../api/admin.api";
 import toast from "react-hot-toast";
@@ -245,7 +245,7 @@ const AddFacultyModal = ({ setIsCanvas, isEdit, editData }) => {
         if (!file) throw new Error("Please select a file");
         const data = new FormData();
         data.append("file", file);
-        await facultyBulkUpload(data);
+        await BulkUploadFaculty(data);
         toast.success("Bulk upload successful");
       } else {
         const data = new FormData();

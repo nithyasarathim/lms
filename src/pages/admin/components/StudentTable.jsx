@@ -14,7 +14,6 @@ import {
   ChevronUp,
   ChevronDown,
   X as CloseIcon,
-  Circle,
 } from "lucide-react";
 import { getAllStudents } from "../api/admin.api";
 import StudentDetailsModal from "../modal/StudentDetailsModal";
@@ -43,12 +42,14 @@ const StudentTable = ({
   const [filterSection, setFilterSection] = useState("");
 
   const [visibleColumns, setVisibleColumns] = useState({
+    sNo: true,
     rollNumber: true,
     registerNumber: true,
     fullName: true,
     department: true,
     section: true,
     year: true,
+    sem: true,
     email: true,
   });
 
@@ -77,7 +78,7 @@ const StudentTable = ({
             return (a.firstName + " " + a.lastName).localeCompare(
               b.firstName + " " + b.lastName,
             );
-          return a.status === "active" ? -1 : 1;
+          return a.isActive ? -1 : 1;
         });
         setStudents(sortedData);
       } else {
@@ -128,8 +129,9 @@ const StudentTable = ({
 
   const exportToExcel = () => {
     if (filteredStudents.length === 0) return toast.error("No data to export");
-    const exportData = filteredStudents.map((s) => {
+    const exportData = filteredStudents.map((s, index) => {
       const row = {};
+      if (visibleColumns.sNo) row["S.No"] = index + 1;
       if (visibleColumns.rollNumber) row["Roll Number"] = s.rollNumber;
       if (visibleColumns.registerNumber) row["REG. NO"] = s.registerNumber;
       if (visibleColumns.fullName)
@@ -138,6 +140,7 @@ const StudentTable = ({
         row["Department"] = s.department?.name || "N/A";
       if (visibleColumns.section) row["Section"] = s.section?.name || "N/A";
       if (visibleColumns.year) row["Year"] = s.yearLevel || "N/A";
+      if (visibleColumns.sem) row["SEM"] = s.semesterNumber || "N/A";
       if (visibleColumns.email) row["Email"] = s.user?.email || "N/A";
       extraColumns.forEach((col) => (row[col.title] = ""));
       return row;
@@ -158,28 +161,66 @@ const StudentTable = ({
     }
   };
 
-  const uniqueDepts = [
-    ...new Set(students.map((s) => s.department?.code)),
-  ].filter(Boolean);
-  const uniqueYears = [
-    ...new Set(students.map((s) => String(s.yearLevel))),
-  ].filter(Boolean);
-  const uniqueSections = [
-    ...new Set(students.map((s) => s.section?.name)),
-  ].filter(Boolean);
+  const uniqueDepts = [...new Set(students.map((s) => s.department?.code))]
+    .filter(Boolean)
+    .sort();
+
+  const uniqueYears = [...new Set(students.map((s) => String(s.yearLevel)))]
+    .filter(Boolean)
+    .sort((a, b) => Number(a) - Number(b));
+
+  const uniqueSections = [...new Set(students.map((s) => s.section?.name))]
+    .filter(Boolean)
+    .sort();
 
   const ShimmerRow = () => (
-    <tr className="animate-pulse">
-      {Object.values(visibleColumns).map(
-        (isVisible, idx) =>
-          isVisible && (
-            <td key={idx} className="px-4 py-6">
-              <div className="h-4 bg-gray-100 rounded w-full"></div>
-            </td>
-          ),
+    <tr className="animate-pulse border-b border-gray-50">
+      {visibleColumns.sNo && (
+        <td className="px-6 py-5">
+          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
+        </td>
       )}
-      <td className="px-8 py-4">
-        <div className="h-8 bg-gray-100 rounded-lg w-24 ml-auto"></div>
+      {visibleColumns.rollNumber && (
+        <td className="px-6 py-5">
+          <div className="h-3 bg-gray-200 rounded-full w-16 mx-auto"></div>
+        </td>
+      )}
+      {visibleColumns.fullName && (
+        <td className="px-4 py-5">
+          <div className="h-4 bg-gray-200 rounded-full w-32"></div>
+        </td>
+      )}
+      {visibleColumns.department && (
+        <td className="px-4 py-5">
+          <div className="h-5 bg-gray-100 rounded-md w-12"></div>
+        </td>
+      )}
+      {visibleColumns.section && (
+        <td className="px-4 py-5">
+          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
+        </td>
+      )}
+      {visibleColumns.year && (
+        <td className="px-4 py-5">
+          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
+        </td>
+      )}
+      {visibleColumns.sem && (
+        <td className="px-4 py-5">
+          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
+        </td>
+      )}
+      {visibleColumns.email && (
+        <td className="px-4 py-5">
+          <div className="h-3 bg-gray-200 rounded-full w-24 mx-auto"></div>
+        </td>
+      )}
+      <td className="px-8 py-5">
+        <div className="flex gap-2 justify-end">
+          <div className="h-8 w-8 bg-gray-100 rounded-lg"></div>
+          <div className="h-8 w-8 bg-gray-100 rounded-lg"></div>
+          <div className="h-8 w-8 bg-gray-100 rounded-lg"></div>
+        </div>
       </td>
     </tr>
   );
@@ -188,9 +229,14 @@ const StudentTable = ({
     <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-350px)] min-h-[400px] font-['Poppins'] relative">
       <div className="px-8 py-5 border-b border-gray-50 bg-white print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-          <h2 className="text-xl font-bold text-[#08384F]">
-            Student Information
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-[#08384F]">
+              Student Information
+            </h2>
+            <span className="text-[#08384F] text-sm font-bold py-1 rounded-full uppercase tracking-wider ">
+              ({filteredStudents.length})
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <div className="relative" ref={configRef}>
               <button
@@ -213,7 +259,9 @@ const StudentTable = ({
                         className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-gray-50 rounded-lg group"
                       >
                         <span className="text-xs font-semibold text-gray-600 capitalize">
-                          {key.replace(/([A-Z])/g, " $1")}
+                          {key === "sNo"
+                            ? "S.No"
+                            : key.replace(/([A-Z])/g, " $1")}
                         </span>
                         <div
                           className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${visibleColumns[key] ? "bg-[#08384F] border-[#08384F]" : "border-gray-300"}`}
@@ -346,20 +394,18 @@ const StudentTable = ({
         <table className="w-full text-left border-collapse min-w-[1100px]">
           <thead className="sticky top-0 bg-[#08384F] z-20 print:static">
             <tr className="text-[11px] font-bold text-white uppercase tracking-widest">
-              {visibleColumns.rollNumber && (
-                <th className="px-8 py-4 text-center">Roll Number</th>
+              {visibleColumns.sNo && (
+                <th className="px-6 py-4 text-center">S.No</th>
               )}
-              {visibleColumns.registerNumber && (
-                <th className="px-4 py-4 text-center whitespace-nowrap min-w-[150px]">
-                  REG. NO
-                </th>
+              {visibleColumns.rollNumber && (
+                <th className="px-3 py-4 text-center">Roll No</th>
               )}
               {visibleColumns.fullName && (
-                <th className="px-4 py-4">Student Name</th>
+                <th className="px-2 py-4">Student Name</th>
               )}
               {visibleColumns.department && <th className="px-4 py-4">Dept</th>}
               {visibleColumns.section && (
-                <th className="px-4 py-4 text-center">Section</th>
+                <th className="px-2 py-4 text-center">Sec</th>
               )}
               {visibleColumns.year && (
                 <th
@@ -391,8 +437,11 @@ const StudentTable = ({
                   </div>
                 </th>
               )}
+              {visibleColumns.sem && (
+                <th className="px-4 py-4 text-center">SEM</th>
+              )}
               {visibleColumns.email && (
-                <th className="px-4 py-4 text-center">Email</th>
+                <th className="px-2 py-4 text-center">Email</th>
               )}
               {extraColumns.map((col) => (
                 <th
@@ -402,26 +451,26 @@ const StudentTable = ({
                   {col.title}
                 </th>
               ))}
-              <th className="px-8 py-4 text-right print:hidden">Actions</th>
+              <th className="px-8 py-4 text-center print:hidden">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 font-medium">
             {loading ? (
               [...Array(6)].map((_, i) => <ShimmerRow key={i} />)
             ) : filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => (
+              filteredStudents.map((student, index) => (
                 <tr
                   key={student._id}
                   className="hover:bg-gray-50/50 group transition-colors print:opacity-100"
                 >
-                  {visibleColumns.rollNumber && (
-                    <td className="px-8 py-4 text-xs text-gray-500 font-bold text-center">
-                      {student.rollNumber || "N/A"}
+                  {visibleColumns.sNo && (
+                    <td className="px-6 py-4 text-xs text-gray-400 font-bold text-center">
+                      {index + 1}
                     </td>
                   )}
-                  {visibleColumns.registerNumber && (
-                    <td className="px-4 py-4 text-xs text-gray-500 font-bold text-center whitespace-nowrap">
-                      {student.registerNumber}
+                  {visibleColumns.rollNumber && (
+                    <td className="px-6 py-4 text-xs text-gray-500 font-bold text-center">
+                      {student.rollNumber || "N/A"}
                     </td>
                   )}
                   {visibleColumns.fullName && (
@@ -446,6 +495,11 @@ const StudentTable = ({
                   {visibleColumns.year && (
                     <td className="px-4 py-4 text-xs text-gray-600 text-center font-bold">
                       {student.yearLevel}
+                    </td>
+                  )}
+                  {visibleColumns.sem && (
+                    <td className="px-4 py-4 text-xs text-gray-600 text-center font-bold">
+                      {student.semesterNumber || "N/A"}
                     </td>
                   )}
                   {visibleColumns.email && (
@@ -480,11 +534,11 @@ const StudentTable = ({
                         onClick={() =>
                           onStatusClick({
                             ...student,
-                            isActive: student.status === "active",
+                            isActive: student.isActive,
                           })
                         }
                         className={`p-2 rounded-lg ${
-                          student.status === "active"
+                          student.isActive
                             ? "text-red-500 bg-red-50"
                             : "text-green-500 bg-green-50"
                         }`}
@@ -498,7 +552,7 @@ const StudentTable = ({
             ) : (
               <tr>
                 <td
-                  colSpan="11"
+                  colSpan="12"
                   className="py-20 text-center text-gray-400 font-semibold"
                 >
                   No students found for this academic year

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   X,
@@ -7,6 +7,8 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
+  FileText,
+  CheckCircle2,
 } from "lucide-react";
 import {
   createStudent,
@@ -16,6 +18,7 @@ import {
   getBatchProgram,
   getSections,
   getAcademicYear,
+  bulkUploadStudents,
 } from "../api/admin.api";
 import toast from "react-hot-toast";
 
@@ -27,6 +30,7 @@ const AddStudentModal = ({
   handleApicall,
 }) => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState("single");
   const [departments, setDepartments] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -34,6 +38,7 @@ const AddStudentModal = ({
   const [sections, setSections] = useState([]);
   const [loadingSections, setLoadingSections] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -122,27 +127,37 @@ const AddStudentModal = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const fileExt = file.name.split(".").pop().toLowerCase();
+      if (fileExt === "csv" || fileExt === "xlsx") {
+        setSelectedFile(file);
+      } else {
+        toast("Please upload only .csv or .xlsx files");
+        setSelectedFile(null);
+      }
+    }
+  };
+
   const getAvailableSemesters = () => {
     if (!formData.batchId || !academicYear) return [];
-
     const selectedBatch = batches.find((b) => b._id === formData.batchId);
     if (!selectedBatch) return [];
 
     const batchStart = selectedBatch.startYear;
     const acadStart = academicYear.startYear;
-
     const diffInYears = acadStart - batchStart;
 
     if (diffInYears < 0) return [];
 
     const semStart = diffInYears * 2 + 1;
     const semEnd = semStart + 1;
-
     const totalPossibleSems = selectedBatch.programDuration * 2;
+
     const result = [];
     if (semStart <= totalPossibleSems) result.push(semStart);
     if (semEnd <= totalPossibleSems) result.push(semEnd);
-
     return result;
   };
 
@@ -155,6 +170,27 @@ const AddStudentModal = ({
   };
 
   const handleSubmit = async () => {
+    if (activeTab === "multiple") {
+      if (!selectedFile) return toast("Please select a file first");
+
+      const bulkFormData = new FormData();
+      bulkFormData.append("file", selectedFile);
+
+      toast.promise(
+        bulkUploadStudents(bulkFormData),
+        {
+          loading: "Uploading and processing file...",
+          success: () => {
+            onClose();
+            if (handleApicall) handleApicall();
+            return "Bulk upload completed successfully!";
+          },
+          error: (err) => err.message || "Bulk upload failed",
+        },
+      );
+      return;
+    }
+
     const apiCall = isEdit
       ? updateStudent(editData._id, formData)
       : createStudent(formData);
@@ -165,37 +201,15 @@ const AddStudentModal = ({
         loading: isEdit
           ? "Updating student details..."
           : "Creating new student...",
-        success: (res) => {
+        success: () => {
           onClose();
           if (handleApicall) handleApicall();
           return isEdit
             ? "Student updated successfully!"
             : "Student added successfully!";
         },
-        error: (err) => {
-          return (
-            err.response?.data?.message ||
-            err.message ||
-            `Failed to ${isEdit ? "update" : "add"} student`
-          );
-        },
-      },
-      {
-        style: {
-          minWidth: "250px",
-          borderRadius: "12px",
-          background: "#08384F",
-          color: "#fff",
-          fontSize: "14px",
-          fontFamily: "Poppins",
-        },
-        success: {
-          duration: 3000,
-          iconTheme: {
-            primary: "#fff",
-            secondary: "#08384F",
-          },
-        },
+        error: (err) =>
+          err.response?.data?.message || err.message || "Operation failed",
       },
     );
   };
@@ -351,10 +365,9 @@ const AddStudentModal = ({
                     <button
                       type="button"
                       onClick={handleRedirectToManagement}
-                      className="flex items-center gap-2 w-full px-4 py-2 bg-white border border-[#08384F] text-[#08384F] rounded-xl text-[10px] text-center font-bold uppercase hover:bg-sky-50 transition-all text-left"
+                      className="flex items-center gap-2 w-full px-4 py-2 bg-white border border-[#08384F] text-[#08384F] rounded-xl text-[10px] text-center font-bold uppercase hover:bg-sky-50 transition-all"
                     >
-                      <AlertCircle size={14} />
-                      Setup Sections
+                      <AlertCircle size={14} /> Setup Sections
                     </button>
                   ) : (
                     <select
@@ -362,7 +375,7 @@ const AddStudentModal = ({
                       value={formData.sectionId}
                       onChange={handleChange}
                       disabled={!sections.length}
-                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none disabled:opacity-50 cursor-pointer"
+                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
                     >
                       <option value="">Select Section</option>
                       {sections.map((sec) => (
@@ -382,7 +395,7 @@ const AddStudentModal = ({
                     value={formData.semesterNumber}
                     onChange={handleChange}
                     disabled={!formData.batchId}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer disabled:opacity-50"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
                   >
                     <option value="">Select Semester</option>
                     {availableSemesters.map((sem) => (
@@ -461,17 +474,44 @@ const AddStudentModal = ({
               </div>
             </>
           ) : (
-            <div className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center hover:border-[#08384F] transition-all cursor-pointer group">
-              <UploadCloud
-                size={40}
-                className="mx-auto text-gray-300 mb-4 group-hover:text-[#08384F] transition-colors"
+            <div
+              onClick={() => fileInputRef.current.click()}
+              className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center hover:border-[#08384F] transition-all cursor-pointer group"
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept=".csv, .xlsx"
               />
-              <p className="text-sm font-bold text-[#08384F]">
-                Upload Students List
-              </p>
-              <p className="text-[10px] text-gray-400 mt-1">
-                Accepts .xlsx or .csv files
-              </p>
+              {selectedFile ? (
+                <div className="space-y-2">
+                  <CheckCircle2
+                    size={40}
+                    className="mx-auto text-emerald-500"
+                  />
+                  <p className="text-sm font-bold text-[#08384F]">
+                    {selectedFile.name}
+                  </p>
+                  <p className="text-[10px] text-gray-400">
+                    Click to change file
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <UploadCloud
+                    size={40}
+                    className="mx-auto text-gray-300 mb-4 group-hover:text-[#08384F] transition-colors"
+                  />
+                  <p className="text-sm font-bold text-[#08384F]">
+                    Upload Students List
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Accepts .xlsx or .csv files
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -487,11 +527,12 @@ const AddStudentModal = ({
             className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-900/10 hover:bg-[#0b4a68] transition-all disabled:opacity-50"
             onClick={handleSubmit}
             disabled={
-              activeTab === "single" &&
-              (!formData.departmentId ||
-                !formData.batchId ||
-                sections.length === 0 ||
-                !formData.semesterNumber)
+              activeTab === "single"
+                ? !formData.departmentId ||
+                  !formData.batchId ||
+                  sections.length === 0 ||
+                  !formData.semesterNumber
+                : !selectedFile
             }
           >
             {isEdit

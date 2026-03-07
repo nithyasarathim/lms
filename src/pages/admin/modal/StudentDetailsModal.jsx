@@ -1,201 +1,287 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   X,
-  GraduationCap,
-  Mail,
-  Calendar,
   User,
-  Hash,
-  Layers,
-  MapPin,
+  Mail,
+  CalendarDays,
+  GraduationCap,
+  Fingerprint,
   ShieldCheck,
   ShieldAlert,
-  Fingerprint,
+  Layers,
   BookOpen,
-  CalendarCheck,
+  Calendar,
+  Award,
+  Copy,
+  Hash,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 const StudentDetailsModal = ({ isOpen, onClose, student }) => {
+  const canvasRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("Basic Profile");
+
+  useEffect(() => {
+    function handleOutsideClick(e) {
+      if (canvasRef.current && !canvasRef.current.contains(e.target)) {
+        onClose();
+      }
+    }
+    if (isOpen) document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !student) return null;
 
-  const DetailItem = ({
-    icon: Icon,
-    label,
-    value,
-    color = "text-gray-500",
-    fullWidth = false,
-  }) => (
-    <div
-      className={`flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-white hover:shadow-sm ${fullWidth ? "col-span-full" : ""}`}
-    >
-      <div className={`p-2 rounded-xl bg-white shadow-sm ${color}`}>
-        <Icon size={18} />
-      </div>
-      <div>
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">
+  const tabs = ["Basic Profile", "Attendance", "Grades"];
+
+  const handleCopy = (text, label) => {
+    if (!text || text === "-") return;
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+  };
+
+  const InfoRow = ({ icon: Icon, label, value, canCopy = false }) => (
+    <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0 group/row">
+      <div className="flex items-center gap-3">
+        <div className="text-gray-500">
+          <Icon size={14} strokeWidth={2} />
+        </div>
+        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
           {label}
-        </p>
-        <p className="text-sm font-bold text-[#08384F] leading-none">
-          {value || "N/A"}
-        </p>
+        </span>
       </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-gray-800">
+          {value || "-"}
+        </span>
+        {canCopy && value && value !== "-" && (
+          <button
+            onClick={() => handleCopy(value, label)}
+            className="p-1 ml-2 text-gray-400 hover:text-[#08384F] bg-gray-100 rounded-md transition-all opacity-80 hover:opacity-100"
+            title={`Copy ${label}`}
+          >
+            <CircleCopy size={12} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  const ShimmerRow = () => (
+    <div className="flex items-center justify-between py-4 animate-pulse">
+      <div className="w-1/3 h-2 bg-gray-200 rounded"></div>
+      <div className="w-1/4 h-2 bg-gray-100 rounded"></div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div
-        className="fixed inset-0 bg-[#08384F]/20 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-
-      <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300 font-['Poppins'] flex flex-col">
-        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[#08384F] to-[#0b4a68]" />
-
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-10"
-        >
-          <X size={20} />
-        </button>
-
-        <div className="relative pt-12 px-8 flex flex-col items-center flex-shrink-0">
-          <div className="w-28 h-28 bg-white rounded-3xl shadow-xl flex items-center justify-center border-4 border-white mb-4 overflow-hidden flex-shrink-0">
-            <div className="w-full h-full bg-gray-50 flex items-center justify-center text-[#08384F]">
-              <User size={48} strokeWidth={1.5} />
+    <>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-[2px] z-[100] animate-in fade-in duration-500"></div>
+      <section
+        ref={canvasRef}
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-6xl h-[85vh] bg-white rounded-xl z-[110] shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-300 font-['Poppins']"
+      >
+        <div className="px-10 py-6 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xl font-bold text-gray-700 border border-gray-200">
+              {student.firstName?.[0]}
+              {student.lastName?.[0]}
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-3">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {student.firstName} {student.lastName}
+                </h3>
+                <span
+                  className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-widest border ${
+                    student.isActive
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-red-50 text-red-700 border-red-200"
+                  }`}
+                >
+                  {student.isActive?"active":"inactive"}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 font-medium">
+                {student.department?.name}{" "}
+                <span className="mx-2 text-gray-300">|</span> Batch{" "}
+                {student.batch?.name}
+              </p>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 text-center">
-            {student.firstName} {student.lastName}
-          </h2>
-          <div className="flex items-center gap-2 mt-1 mb-8">
-            <span
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                student.status === "active"
-                  ? "bg-green-100 text-green-600"
-                  : "bg-red-100 text-red-600"
-              }`}
-            >
-              {student.status === "active" ? (
-                <ShieldCheck size={12} />
-              ) : (
-                <ShieldAlert size={12} />
-              )}
-              {student.status}
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-md transition-all text-gray-400 hover:text-gray-900"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="px-10 bg-white border-b border-gray-100 flex items-center justify-between shrink-0">
+          <div className="flex gap-10">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-4 text-xs font-bold uppercase tracking-widest transition-all relative ${
+                  activeTab === tab
+                    ? "text-[#08384F]"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#08384F]"></div>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1 rounded-md border border-gray-100">
+            <Fingerprint size={14} />
+            <span className="text-[10px] font-bold tracking-widest">
+              {student.rollNumber}
             </span>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-8 pb-4 custom-scrollbar">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2sticky top-0 bg-white py-1 z-10">
-                <BookOpen size={14} /> Academic Information
-              </h3>
-              <div className="grid grid-cols-1 gap-3">
-                <DetailItem
-                  icon={Fingerprint}
-                  label="Roll Number"
-                  value={student.rollNumber}
-                  color="text-blue-500"
-                />
-                <DetailItem
-                  icon={Hash}
-                  label="Register Number"
-                  value={student.registerNumber}
-                  color="text-indigo-500"
-                />
-                <DetailItem
-                  icon={GraduationCap}
-                  label="Department"
-                  value={student.department?.name}
-                  color="text-purple-500"
-                />
-                <DetailItem
-                  icon={Layers}
-                  label="Section"
-                  value={
-                    student.section?.name === "UNALLOCATED"
-                      ? "Unallocated (U)"
-                      : student.section?.name
-                  }
-                  color="text-emerald-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2 sticky top-0 bg-white py-1 z-10">
-                <User size={14} /> Course & Personal
-              </h3>
-              <div className="grid grid-cols-1 gap-3">
-                <DetailItem
-                  icon={Calendar}
-                  label="Batch"
-                  value={student.batch?.name}
-                  color="text-orange-500"
-                />
-                <DetailItem
-                  icon={CalendarCheck}
-                  label="Academic Year"
-                  value={student.academicYear?.name}
-                  color="text-teal-500"
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <DetailItem
+        <div className="flex-1 overflow-y-auto p-10 bg-gray-50/40 custom-scrollbar">
+          {activeTab === "Basic Profile" ? (
+            <div className="grid grid-cols-2 gap-8 animate-in fade-in duration-500">
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest border-l-2 border-[#08384F] pl-3">
+                  Academic Identity
+                </h4>
+                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                  <InfoRow
+                    icon={Hash}
+                    label="Register Number"
+                    value={student.registerNumber}
+                    canCopy
+                  />
+                  <InfoRow
+                    icon={GraduationCap}
+                    label="Department"
+                    value={student.department?.name}
+                  />
+                  <InfoRow
                     icon={Layers}
+                    label="Section"
+                    value={
+                      student.section?.name === "UNALLOCATED"
+                        ? "Unallocated (U)"
+                        : student.section?.name
+                    }
+                  />
+                  <InfoRow
+                    icon={BookOpen}
+                    label="Current Semester"
+                    value={
+                      student.semesterNumber
+                        ? `${student.semesterNumber} Sem`
+                        : "N/A"
+                    }
+                  />
+                  <InfoRow
+                    icon={Award}
                     label="Year Level"
                     value={
                       student.yearLevel ? `${student.yearLevel} Year` : "N/A"
                     }
-                    color="text-pink-500"
-                  />
-                  <DetailItem
-                    icon={BookOpen}
-                    label="Semester"
-                    value={
-                      student.semesterNumber
-                        ? `${student.semesterNumber}nd Sem`
-                        : "N/A"
-                    }
-                    color="text-cyan-500"
                   />
                 </div>
-                <DetailItem
-                  icon={User}
-                  label="Gender"
-                  value={student.user?.gender}
-                  color="text-amber-500"
-                />
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest border-l-2 border-[#08384F] pl-3">
+                  Personal & Contact
+                </h4>
+                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                  <InfoRow
+                    icon={Mail}
+                    label="Institutional Email"
+                    value={student.user?.email}
+                    canCopy
+                  />
+                  <InfoRow
+                    icon={User}
+                    label="Gender"
+                    value={student.user?.gender}
+                  />
+                  <InfoRow
+                    icon={Calendar}
+                    label="Batch"
+                    value={student.batch?.name}
+                  />
+                  <InfoRow
+                    icon={CalendarDays}
+                    label="Academic Year"
+                    value={student.academicYear?.name}
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-2 space-y-4">
+                <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest border-l-2 border-[#08384F] pl-3">
+                  System Metadata
+                </h4>
+                <div className="bg-white p-4 px-8 rounded-lg border border-gray-200 flex justify-between items-center shadow-sm">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase">
+                      Student UID
+                    </span>
+                    <span className="text-xs font-mono text-gray-600">
+                      {student._id}
+                    </span>
+                  </div>
+                  <div className="flex flex-col text-right">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase">
+                      Last Update
+                    </span>
+                    <span className="text-xs text-gray-600">
+                      {new Date().toLocaleString()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div className="col-span-full space-y-4 pb-4">
-              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-2 sticky top-0 bg-white py-1 z-10">
-                <Mail size={14} /> Communication
-              </h3>
-              <DetailItem
-                icon={Mail}
-                label="Institutional Email"
-                value={student.user?.email}
-                color="text-sky-500"
-                fullWidth={true}
-              />
+          ) : (
+            <div className="max-w-2xl mx-auto py-12 animate-in fade-in duration-500">
+              <div className="text-center space-y-2 mb-8">
+                <h3 className="text-lg font-bold text-gray-800 tracking-tight">
+                  {activeTab} Dashboard
+                </h3>
+                <p className="text-gray-500 text-xs font-medium uppercase tracking-widest">
+                  Under Construction
+                </p>
+              </div>
+              <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm">
+                {[1, 2, 3, 4].map((i) => (
+                  <ShimmerRow key={i} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
-
-        <div className="px-8 py-6 border-t border-gray-100 flex justify-end flex-shrink-0 bg-white z-10">
-          <button
-            onClick={onClose}
-            className="px-8 py-3 bg-[#08384F] text-white text-sm font-bold rounded-2xl shadow-lg shadow-blue-900/20 hover:bg-[#0a4763] hover:shadow-blue-900/30 transition-all active:scale-95"
-          >
-            Close Profile
-          </button>
-        </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 };
+
+const CircleCopy = ({ size }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+);
 
 export default StudentDetailsModal;

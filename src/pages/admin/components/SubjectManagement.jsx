@@ -15,8 +15,8 @@ const SubjectManagement = () => {
   const currentPath = window.location.pathname + window.location.search;
 
   return (
-    <section className="flex w-full h-screen overflow-hidden relative ">
-      <div className="w-full h-full flex flex-col">
+    <section className="flex w-full min-h-screen fixed overflow-hidden relative ">
+      <div className="w-full h-full flex flex-col ">
         <HeaderComponent title="Subject Management" />
 
         <main className="flex-1 overflow-y-auto pt-4 hide-scroll bg-[#FBFBFB]">

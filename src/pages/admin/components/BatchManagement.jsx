@@ -166,7 +166,7 @@ const BatchManagement = () => {
                   onClickCapture={handleDeptClickCapture}
                   className={`transition-all duration-300 ${
                     !selectedBatchId
-                      ? "opacity-40 grayscale pointer-events-none blur-[1px]"
+                      ? "opacity-40 grayscale pointer-events-none"
                       : "opacity-100"
                   }`}
                 >

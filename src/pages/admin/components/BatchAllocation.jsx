@@ -9,6 +9,8 @@ import {
   Plus,
   Layers,
   GraduationCap,
+  RefreshCw,
+  CalendarDays,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -16,6 +18,8 @@ import {
   getBatchProgram,
   createBatchProgram,
   updateSection,
+  getSemesterShiftInfo,
+  shiftSemester,
 } from "../api/admin.api";
 import toast from "react-hot-toast";
 import SectionList from "./SectionList";
@@ -33,6 +37,10 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const [isFixing, setIsFixing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const [currentSem, setCurrentSem] = useState(null);
+  const [isShiftLoading, setIsShiftLoading] = useState(false);
+  const [showShiftConfirm, setShowShiftConfirm] = useState(false);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editModal, setEditModal] = useState({ isOpen: false, data: null });
@@ -58,6 +66,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
           if (bpRes.success && bp._id) {
             setBatchProgramId(bp._id);
             setSelectedReg(bp.regulationId?._id || bp.regulationId);
+            fetchSemInfo();
           } else {
             setBatchProgramId(null);
             setSelectedReg("");
@@ -74,6 +83,34 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
     };
     init();
   }, [deptId, batchId]);
+
+  const fetchSemInfo = async () => {
+    try {
+      const res = await getSemesterShiftInfo(batchId, deptId);
+      if (res?.success) {
+        setCurrentSem(res.data.currentSemester);
+      }
+    } catch (err) {
+      console.error("Sem Info Error:", err);
+    }
+  };
+
+  const handleShiftSemester = async () => {
+    setIsShiftLoading(true);
+    try {
+      const res = await shiftSemester({ batchId, departmentId: deptId });
+      if (res.success) {
+        toast.success(res.message || "Semester shifted successfully");
+        fetchSemInfo();
+        setRefreshKey((prev) => prev + 1);
+      }
+      setShowShiftConfirm(false);
+    } catch (err) {
+      toast.error(err.message || "Shift failed");
+    } finally {
+      setIsShiftLoading(false);
+    }
+  };
 
   const removeHighlightParam = () => {
     if (searchParams.get("highlight")) {
@@ -108,6 +145,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
           setBatchProgramId(bp._id);
           setSelectedReg(bp.regulationId?._id);
           removeHighlightParam();
+          fetchSemInfo();
         }
       }
       setShowConfirm(false);
@@ -247,6 +285,33 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
                 </div>
               )}
             </div>
+
+            {batchProgramId && (
+              <>
+                <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
+                  <CalendarDays size={16} className="text-emerald-500" />
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">
+                    Sem
+                  </span>
+                  <span className="font-bold text-xs text-[#08384F] uppercase">
+                    {currentSem || "N/A"}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setShowShiftConfirm(true)}
+                  className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl shadow-sm hover:bg-emerald-100 transition-colors group"
+                >
+                  <RefreshCw
+                    size={16}
+                    className="text-emerald-600 group-hover:rotate-180 transition-transform duration-500"
+                  />
+                  <span className="font-bold text-xs text-emerald-700 uppercase">
+                    Promote semester
+                  </span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -300,7 +365,6 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         </div>
       </div>
 
-      
       {showConfirm && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
@@ -338,6 +402,44 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
         </div>
       )}
 
+      {showShiftConfirm && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-emerald-100">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-emerald-50 rounded-lg">
+                <RefreshCw className="text-emerald-600" size={22} />
+              </div>
+              <h3 className="font-semibold text-gray-800">Shift Semester</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-6">
+              This will promote all sections in{" "}
+              <span className="font-semibold text-[#08384F]">
+                {deptData?.code}
+              </span>{" "}
+              to the next semester level. This process is irreversible.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowShiftConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleShiftSemester}
+                disabled={isShiftLoading}
+                className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg flex items-center gap-2 hover:bg-emerald-700"
+              >
+                {isShiftLoading && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
+                Shift Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AddSectionModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -363,4 +465,3 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
 };
 
 export default BatchAllocation;
-

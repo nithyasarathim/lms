@@ -11,12 +11,16 @@ const StudentStatusModal = ({
   if (!isOpen || !student) return null;
 
   const isDeactivating = student.isActive;
+  const fullName =
+    student.fullName || `${student.firstName} ${student.lastName}`;
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[110] p-4 font-['Poppins']">
       <div className="bg-white rounded-[32px] p-8 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
         <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 mx-auto ${isDeactivating ? "bg-red-500" : "bg-green-500"} text-white shadow-lg`}
+          className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 mx-auto ${
+            isDeactivating ? "bg-red-500" : "bg-green-500"
+          } text-white shadow-lg`}
         >
           <Power size={24} />
         </div>
@@ -27,9 +31,8 @@ const StudentStatusModal = ({
 
         <p className="text-xs text-gray-500 text-center mb-8 leading-relaxed px-2">
           Are you sure you want to {isDeactivating ? "deactivate" : "activate"}
-          <span className="font-black text-[#08384F]"> {student.fullName}</span>
-          ? This will {isDeactivating ? "prevent" : "enable"} their portal
-          access.
+          <span className="font-black text-[#08384F]"> {fullName}</span>? This
+          will {isDeactivating ? "prevent" : "enable"} their portal access.
         </p>
 
         <div className="flex gap-3">
@@ -40,7 +43,7 @@ const StudentStatusModal = ({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={() => onConfirm(student._id, !isDeactivating)}
             disabled={loading}
             className="flex-[1.5] py-3 bg-[#08384F] text-white text-sm font-bold rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           >

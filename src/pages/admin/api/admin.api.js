@@ -277,7 +277,7 @@ export const updateSection = async (sectionId, updatedData) => {
   }
 };
 
-export const facultyBulkUpload = async (formData) => {
+export const BulkUploadFaculty = async (formData) => {
   try {
     const response = await apiClient.post(`/api/faculty/upload`, formData, {
       headers: {
@@ -388,5 +388,41 @@ export const getAllStudents = async (academicYearId) => {
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
+  }
+};
+
+export const bulkUploadStudents = async (formData) => {
+  try {
+    const response = await apiClient.post(`/api/students/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getSemesterShiftInfo = async (batchId, deptId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/students/semester-shift-info?batchId=${batchId}&departmentId=${deptId}`,
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const shiftSemester = async (payload) => {
+  try {
+    const response = await apiClient.post(
+      `/api/students/semester-shift`,
+      payload,
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
   }
 };

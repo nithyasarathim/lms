@@ -66,7 +66,7 @@ const StudentManagement = () => {
   };
 
   return (
-    <div className="min-h-screen font-['Poppins'] bg-gray-50/30">
+    <div className=" overflow-hidden  font-['Poppins'] bg-gray-50/30">
       <HeaderComponent
         title="Student Management"
         showAcademicYear={true}
@@ -74,7 +74,7 @@ const StudentManagement = () => {
         selectedYear={selectedYear}
         onYearChange={setSelectedYear}
       />
-      <div className="px-6 py-8 space-y-6">
+      <div className=" py-8 px-6 min-h-screen space-y-6">
         <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
           <div className="lg:w-[70%] w-full flex">
             <StudentStats academicYearId={selectedYear} />
@@ -83,7 +83,7 @@ const StudentManagement = () => {
             <StudentPieChart academicYearId={selectedYear} />
           </div>
         </div>
-        <div className="w-full">
+        <div className="lg:w-[100%] w-full">
           <StudentTable
             academicYearId={selectedYear}
             onAddClick={handleAddClick}

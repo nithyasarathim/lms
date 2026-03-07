@@ -46,27 +46,32 @@ const FacultyManagement = () => {
   };
 
   return (
-    <div className="min-h-screen font-['Poppins'] bg-gray-50/30">
+    <div className="h-fit flex flex-col font-['Poppins'] bg-gray-50/30 relative">
       <HeaderComponent title="Faculty Management" />
-      <div className="px-6 py-8 space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[200px]">
-          <div className="lg:w-[70%] w-full">
+      
+      <div className="flex-1 flex flex-col px-6 py-6 space-y-6 overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-6 shrink-0">
+          <div className="lg:w-[70%] w-full h-[200px]">
             <FacultyStats />
           </div>
-          <div className="lg:w-[30%] w-full">
+          <div className="lg:w-[30%] w-full h-[200px]">
             <FacultyPieChart />
           </div>
         </div>
-        <div className="w-full">
-          <FacultyTable
-            onAddClick={handleAddClick}
-            onEditClick={handleEditClick}
-            onStatusClick={(faculty) =>
-              setStatusModal({ isOpen: true, data: faculty })
-            }
-          />
+
+        <div className="flex-1 min-h-0 w-full bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-auto">
+            <FacultyTable
+              onAddClick={handleAddClick}
+              onEditClick={handleEditClick}
+              onStatusClick={(faculty) =>
+                setStatusModal({ isOpen: true, data: faculty })
+              }
+            />
+          </div>
         </div>
       </div>
+
       {isCanvas && (
         <AddFacultyModal
           setIsCanvas={setIsCanvas}

@@ -52,11 +52,11 @@ const RegulationManagement = () => {
 
     if (regId) {
       newParams.set("regulationId", regId);
-      sessionStorage.setItem("selectedRegId", regId); 
+      sessionStorage.setItem("selectedRegId", regId);
       setSelectedRegId(regId);
     } else {
       newParams.delete("regulationId");
-      sessionStorage.removeItem("selectedRegId"); 
+      sessionStorage.removeItem("selectedRegId");
       setSelectedRegId("");
     }
     setSearchParams(newParams);
@@ -67,7 +67,7 @@ const RegulationManagement = () => {
       e.preventDefault();
       e.stopPropagation();
       toast("Please select a regulation.", {
-        id: "reg-selection-error"
+        id: "reg-selection-error",
       });
     }
   };
@@ -131,7 +131,11 @@ const RegulationManagement = () => {
 
                 <div
                   onClickCapture={handleDeptClickCapture}
-                  className={!selectedRegId ? "opacity-60 grayscale-[0.5]" : ""}
+                  className={`transition-all duration-300 ${
+                    !selectedRegId
+                      ? "opacity-40 grayscale pointer-events-none"
+                      : "opacity-100"
+                  }`}
                 >
                   <DepartmentList
                     basePath={currentPath + "?" + searchParams.toString()}

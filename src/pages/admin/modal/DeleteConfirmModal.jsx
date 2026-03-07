@@ -18,11 +18,11 @@ const DeleteConfirmModal = ({
     setLoading(true);
     try {
       await deleteSubject(subjectId);
-      toast.success("Subject deleted successfully");
+      toast("Subject deleted successfully");
       onSuccess();
       onClose();
     } catch (error) {
-      toast.error(error.message || "Delete failed");
+      toast(error.message || "Delete failed");
     } finally {
       setLoading(false);
     }
