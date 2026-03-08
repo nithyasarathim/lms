@@ -7,8 +7,9 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  FileText,
   CheckCircle2,
+  Info,
+  AlertOctagon,
 } from "lucide-react";
 import {
   createStudent,
@@ -19,8 +20,40 @@ import {
   getSections,
   getAcademicYear,
   bulkUploadStudents,
+  getAllAcademicYears,
 } from "../api/admin.api";
 import toast from "react-hot-toast";
+
+const ValidationStatus = ({ loading, isValid, onSetup, hasSelection }) => {
+  if (!hasSelection) return null;
+
+  if (loading)
+    return (
+      <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-semibold text-gray-500">
+        <Loader2 size={16} className="animate-spin" />
+        Validating configuration...
+      </div>
+    );
+
+  if (isValid)
+    return (
+      <div className="flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[11px] font-semibold">
+        <CheckCircle2 size={16} />
+        Configurations verified successfully
+      </div>
+    );
+
+  return (
+    <button
+      type="button"
+      onClick={onSetup}
+      className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[11px] font-semibold hover:bg-red-100 transition-all"
+    >
+      <AlertCircle size={16} />
+      Setup Required — Click here to continue
+    </button>
+  );
+};
 
 const AddStudentModal = ({
   academicYearId,
@@ -35,6 +68,7 @@ const AddStudentModal = ({
   const [departments, setDepartments] = useState([]);
   const [batches, setBatches] = useState([]);
   const [academicYear, setacademicYear] = useState(null);
+  const [activeAcadYear, setActiveAcadYear] = useState(null);
   const [sections, setSections] = useState([]);
   const [loadingSections, setLoadingSections] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -55,17 +89,31 @@ const AddStudentModal = ({
     password: "sece@123",
   });
 
+  const [bulkValidate, setBulkValidate] = useState({
+    deptId: "",
+    batchId: "",
+    isValid: false,
+    loading: false,
+  });
+
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [deptRes, batchRes, academicYearRes] = await Promise.all([
-          getDepartments(),
-          fetchBatch(),
-          getAcademicYear(academicYearId),
-        ]);
+        const [deptRes, batchRes, academicYearRes, allAcadRes] =
+          await Promise.all([
+            getDepartments(),
+            fetchBatch(),
+            getAcademicYear(academicYearId),
+            getAllAcademicYears(),
+          ]);
         setDepartments(deptRes?.data?.departments || deptRes || []);
         setBatches(batchRes?.data?.batches || batchRes || []);
         setacademicYear(academicYearRes?.data?.academicYear);
+
+        const currentActive = allAcadRes?.data?.academicYears?.find(
+          (y) => y.isActive,
+        );
+        setActiveAcadYear(currentActive);
       } catch (err) {
         console.error("Initialization error:", err);
       }
@@ -100,6 +148,29 @@ const AddStudentModal = ({
     };
     fetchLinkedData();
   }, [formData.departmentId, formData.batchId]);
+
+  useEffect(() => {
+    const checkBulkBatchProgram = async () => {
+      if (bulkValidate.deptId && bulkValidate.batchId) {
+        setBulkValidate((prev) => ({ ...prev, loading: true }));
+        try {
+          const bpRes = await getBatchProgram(
+            bulkValidate.batchId,
+            bulkValidate.deptId,
+          );
+          setBulkValidate((prev) => ({
+            ...prev,
+            isValid: !!bpRes?.data?.batchProgram?._id,
+          }));
+        } catch (err) {
+          setBulkValidate((prev) => ({ ...prev, isValid: false }));
+        } finally {
+          setBulkValidate((prev) => ({ ...prev, loading: false }));
+        }
+      }
+    };
+    checkBulkBatchProgram();
+  }, [bulkValidate.deptId, bulkValidate.batchId]);
 
   useEffect(() => {
     if (isEdit && editData) {
@@ -162,10 +233,18 @@ const AddStudentModal = ({
   };
 
   const handleRedirectToManagement = () => {
-    const { batchId, departmentId } = formData;
+    const bId =
+      activeTab === "single" ? formData.batchId : bulkValidate.batchId;
+    const dId =
+      activeTab === "single" ? formData.departmentId : bulkValidate.deptId;
     navigate(
-      `/admin/dashboard?tab=batch-management&batchId=${batchId}&deptId=${departmentId}&highlight=reg`,
+      `/admin/dashboard?tab=batch-management&batchId=${bId}&deptId=${dId}&highlight=reg`,
     );
+    onClose();
+  };
+
+  const handleRedirectToAcadYear = () => {
+    navigate(`/admin/dashboard?tab=batch-management&manageYears=true`);
     onClose();
   };
 
@@ -176,18 +255,15 @@ const AddStudentModal = ({
       const bulkFormData = new FormData();
       bulkFormData.append("file", selectedFile);
 
-      toast.promise(
-        bulkUploadStudents(bulkFormData),
-        {
-          loading: "Uploading and processing file...",
-          success: () => {
-            onClose();
-            if (handleApicall) handleApicall();
-            return "Bulk upload completed successfully!";
-          },
-          error: (err) => err.message || "Bulk upload failed",
+      toast.promise(bulkUploadStudents(bulkFormData), {
+        loading: "Uploading and processing file...",
+        success: () => {
+          onClose();
+          if (handleApicall) handleApicall();
+          return "Bulk upload completed successfully!";
         },
-      );
+        error: (err) => err.message || "Bulk upload failed",
+      });
       return;
     }
 
@@ -195,23 +271,20 @@ const AddStudentModal = ({
       ? updateStudent(editData._id, formData)
       : createStudent(formData);
 
-    toast.promise(
-      apiCall,
-      {
-        loading: isEdit
-          ? "Updating student details..."
-          : "Creating new student...",
-        success: () => {
-          onClose();
-          if (handleApicall) handleApicall();
-          return isEdit
-            ? "Student updated successfully!"
-            : "Student added successfully!";
-        },
-        error: (err) =>
-          err.response?.data?.message || err.message || "Operation failed",
+    toast.promise(apiCall, {
+      loading: isEdit
+        ? "Updating student details..."
+        : "Creating new student...",
+      success: () => {
+        onClose();
+        if (handleApicall) handleApicall();
+        return isEdit
+          ? "Student updated successfully!"
+          : "Student added successfully!";
       },
-    );
+      error: (err) =>
+        err.response?.data?.message || err.message || "Operation failed",
+    });
   };
 
   const availableSemesters = getAvailableSemesters();
@@ -232,6 +305,24 @@ const AddStudentModal = ({
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X size={22} className="text-gray-500" />
+          </button>
+        </div>
+
+        <div className="mx-auto mt-4 p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-between gap-3">
+          <AlertOctagon size={18} className="text-gray-700 shrink-0" />
+
+          <p className="text-[11px] text-gray-900">
+            Students will be stored based on this active academic year :{" "}
+            <strong className="text-red-500">
+              {activeAcadYear?.name || "Loading..."}
+            </strong>
+          </p>
+
+          <button
+            onClick={handleRedirectToAcadYear}
+            className="text-[10px] font-bold text-gray-700 underline uppercase tracking-tighter"
+          >
+            Change
           </button>
         </div>
 
@@ -350,41 +441,34 @@ const AddStudentModal = ({
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <ValidationStatus
+                  hasSelection={formData.departmentId && formData.batchId}
+                  loading={loadingSections}
+                  isValid={sections.length > 0}
+                  onSetup={handleRedirectToManagement}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-2">
-                    Section{" "}
-                    {loadingSections && (
-                      <Loader2 size={10} className="animate-spin" />
-                    )}
+                  <label className="text-[11px] font-bold text-gray-500 uppercase">
+                    Section
                   </label>
-                  {formData.departmentId &&
-                  formData.batchId &&
-                  !loadingSections &&
-                  sections.length === 0 ? (
-                    <button
-                      type="button"
-                      onClick={handleRedirectToManagement}
-                      className="flex items-center gap-2 w-full px-4 py-2 bg-white border border-[#08384F] text-[#08384F] rounded-xl text-[10px] text-center font-bold uppercase hover:bg-sky-50 transition-all"
-                    >
-                      <AlertCircle size={14} /> Setup Sections
-                    </button>
-                  ) : (
-                    <select
-                      name="sectionId"
-                      value={formData.sectionId}
-                      onChange={handleChange}
-                      disabled={!sections.length}
-                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
-                    >
-                      <option value="">Select Section</option>
-                      {sections.map((sec) => (
-                        <option key={sec._id} value={sec._id}>
-                          {sec.name}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+                  <select
+                    name="sectionId"
+                    value={formData.sectionId}
+                    onChange={handleChange}
+                    disabled={!sections.length}
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
+                  >
+                    <option value="">Select Section</option>
+                    {sections.map((sec) => (
+                      <option key={sec._id} value={sec._id}>
+                        {sec.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
@@ -474,44 +558,143 @@ const AddStudentModal = ({
               </div>
             </>
           ) : (
-            <div
-              onClick={() => fileInputRef.current.click()}
-              className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center hover:border-[#08384F] transition-all cursor-pointer group"
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".csv, .xlsx"
-              />
-              {selectedFile ? (
-                <div className="space-y-2">
-                  <CheckCircle2
-                    size={40}
-                    className="mx-auto text-emerald-500"
-                  />
-                  <p className="text-sm font-bold text-[#08384F]">
-                    {selectedFile.name}
-                  </p>
-                  <p className="text-[10px] text-gray-400">
-                    Click to change file
-                  </p>
+            <div className="space-y-6">
+              <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-3">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Required Excel Columns
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "firstName",
+                    "lastName",
+                    "registerNumber",
+                    "rollNumber",
+                    "semesterNumber",
+                    "email",
+                    "gender",
+                    "dateOfBirth",
+                    "departmentCode",
+                    "batchName",
+                  ].map((col) => (
+                    <span
+                      key={col}
+                      className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#08384F]"
+                    >
+                      {col}
+                    </span>
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <UploadCloud
-                    size={40}
-                    className="mx-auto text-gray-300 mb-4 group-hover:text-[#08384F] transition-colors"
-                  />
-                  <p className="text-sm font-bold text-[#08384F]">
-                    Upload Students List
-                  </p>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    Accepts .xlsx or .csv files
-                  </p>
-                </>
-              )}
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#08384F] tracking-wide">
+                    Bulk Validation
+                  </h3>
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase">
+                    Department & Batch
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Department
+                    </label>
+
+                    <select
+                      value={bulkValidate.deptId}
+                      onChange={(e) =>
+                        setBulkValidate((prev) => ({
+                          ...prev,
+                          deptId: e.target.value,
+                        }))
+                      }
+                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl text cursor-pointer focus:border-[#08384F] focus:bg-white transition-all font-[poppins] font-semibold uppercase text-[11px] outline-none"
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept._id} value={dept._id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Batch
+                    </label>
+
+                    <select
+                      value={bulkValidate.batchId}
+                      onChange={(e) =>
+                        setBulkValidate((prev) => ({
+                          ...prev,
+                          batchId: e.target.value,
+                        }))
+                      }
+                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl text-sm outline-none cursor-pointer focus:border-[#08384F] focus:bg-white transition-all font-[poppins] font-semibold uppercase text-[11px]"
+                    >
+                      <option value="">Select Batch</option>
+                      {batches.map((batch) => (
+                        <option key={batch._id} value={batch._id}>
+                          {batch.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <ValidationStatus
+                  hasSelection={bulkValidate.deptId && bulkValidate.batchId}
+                  loading={bulkValidate.loading}
+                  isValid={bulkValidate.isValid}
+                  onSetup={handleRedirectToManagement}
+                />
+              </div>
+
+             
+
+              <div
+                onClick={() => fileInputRef.current.click()}
+                className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center hover:border-[#08384F] transition-all cursor-pointer group"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept=".csv, .xlsx"
+                />
+                {selectedFile ? (
+                  <div className="space-y-2">
+                    <CheckCircle2
+                      size={40}
+                      className="mx-auto text-emerald-500"
+                    />
+                    <p className="text-sm font-bold text-[#08384F]">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      Click to change file
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <UploadCloud
+                      size={40}
+                      className="mx-auto text-gray-300 mb-4 group-hover:text-[#08384F] transition-colors"
+                    />
+                    <p className="text-sm font-bold text-[#08384F]">
+                      Upload Students List
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Accepts .xlsx or .csv files
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -524,7 +707,7 @@ const AddStudentModal = ({
             Cancel
           </button>
           <button
-            className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-900/10 hover:bg-[#0b4a68] transition-all disabled:opacity-50"
+            className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-sm font-bold shadow-lg shadow-gray-900/10 hover:bg-[#0b4a68] transition-all disabled:opacity-50"
             onClick={handleSubmit}
             disabled={
               activeTab === "single"
@@ -532,7 +715,10 @@ const AddStudentModal = ({
                   !formData.batchId ||
                   sections.length === 0 ||
                   !formData.semesterNumber
-                : !selectedFile
+                : !selectedFile ||
+                  (bulkValidate.deptId &&
+                    bulkValidate.batchId &&
+                    !bulkValidate.isValid)
             }
           >
             {isEdit

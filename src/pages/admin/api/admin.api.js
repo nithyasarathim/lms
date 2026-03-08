@@ -426,3 +426,12 @@ export const shiftSemester = async (payload) => {
     throw err.response?.data || err.message;
   }
 };
+
+export const getActiveAcademicYear = async () => {
+  try {
+    const response = await apiClient.get(`/api/academic-years?isActive=true`);
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
