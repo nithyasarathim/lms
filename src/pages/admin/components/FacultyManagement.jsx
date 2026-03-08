@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import FacultyStats from "./FacultyStats";
 import FacultyPieChart from "./FacultyPieChart";
@@ -14,6 +15,7 @@ const FacultyManagement = () => {
   const [editData, setEditData] = useState(null);
   const [statusModal, setStatusModal] = useState({ isOpen: false, data: null });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleAddClick = () => {
     setIsEdit(false);
@@ -37,7 +39,7 @@ const FacultyManagement = () => {
         `Faculty ${newStatus ? "activated" : "deactivated"} successfully`,
       );
       setStatusModal({ isOpen: false, data: null });
-      window.location.reload();
+      setRefreshKey((prev) => prev + 1);
     } catch (err) {
       toast.error(err.message || "Failed to update status");
     } finally {
@@ -46,22 +48,28 @@ const FacultyManagement = () => {
   };
 
   return (
-    <div className="h-fit flex flex-col font-['Poppins'] bg-gray-50/30 relative">
+    <motion.div
+      initial={{ opacity: 0.3 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "linear" }}
+      className="h-fit flex flex-col font-['Poppins'] bg-gray-50/30 relative"
+    >
       <HeaderComponent title="Faculty Management" />
-      
+
       <div className="flex-1 flex flex-col px-6 py-6 space-y-6 overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-6 shrink-0">
           <div className="lg:w-[70%] w-full h-[200px]">
-            <FacultyStats />
+            <FacultyStats key={`stats-${refreshKey}`} />
           </div>
           <div className="lg:w-[30%] w-full h-[200px]">
-            <FacultyPieChart />
+            <FacultyPieChart key={`pie-${refreshKey}`} />
           </div>
         </div>
 
         <div className="flex-1 min-h-0 w-full bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
           <div className="flex-1 overflow-auto">
             <FacultyTable
+              key={`table-${refreshKey}`}
               onAddClick={handleAddClick}
               onEditClick={handleEditClick}
               onStatusClick={(faculty) =>
@@ -77,6 +85,7 @@ const FacultyManagement = () => {
           setIsCanvas={setIsCanvas}
           isEdit={isEdit}
           editData={editData}
+          handleRefresh={() => setRefreshKey((prev) => prev + 1)}
         />
       )}
       <FacultyStatusModal
@@ -86,7 +95,7 @@ const FacultyManagement = () => {
         faculty={statusModal.data}
         loading={isUpdating}
       />
-    </div>
+    </motion.div>
   );
 };
 

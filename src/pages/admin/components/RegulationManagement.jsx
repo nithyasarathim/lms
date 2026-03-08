@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import HeaderComponent from "../../shared/components/HeaderComponent";
@@ -13,6 +14,7 @@ const RegulationManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [regulations, setRegulations] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const selectedDeptId = searchParams.get("deptId");
   const [selectedRegId, setSelectedRegId] = useState(
@@ -22,6 +24,7 @@ const RegulationManagement = () => {
   );
 
   const currentPath = window.location.pathname;
+
   useEffect(() => {
     const urlRegId = searchParams.get("regulationId");
     const cachedRegId = sessionStorage.getItem("selectedRegId");
@@ -44,7 +47,7 @@ const RegulationManagement = () => {
       }
     };
     loadRegulations();
-  }, []);
+  }, [refreshKey]);
 
   const handleRegulationChange = (e) => {
     const regId = e.target.value;
@@ -73,7 +76,12 @@ const RegulationManagement = () => {
   };
 
   return (
-    <section className="flex w-full h-screen overflow-hidden relative">
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "linear" }}
+      className="flex w-full h-screen overflow-hidden relative"
+    >
       <div className="w-full h-full flex flex-col">
         <HeaderComponent title="Regulation Management" />
         <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
@@ -157,9 +165,9 @@ const RegulationManagement = () => {
       <AddRegulationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => window.location.reload()}
+        onSuccess={() => setRefreshKey((prev) => prev + 1)}
       />
-    </section>
+    </motion.section>
   );
 };
 

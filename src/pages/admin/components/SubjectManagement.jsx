@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Plus, Search } from "lucide-react";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";
@@ -10,12 +11,18 @@ const SubjectManagement = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const selectedDeptId = searchParams.get("deptId");
   const currentPath = window.location.pathname + window.location.search;
 
   return (
-    <section className="flex w-full min-h-screen fixed overflow-hidden relative ">
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "linear" }}
+      className="flex w-full min-h-screen fixed overflow-hidden relative "
+    >
       <div className="w-full h-full flex flex-col ">
         <HeaderComponent title="Subject Management" />
 
@@ -47,7 +54,11 @@ const SubjectManagement = () => {
                   </button>
                 </div>
 
-                <DepartmentList basePath={currentPath} filter={searchTerm} />
+                <DepartmentList
+                  key={refreshKey}
+                  basePath={currentPath}
+                  filter={searchTerm}
+                />
               </>
             ) : (
               <SubjectTable deptId={selectedDeptId} />
@@ -59,9 +70,9 @@ const SubjectManagement = () => {
       <AddDepartmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={() => window.location.reload()}
+        onSuccess={() => setRefreshKey((prev) => prev + 1)}
       />
-    </section>
+    </motion.section>
   );
 };
 

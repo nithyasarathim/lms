@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import StudentStats from "./StudentStats";
 import StudentPieChart from "./StudentPieChart";
@@ -10,6 +11,16 @@ import toast from "react-hot-toast";
 
 let yearsCache = null;
 
+const ManagementShimmer = () => (
+  <div className="py-8 px-6 min-h-screen space-y-6 animate-pulse">
+    <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
+      <div className="lg:w-[70%] w-full h-[200px] bg-gray-200 rounded-2xl"></div>
+      <div className="lg:w-[30%] w-full h-[200px] bg-gray-200 rounded-2xl"></div>
+    </div>
+    <div className="w-full h-[400px] bg-gray-200 rounded-3xl"></div>
+  </div>
+);
+
 const StudentManagement = () => {
   const [isCanvas, setIsCanvas] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -19,7 +30,14 @@ const StudentManagement = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [academicYears, setAcademicYears] = useState(yearsCache || []);
-  const [selectedYear, setSelectedYear] = useState("");
+
+  const [selectedYear, setSelectedYear] = useState(() => {
+    if (yearsCache && yearsCache.length > 0) {
+      const active = yearsCache.find((y) => y.isActive) || yearsCache[0];
+      return active._id;
+    }
+    return "";
+  });
 
   useEffect(() => {
     const fetchYears = async () => {
@@ -43,7 +61,7 @@ const StudentManagement = () => {
       }
     };
     fetchYears();
-  }, []);
+  }, [selectedYear]);
 
   const handleAddClick = () => {
     setIsEdit(false);
@@ -76,7 +94,12 @@ const StudentManagement = () => {
   };
 
   return (
-    <div className=" overflow-hidden font-['Poppins'] bg-gray-50/30">
+    <motion.div
+      initial={{ opacity: 0.3 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "linear" }}
+      className=" overflow-hidden font-['Poppins'] bg-gray-50/30"
+    >
       <HeaderComponent
         title="Student Management"
         showAcademicYear={true}
@@ -84,50 +107,92 @@ const StudentManagement = () => {
         selectedYear={selectedYear}
         onYearChange={setSelectedYear}
       />
-      <div className=" py-8 px-6 min-h-screen space-y-6">
-        <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
-          <div className="lg:w-[70%] w-full flex">
-            <StudentStats
-              key={`stats-${refreshKey}`}
+
+      <AnimatePresence mode="wait">
+        {!selectedYear ? (
+          <motion.div
+            key="shimmer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <ManagementShimmer />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className=" py-8 px-6 min-h-screen space-y-6"
+          >
+            <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
+              <div className="lg:w-[70%] w-full flex">
+                <StudentStats
+                  key={`stats-${selectedYear}-${refreshKey}`}
+                  academicYearId={selectedYear}
+                />
+              </div>
+              <div className="lg:w-[30%] w-full flex">
+                <StudentPieChart
+                  key={`pie-${selectedYear}-${refreshKey}`}
+                  academicYearId={selectedYear}
+                />
+              </div>
+            </div>
+
+            <div className="lg:w-[100%] w-full">
+              <StudentTable
+                key={`table-${selectedYear}-${refreshKey}`}
+                academicYearId={selectedYear}
+                onAddClick={handleAddClick}
+                onEditClick={handleEditClick}
+                onStatusClick={(student) =>
+                  setStatusModal({ isOpen: true, data: student })
+                }
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCanvas && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0 }}
+          >
+            <AddStudentModal
               academicYearId={selectedYear}
+              onClose={() => setIsCanvas(false)}
+              isEdit={isEdit}
+              editData={editData}
+              handleApicall={() => setRefreshKey((prev) => prev + 1)}
             />
-          </div>
-          <div className="lg:w-[30%] w-full flex">
-            <StudentPieChart
-              key={`pie-${refreshKey}`}
-              academicYearId={selectedYear}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {statusModal.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1 }}
+          >
+            <StudentStatusModal
+              isOpen={statusModal.isOpen}
+              onClose={() => setStatusModal({ isOpen: false, data: null })}
+              onConfirm={handleStatusToggle}
+              student={statusModal.data}
+              loading={isUpdating}
             />
-          </div>
-        </div>
-        <div className="lg:w-[100%] w-full">
-          <StudentTable
-            key={`table-${refreshKey}`}
-            academicYearId={selectedYear}
-            onAddClick={handleAddClick}
-            onEditClick={handleEditClick}
-            onStatusClick={(student) =>
-              setStatusModal({ isOpen: true, data: student })
-            }
-          />
-        </div>
-      </div>
-      {isCanvas && (
-        <AddStudentModal
-          academicYearId={selectedYear}
-          onClose={() => setIsCanvas(false)}
-          isEdit={isEdit}
-          editData={editData}
-          handleApicall={() => setRefreshKey((prev) => prev + 1)}
-        />
-      )}
-      <StudentStatusModal
-        isOpen={statusModal.isOpen}
-        onClose={() => setStatusModal({ isOpen: false, data: null })}
-        onConfirm={handleStatusToggle}
-        student={statusModal.data}
-        loading={isUpdating}
-      />
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

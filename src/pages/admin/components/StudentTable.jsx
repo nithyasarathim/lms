@@ -20,14 +20,24 @@ import StudentDetailsModal from "../modal/StudentDetailsModal";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 
+let studentCache = {};
+
 const StudentTable = ({
   academicYearId,
   onAddClick,
   onEditClick,
   onStatusClick,
 }) => {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState(() => {
+    return academicYearId && studentCache[academicYearId]
+      ? studentCache[academicYearId]
+      : [];
+  });
+
+  const [loading, setLoading] = useState(() => {
+    return !(academicYearId && studentCache[academicYearId]);
+  });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -57,7 +67,15 @@ const StudentTable = ({
   const configRef = useRef(null);
 
   useEffect(() => {
-    fetchData();
+    if (!academicYearId) return;
+
+    if (studentCache[academicYearId]) {
+      setStudents(studentCache[academicYearId]);
+      setLoading(false);
+    } else {
+      fetchData();
+    }
+
     const handleClickOutside = (e) => {
       if (configRef.current && !configRef.current.contains(e.target))
         setShowColConfig(false);
@@ -80,8 +98,10 @@ const StudentTable = ({
             );
           return a.isActive ? -1 : 1;
         });
+        studentCache[academicYearId] = sortedData;
         setStudents(sortedData);
       } else {
+        studentCache[academicYearId] = [];
         setStudents([]);
       }
     } catch (err) {
