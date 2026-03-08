@@ -29,7 +29,7 @@ const ValidationStatus = ({ loading, isValid, onSetup, hasSelection }) => {
 
   if (loading)
     return (
-      <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-semibold text-gray-500">
+      <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-semibold text-gray-500 z-50 fixed">
         <Loader2 size={16} className="animate-spin" />
         Validating configuration...
       </div>
@@ -295,8 +295,8 @@ const AddStudentModal = ({
         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity"
         onClick={onClose}
       ></div>
-      <section className="w-[400px] md:w-[600px] bg-white absolute right-0 top-0 h-screen z-[60] flex flex-col shadow-2xl font-['Poppins']">
-        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+      <section className="w-[400px] md:w-[600px] bg-white fixed right-0 top-0 h-full z-[60] flex flex-col shadow-2xl font-['Poppins']">
+        <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
           <h2 className="text-xl font-bold text-[#08384F]">
             {isEdit ? "Edit Student" : "Add Student"}
           </h2>
@@ -308,16 +308,16 @@ const AddStudentModal = ({
           </button>
         </div>
 
-        <div className="mx-auto mt-4 p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-between gap-3">
-          <AlertOctagon size={18} className="text-gray-700 shrink-0" />
-
-          <p className="text-[11px] text-gray-900">
-            Students will be stored based on this active academic year :{" "}
-            <strong className="text-red-500">
-              {activeAcadYear?.name || "Loading..."}
-            </strong>
-          </p>
-
+        <div className="mx-6 mt-4 p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-3">
+            <AlertOctagon size={18} className="text-gray-700 shrink-0" />
+            <p className="text-[11px] text-gray-900">
+              Active academic year :{" "}
+              <strong className="text-red-500">
+                {activeAcadYear?.name || "Loading..."}
+              </strong>
+            </p>
+          </div>
           <button
             onClick={handleRedirectToAcadYear}
             className="text-[10px] font-bold text-gray-700 underline uppercase tracking-tighter"
@@ -327,7 +327,7 @@ const AddStudentModal = ({
         </div>
 
         {!isEdit && (
-          <div className="px-6 mt-4">
+          <div className="px-6 mt-4 shrink-0">
             <div className="flex bg-gray-100 p-1 rounded-xl w-full">
               <button
                 className={`py-2 rounded-lg text-xs w-1/2 font-bold transition-all ${activeTab === "single" ? "bg-white text-[#08384F] shadow-sm" : "text-gray-500"}`}
@@ -654,8 +654,6 @@ const AddStudentModal = ({
                 />
               </div>
 
-             
-
               <div
                 onClick={() => fileInputRef.current.click()}
                 className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center hover:border-[#08384F] transition-all cursor-pointer group"
@@ -699,7 +697,7 @@ const AddStudentModal = ({
           )}
         </div>
 
-        <div className="p-6 border-t border-gray-100 flex gap-3 bg-white">
+        <div className="p-6 border-t border-gray-100 flex gap-3 bg-white shrink-0">
           <button
             className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
             onClick={onClose}

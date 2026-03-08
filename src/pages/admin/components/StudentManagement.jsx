@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 let yearsCache = null;
 
 const ManagementShimmer = () => (
-  <div className="py-8 px-6 min-h-screen space-y-6 animate-pulse">
+  <div className="py-8 px-6 min-h-fit space-y-6 animate-pulse">
     <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
       <div className="lg:w-[70%] w-full h-[200px] bg-gray-200 rounded-2xl"></div>
       <div className="lg:w-[30%] w-full h-[200px] bg-gray-200 rounded-2xl"></div>
@@ -123,7 +123,7 @@ const StudentManagement = () => {
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className=" py-8 px-6 min-h-screen space-y-6"
+            className=" py-8 px-6 min-h-fit space-y-6"
           >
             <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
               <div className="lg:w-[70%] w-full flex">
