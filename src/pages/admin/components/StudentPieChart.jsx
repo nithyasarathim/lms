@@ -11,7 +11,6 @@ import { ChevronDown, PieChart as PieIcon, Ban } from "lucide-react";
 import { getDepartments, getStudentByDeptStats } from "../api/admin.api";
 
 const COLORS = ["#59AAFF", "#58A08B", "#FFA73A", "#707070"];
-
 let deptsCache = [];
 let pieStatsCache = {};
 
@@ -20,9 +19,7 @@ const StudentPieChart = ({ academicYearId }) => {
   const [selectedDeptId, setSelectedDeptId] = useState(
     deptsCache[0]?._id || "",
   );
-
   const cacheKey = `${selectedDeptId}_${academicYearId}`;
-
   const [loading, setLoading] = useState(!pieStatsCache[cacheKey]);
   const [chartData, setChartData] = useState(
     pieStatsCache[cacheKey]?.chartData || [],
@@ -36,7 +33,6 @@ const StudentPieChart = ({ academicYearId }) => {
         if (!selectedDeptId) setSelectedDeptId(deptsCache[0]._id);
         return;
       }
-
       try {
         const res = await getDepartments();
         const deptList = res?.data?.departments || res || [];
@@ -55,37 +51,30 @@ const StudentPieChart = ({ academicYearId }) => {
   useEffect(() => {
     const fetchStats = async () => {
       if (!selectedDeptId || !academicYearId) return;
-
       const key = `${selectedDeptId}_${academicYearId}`;
-
       if (pieStatsCache[key]) {
         setChartData(pieStatsCache[key].chartData);
         setTotal(pieStatsCache[key].total);
         setLoading(false);
-        return;
+      } else {
+        setLoading(true);
       }
-
-      setLoading(true);
-
       try {
         const res = await getStudentByDeptStats(selectedDeptId, academicYearId);
         if (res.success && res.data) {
           const deptStats = res.data.departments?.find(
             (d) => d.departmentId === selectedDeptId,
           );
-
           const formattedData = [
             { name: "1st Year", value: deptStats?.yearWise?.firstYear || 0 },
             { name: "2nd Year", value: deptStats?.yearWise?.secondYear || 0 },
             { name: "3rd Year", value: deptStats?.yearWise?.thirdYear || 0 },
             { name: "4th Year", value: deptStats?.yearWise?.fourthYear || 0 },
           ];
-
           pieStatsCache[key] = {
             chartData: formattedData,
             total: deptStats?.totalStudents || 0,
           };
-
           setChartData(formattedData);
           setTotal(deptStats?.totalStudents || 0);
         }
@@ -131,7 +120,6 @@ const StudentPieChart = ({ academicYearId }) => {
           />
         </div>
       </div>
-
       <div className="flex-1 relative">
         {loading && !pieStatsCache[cacheKey] ? (
           <div className="absolute inset-0 flex items-center justify-center p-6">
@@ -219,6 +207,10 @@ const StudentPieChart = ({ academicYearId }) => {
       </div>
     </div>
   );
+};
+
+StudentPieChart.clearCache = () => {
+  pieStatsCache = {};
 };
 
 export default StudentPieChart;

@@ -63,6 +63,13 @@ const StudentManagement = () => {
     fetchYears();
   }, [selectedYear]);
 
+  const handleRefreshData = () => {
+    StudentStats.clearCache();
+    StudentPieChart.clearCache();
+    StudentTable.clearCache();
+    setRefreshKey((prev) => prev + 1);
+  };
+
   const handleAddClick = () => {
     setIsEdit(false);
     setEditData(null);
@@ -85,7 +92,7 @@ const StudentManagement = () => {
         `Student ${newStatus ? "activated" : "deactivated"} successfully`,
       );
       setStatusModal({ isOpen: false, data: null });
-      setRefreshKey((prev) => prev + 1);
+      handleRefreshData();
     } catch (err) {
       toast.error(err.message || "Failed to update status");
     } finally {
@@ -168,7 +175,7 @@ const StudentManagement = () => {
               onClose={() => setIsCanvas(false)}
               isEdit={isEdit}
               editData={editData}
-              handleApicall={() => setRefreshKey((prev) => prev + 1)}
+              handleApicall={handleRefreshData}
             />
           </motion.div>
         )}

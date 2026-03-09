@@ -22,6 +22,9 @@ import {
   bulkUploadStudents,
   getAllAcademicYears,
 } from "../api/admin.api";
+import StudentStats from "../components/StudentStats";
+import StudentPieChart from "../components/StudentPieChart";
+import StudentTable from "../components/StudentTable";
 import toast from "react-hot-toast";
 
 const ValidationStatus = ({ loading, isValid, onSetup, hasSelection }) => {
@@ -258,6 +261,9 @@ const AddStudentModal = ({
       toast.promise(bulkUploadStudents(bulkFormData), {
         loading: "Uploading and processing file...",
         success: () => {
+          StudentStats.clearCache();
+          StudentPieChart.clearCache();
+          StudentTable.clearCache();
           onClose();
           if (handleApicall) handleApicall();
           return "Bulk upload completed successfully!";
@@ -276,6 +282,9 @@ const AddStudentModal = ({
         ? "Updating student details..."
         : "Creating new student...",
       success: () => {
+        StudentStats.clearCache();
+        StudentPieChart.clearCache();
+        StudentTable.clearCache();
         onClose();
         if (handleApicall) handleApicall();
         return isEdit

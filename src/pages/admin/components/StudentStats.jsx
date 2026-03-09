@@ -22,13 +22,12 @@ const StudentStats = ({ academicYearId }) => {
   useEffect(() => {
     const fetchStats = async () => {
       if (!academicYearId) return;
-
       if (globalStudentCache[cacheKey]) {
         setStats(globalStudentCache[cacheKey]);
         setLoading(false);
-        return;
+      } else {
+        setLoading(true);
       }
-
       try {
         const res = await getStudentStats(academicYearId);
         if (res.success) {
@@ -85,7 +84,6 @@ const StudentStats = ({ academicYearId }) => {
           </div>
         </div>
       </div>
-
       <div className="col-span-14 grid grid-cols-2 gap-4">
         <div className="bg-[#D9EBFE] rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#59AAFF] rounded-xl flex items-center justify-center shrink-0">
@@ -100,7 +98,6 @@ const StudentStats = ({ academicYearId }) => {
             </p>
           </div>
         </div>
-
         <div className="bg-[#D2F8ED] rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#58A08B] rounded-xl flex items-center justify-center shrink-0">
             <School size={22} className="text-white" />
@@ -114,7 +111,6 @@ const StudentStats = ({ academicYearId }) => {
             </p>
           </div>
         </div>
-
         <div className="bg-[#FFEED9] rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#FFA73A] rounded-xl flex items-center justify-center shrink-0">
             <GraduationCap size={22} className="text-white" />
@@ -128,7 +124,6 @@ const StudentStats = ({ academicYearId }) => {
             </p>
           </div>
         </div>
-
         <div className="bg-[#F5F5F5] border border-gray-100 rounded-2xl px-6 py-5 flex items-center gap-4 hover:shadow-md transition-all">
           <div className="w-11 h-11 bg-[#707070] rounded-xl flex items-center justify-center shrink-0">
             <Award size={22} className="text-white" />
@@ -145,6 +140,10 @@ const StudentStats = ({ academicYearId }) => {
       </div>
     </Container>
   );
+};
+
+StudentStats.clearCache = () => {
+  globalStudentCache = {};
 };
 
 export default StudentStats;

@@ -11,6 +11,7 @@ import {
   GraduationCap,
   RefreshCw,
   CalendarDays,
+  Award,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -39,6 +40,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [currentSem, setCurrentSem] = useState(null);
+  const [isGraduated, setIsGraduated] = useState(false);
   const [isShiftLoading, setIsShiftLoading] = useState(false);
   const [showShiftConfirm, setShowShiftConfirm] = useState(false);
 
@@ -66,7 +68,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
           if (bpRes.success && bp._id) {
             setBatchProgramId(bp._id);
             setSelectedReg(bp.regulationId?._id || bp.regulationId);
-            fetchSemInfo();
+            await fetchSemInfo();
           } else {
             setBatchProgramId(null);
             setSelectedReg("");
@@ -89,6 +91,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
       const res = await getSemesterShiftInfo(batchId, deptId);
       if (res?.success) {
         setCurrentSem(res.data.currentSemester);
+        setIsGraduated(res.data.isGraduated);
       }
     } catch (err) {
       console.error("Sem Info Error:", err);
@@ -220,99 +223,118 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
             <ArrowLeft size={18} strokeWidth={2.5} /> Back
           </button>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {deptData && (
-              <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                <GraduationCap size={16} className="text-gray-500" />
-                <span className="text-[10px] text-gray-400 font-bold uppercase">
-                  Dept
-                </span>
-                <span className="font-bold text-xs text-[#08384F] uppercase">
-                  {deptData.program} {deptData.code}
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-              <Layers size={16} className="text-gray-400" />
-              <span className="text-[10px] text-gray-400 font-bold uppercase">
-                Batch
-              </span>
-              <span className="font-bold text-xs text-[#08384F] uppercase">
-                {regName}
-              </span>
-            </div>
-
-            <div
-              className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm transition-all duration-500 border-2 ${
-                shouldHighlightReg
-                  ? "relative z-[50] border-[#08384F] ring-8 ring-[#08384F]/20 animate-pulse scale-110"
-                  : "border-gray-100"
-              }`}
-            >
-              <BookMarked
-                size={16}
-                className={
-                  shouldHighlightReg ? "text-[#08384F]" : "text-gray-400"
-                }
-              />
-              <span className="text-[10px] text-gray-400 font-bold uppercase">
-                Reg
-              </span>
-              {batchProgramId ? (
-                <span className="font-bold text-xs text-[#08384F] uppercase">
-                  {selectedRegName}
-                </span>
-              ) : (
-                <div className="relative flex items-center">
-                  <select
-                    value={selectedReg}
-                    onChange={handleRegSelect}
-                    onFocus={removeHighlightParam}
-                    className="appearance-none bg-transparent pr-5 font-bold text-xs text-[#08384F] outline-none cursor-pointer uppercase"
-                  >
-                    <option value="">Select</option>
-                    {regulations.map((reg) => (
-                      <option key={reg._id} value={reg._id}>
-                        {reg.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    className="absolute right-0 text-gray-400 pointer-events-none"
-                  />
-                </div>
-              )}
-            </div>
-
-            {batchProgramId && (
-              <>
+          {!loading && (
+            <div className="flex flex-wrap items-center gap-3">
+              {deptData && (
                 <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                  <CalendarDays size={16} className="text-emerald-500" />
+                  <GraduationCap size={16} className="text-gray-500" />
                   <span className="text-[10px] text-gray-400 font-bold uppercase">
-                    Sem
+                    Dept
                   </span>
                   <span className="font-bold text-xs text-[#08384F] uppercase">
-                    {currentSem || "N/A"}
+                    {deptData.program} {deptData.code}
                   </span>
                 </div>
+              )}
 
-                <button
-                  onClick={() => setShowShiftConfirm(true)}
-                  className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl shadow-sm hover:bg-emerald-100 transition-colors group"
-                >
-                  <RefreshCw
-                    size={16}
-                    className="text-emerald-600 group-hover:rotate-180 transition-transform duration-500"
-                  />
-                  <span className="font-bold text-xs text-emerald-700 uppercase">
-                    Promote semester
+              <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
+                <Layers size={16} className="text-gray-400" />
+                <span className="text-[10px] text-gray-400 font-bold uppercase">
+                  Batch
+                </span>
+                <span className="font-bold text-xs text-[#08384F] uppercase">
+                  {regName}
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm transition-all duration-500 border-2 ${
+                  shouldHighlightReg
+                    ? "relative z-[50] border-[#08384F] ring-8 ring-[#08384F]/20 animate-pulse scale-110"
+                    : "border-gray-100"
+                }`}
+              >
+                <BookMarked
+                  size={16}
+                  className={
+                    shouldHighlightReg ? "text-[#08384F]" : "text-gray-400"
+                  }
+                />
+                <span className="text-[10px] text-gray-400 font-bold uppercase">
+                  Reg
+                </span>
+                {batchProgramId ? (
+                  <span className="font-bold text-xs text-[#08384F] uppercase">
+                    {selectedRegName}
                   </span>
-                </button>
-              </>
-            )}
-          </div>
+                ) : (
+                  <div className="relative flex items-center">
+                    <select
+                      value={selectedReg}
+                      onChange={handleRegSelect}
+                      onFocus={removeHighlightParam}
+                      className="appearance-none bg-transparent pr-5 font-bold text-xs text-[#08384F] outline-none cursor-pointer uppercase"
+                    >
+                      <option value="">Select</option>
+                      {regulations.map((reg) => (
+                        <option key={reg._id} value={reg._id}>
+                          {reg.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      className="absolute right-0 text-gray-400 pointer-events-none"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {batchProgramId && (
+                <>
+                  {isGraduated ? (
+                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 px-4 py-2 rounded-xl shadow-sm">
+                      <Award size={16} className="text-amber-600" />
+                      <span className="font-bold text-xs text-amber-700 uppercase tracking-wide">
+                        Graduated
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
+                        <CalendarDays size={16} className="text-emerald-500" />
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">
+                          Sem :
+                        </span>
+                        <span className="font-bold text-xs text-[#08384F] uppercase flex items-center">
+                          {currentSem ? (
+                            currentSem
+                          ) : (
+                            <span className="text-red-500 text-[10px]">
+                              No Students
+                            </span>
+                          )}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => setShowShiftConfirm(true)}
+                        className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl shadow-sm hover:bg-emerald-100 transition-colors group"
+                      >
+                        <RefreshCw
+                          size={16}
+                          className="text-emerald-600 group-hover:rotate-180 transition-transform duration-500"
+                        />
+                        <span className="font-bold text-xs text-emerald-700 uppercase">
+                          Promote semester
+                        </span>
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <button

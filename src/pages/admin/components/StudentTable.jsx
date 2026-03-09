@@ -67,6 +67,10 @@ const StudentTable = ({
   const [extraColumns, setExtraColumns] = useState([]);
   const configRef = useRef(null);
 
+  StudentTable.clearCache = () => {
+    studentCache = {};
+  };
+
   useEffect(() => {
     if (!academicYearId) return;
 
@@ -88,7 +92,7 @@ const StudentTable = ({
   const fetchData = async () => {
     if (!academicYearId) return;
     try {
-      setLoading(true);
+      if (!studentCache[academicYearId]) setLoading(true);
       const res = await getAllStudents(academicYearId);
       let studentData = res?.data?.students || [];
       if (studentData.length > 0) {

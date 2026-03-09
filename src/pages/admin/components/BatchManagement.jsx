@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, ChevronDown, Layers, CalendarPlus } from "lucide-react";
+import {
+  Plus,
+  Search,
+  ChevronDown,
+  Layers,
+  CalendarPlus,
+  Loader2,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";
@@ -16,6 +23,7 @@ const BatchManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [batches, setBatches] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [fetchingBatches, setFetchingBatches] = useState(true);
 
   const selectedDeptId = searchParams.get("deptId");
   const isYearModalOpen = searchParams.get("manageYears") === "true";
@@ -42,12 +50,15 @@ const BatchManagement = () => {
 
   useEffect(() => {
     const loadBatches = async () => {
+      setFetchingBatches(true);
       try {
         const response = await fetchBatch();
         const data = response?.data?.batches || response || [];
         setBatches(data);
       } catch (err) {
         toast.error("Error loading batches");
+      } finally {
+        setFetchingBatches(false);
       }
     };
     loadBatches();
@@ -138,25 +149,39 @@ const BatchManagement = () => {
                         size={16}
                       />
                       <select
+                        disabled={fetchingBatches}
                         value={selectedBatchId}
                         onChange={handleBatchChange}
                         className={`pl-9 pr-10 py-2.5 bg-white border rounded-xl text-sm font-bold appearance-none cursor-pointer shadow-sm min-w-[160px] transition-all ${
                           !selectedBatchId
                             ? "border-red-200 text-red-400 ring-2 ring-red-50"
                             : "border-[#CACACA] text-[#08384F] hover:border-[#08384F]/40"
-                        } focus:outline-none focus:ring-2 focus:ring-[#08384F]/10`}
+                        } focus:outline-none focus:ring-2 focus:ring-[#08384F]/10 disabled:bg-gray-50 disabled:cursor-not-allowed`}
                       >
-                        <option value="">Choose Batch</option>
-                        {batches.map((batch) => (
-                          <option key={batch._id} value={batch._id}>
-                            {batch.name}
-                          </option>
-                        ))}
+                        {fetchingBatches ? (
+                          <option>Loading...</option>
+                        ) : (
+                          <>
+                            <option value="">Choose Batch</option>
+                            {batches.map((batch) => (
+                              <option key={batch._id} value={batch._id}>
+                                {batch.name}
+                              </option>
+                            ))}
+                          </>
+                        )}
                       </select>
-                      <ChevronDown
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#08384F] transition-colors"
-                        size={16}
-                      />
+                      {fetchingBatches ? (
+                        <Loader2
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin"
+                          size={16}
+                        />
+                      ) : (
+                        <ChevronDown
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#08384F] transition-colors"
+                          size={16}
+                        />
+                      )}
                     </div>
 
                     <button
@@ -172,7 +197,7 @@ const BatchManagement = () => {
                 <div
                   onClickCapture={handleDeptClickCapture}
                   className={`transition-all duration-300 ${
-                    !selectedBatchId
+                    !selectedBatchId || fetchingBatches
                       ? "opacity-40 grayscale pointer-events-none"
                       : "opacity-100"
                   }`}
