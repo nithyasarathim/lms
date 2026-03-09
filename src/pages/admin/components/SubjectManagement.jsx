@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Search } from "lucide-react";
@@ -6,11 +6,13 @@ import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";
 import SubjectTable from "./SubjectTable";
 import AddDepartmentModal from "../modal/AddDepartmentModal";
+import AddRegulationModal from "../modal/AddRegulationModal";
 
 const SubjectManagement = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRegModalOpen, setIsRegModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const selectedDeptId = searchParams.get("deptId");
@@ -45,13 +47,22 @@ const SubjectManagement = () => {
                     />
                   </div>
 
-                  <button
-                    className="flex items-center gap-2 bg-[#08384F] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#0a4763] hover:shadow-lg active:scale-95 transition-all shrink-0"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    <Plus size={18} strokeWidth={2.5} />
-                    Add Department
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="flex items-center gap-2 bg-white text-[#08384F] border border-[#08384F] px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all shrink-0 shadow-sm active:scale-95"
+                      onClick={() => setIsRegModalOpen(true)}
+                    >
+                      <Plus size={18} strokeWidth={2.5} />
+                      Add Regulation
+                    </button>
+                    <button
+                      className="flex items-center gap-2 bg-[#08384F] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#0a4763] hover:shadow-lg active:scale-95 transition-all shrink-0"
+                      onClick={() => setIsModalOpen(true)}
+                    >
+                      <Plus size={18} strokeWidth={2.5} />
+                      Add Department
+                    </button>
+                  </div>
                 </div>
 
                 <DepartmentList
@@ -70,6 +81,12 @@ const SubjectManagement = () => {
       <AddDepartmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={() => setRefreshKey((prev) => prev + 1)}
+      />
+
+      <AddRegulationModal
+        isOpen={isRegModalOpen}
+        onClose={() => setIsRegModalOpen(false)}
         onSuccess={() => setRefreshKey((prev) => prev + 1)}
       />
     </motion.section>

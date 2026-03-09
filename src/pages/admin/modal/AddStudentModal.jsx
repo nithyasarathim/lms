@@ -312,7 +312,7 @@ const AddStudentModal = ({
           <div className="flex items-center gap-3">
             <AlertOctagon size={18} className="text-gray-700 shrink-0" />
             <p className="text-[11px] text-gray-900">
-              Active academic year :{" "}
+              The student's year will be considered for this academic year :{" "}
               <strong className="text-red-500">
                 {activeAcadYear?.name || "Loading..."}
               </strong>

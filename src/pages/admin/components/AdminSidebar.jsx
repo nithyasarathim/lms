@@ -26,9 +26,9 @@ const AdminSidebar = () => {
       tab: "subject-management",
     },
     {
-      label: "Regulation Management",
+      label: "Curriculum Management",
       icon: BookOpen,
-      tab: "regulation-management",
+      tab: "curriculum-management",
     },
     { label: "Batch Management", icon: Layers, tab: "batch-management" },
     { label: "Faculty Management", icon: Users, tab: "faculty-management" },

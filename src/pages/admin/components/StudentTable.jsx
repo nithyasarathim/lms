@@ -50,6 +50,7 @@ const StudentTable = ({
   const [filterDept, setFilterDept] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterSection, setFilterSection] = useState("");
+  const [filterSemType, setFilterSemType] = useState("odd");
 
   const [visibleColumns, setVisibleColumns] = useState({
     sNo: true,
@@ -136,7 +137,18 @@ const StudentTable = ({
       const matchesSection =
         filterSection === "" ||
         s.section?.name?.toLowerCase() === filterSection.toLowerCase();
-      return matchesSearch && matchesDept && matchesYear && matchesSection;
+
+      const semNum = Number(s.semesterNumber);
+      const isEven = semNum % 2 === 0;
+      const matchesSemType = filterSemType === "odd" ? !isEven : isEven;
+
+      return (
+        matchesSearch &&
+        matchesDept &&
+        matchesYear &&
+        matchesSection &&
+        matchesSemType
+      );
     })
     .sort((a, b) => {
       if (sortConfig.key === "yearLevel") {
@@ -357,12 +369,20 @@ const StudentTable = ({
             />
             <input
               type="text"
-              placeholder="Search by name, roll no, reg no..."
+              placeholder="Search students by name, roll number"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:border-[#08384F]"
             />
           </div>
+          <select
+            value={filterSemType}
+            onChange={(e) => setFilterSemType(e.target.value)}
+            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-[#08384F] outline-none cursor-pointer"
+          >
+            <option value="odd">Odd Sem</option>
+            <option value="even">Even Sem</option>
+          </select>
           <select
             value={filterDept}
             onChange={(e) => setFilterDept(e.target.value)}

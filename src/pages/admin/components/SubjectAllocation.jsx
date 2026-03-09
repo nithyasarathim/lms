@@ -13,6 +13,7 @@ import {
   getCurriculum,
   createCurriculum,
   updateCurriculum,
+  getSubjectsByRegulation,
 } from "../api/admin.api";
 import toast from "react-hot-toast";
 
@@ -39,7 +40,7 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
       setLoading(true);
       try {
         const [subjectsRes, curriculumRes] = await Promise.all([
-          getSubjects(),
+          getSubjectsByRegulation(regId),
           getCurriculum(deptId, regId),
         ]);
 

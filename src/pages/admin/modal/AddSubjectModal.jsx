@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   BookOpen,
@@ -10,9 +10,14 @@ import {
   Upload,
   FileSpreadsheet,
   Info,
+  Scale,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { addSubject, bulkUploadSubjects } from "../api/admin.api";
+import {
+  addSubject,
+  bulkUploadSubjects,
+  fetchRegulation,
+} from "../api/admin.api";
 
 const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
   const [searchParams] = useSearchParams();
@@ -21,13 +26,29 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [regulations, setRegulations] = useState([]);
 
   const [formData, setFormData] = useState({
     code: "",
     name: "",
     courseType: "T",
     credits: "",
+    regulationId: "",
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      const loadRegulations = async () => {
+        try {
+          const res = await fetchRegulation();
+          setRegulations(res?.data?.regulations || res || []);
+        } catch (err) {
+          console.error("Failed to fetch regulations", err);
+        }
+      };
+      loadRegulations();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -58,6 +79,7 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
           credits: Number(formData.credits),
           courseType: formData.courseType,
           departmentId: deptId,
+          regulationId: formData.regulationId,
           isActive: true,
         };
         await addSubject(payload);
@@ -65,14 +87,19 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
         if (!file) throw new Error("Please select an Excel file");
 
         const formDataBulk = new FormData();
-        // This maps to req.file on the backend
         formDataBulk.append("file", file);
+        formDataBulk.append("regulationId", formData.regulationId);
 
-        // Pass deptId for the URL param and formData for the file body
         await bulkUploadSubjects(deptId, formDataBulk);
       }
 
-      setFormData({ code: "", name: "", courseType: "T", credits: "" });
+      setFormData({
+        code: "",
+        name: "",
+        courseType: "T",
+        credits: "",
+        regulationId: "",
+      });
       setFile(null);
       fetchSubjects();
       onClose();
@@ -137,6 +164,33 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
               {error}
             </div>
           )}
+
+          <div className="relative">
+            <label className="text-[13px] font-semibold text-gray-500 uppercase tracking-wider ml-1 mb-1.5 block">
+              Regulation
+            </label>
+            <div className="relative">
+              <Scale
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <select
+                required
+                name="regulationId"
+                disabled={loading}
+                value={formData.regulationId}
+                onChange={handleInputChange}
+                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl appearance-none outline-none focus:bg-white focus:border-[#08384F] transition-all text-[15px] cursor-pointer"
+              >
+                <option value="">Select Regulation</option>
+                {regulations.map((reg) => (
+                  <option key={reg._id} value={reg._id}>
+                    {reg.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
           {activeTab === "single" ? (
             <div className="space-y-5">

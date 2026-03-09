@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
 import DashboardOverview from "../components/DashboardOverview";
-import RegulationManagement from "../components/RegulationManagement";
+import CurriculumManagement from "../components/CurriculumManagement";
 import SubjectManagement from "../components/SubjectManagement";
 import FacultyManagement from "../components/FacultyManagement";
 import StudentManagement from "../components/StudentManagement";
@@ -14,7 +14,7 @@ const AdminDashboard = () => {
 
   const validTabs = [
     "dashboard",
-    "regulation-management",
+    "curriculum-management",
     "subject-management",
     "faculty-management",
     "student-management",
@@ -31,8 +31,8 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case "dashboard":
         return <DashboardOverview />;
-      case "regulation-management":
-        return <RegulationManagement />;
+      case "curriculum-management":
+        return <CurriculumManagement />;
       case "subject-management":
         return <SubjectManagement />;
       case "faculty-management":

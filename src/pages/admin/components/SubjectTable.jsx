@@ -8,6 +8,7 @@ import {
   Settings,
   Loader2,
   BookX,
+  Scale,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getSubjects } from "../api/admin.api";
@@ -132,6 +133,9 @@ const SubjectTable = () => {
                   Code
                 </th>
                 <th className="text-left px-4 py-3 font-bold">Subject Name</th>
+                <th className="text-center px-4 py-3 w-[120px] font-bold">
+                  Regulation
+                </th>
                 <th className="text-center px-4 py-3 w-[100px] font-bold">
                   Type
                 </th>
@@ -146,7 +150,7 @@ const SubjectTable = () => {
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="py-20 text-center">
+                  <td colSpan="6" className="py-20 text-center">
                     <Loader2
                       className="animate-spin mx-auto text-[#08384F] mb-2"
                       size={24}
@@ -168,6 +172,14 @@ const SubjectTable = () => {
                     <td className="px-4 py-3 text-md text-gray-700 font-medium">
                       {item.name}
                     </td>
+                    <td className="px-4 py-3 text-center w-[120px]">
+                      <div className="flex items-center justify-center gap-1.5 text-[#08384F] bg-[#08384F]/5 py-1 px-2 rounded-lg border border-[#08384F]/10">
+                        <Scale size={12} />
+                        <span className="text-xs font-bold uppercase">
+                          {item.regulationId?.name || "N/A"}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-center w-[100px]">
                       {getCourseTypeLabel(item.courseType)}
                     </td>
@@ -175,16 +187,16 @@ const SubjectTable = () => {
                       {item.credits}
                     </td>
                     <td className="px-4 py-3 w-[100px]">
-                      <div className="flex justify-end gap-2 opacity-0 opacity-100 transition-opacity">
+                      <div className="flex justify-end gap-2 opacity-100 transition-opacity">
                         <button
                           onClick={() => setEditSubjectData(item)}
-                          className="p-2 text-emerald-600 bg-emerald-50 rounded-lg bg-emerald-100 transition-colors"
+                          className="p-2 text-emerald-600 bg-emerald-100 rounded-lg transition-colors"
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           onClick={() => setDeleteSubjectData(item)}
-                          className="p-2 text-rose-600 bg-rose-50 rounded-lg bg-rose-100 transition-colors"
+                          className="p-2 text-rose-600 bg-rose-100 rounded-lg transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -194,7 +206,7 @@ const SubjectTable = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="py-20 text-center">
+                  <td colSpan="6" className="py-20 text-center">
                     <div className="flex flex-col items-center text-gray-300">
                       <BookX size={40} strokeWidth={1} />
                       <p className="text-md font-semibold mt-2 text-gray-400">

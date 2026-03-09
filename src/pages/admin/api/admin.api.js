@@ -29,7 +29,16 @@ export const getDepartments = async () => {
 
 export const getSubjects = async () => {
   try {
-    const response = await apiClient.get("api/subjects");
+    const response = await apiClient.get(`api/subjects`);
+    return response.data.data.subjects;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const getSubjectsByRegulation = async (regId) => {
+  try {
+    const response = await apiClient.get(`api/subjects?regulationId=${regId}`);
     return response.data.data.subjects;
   } catch (error) {
     throw error.response?.data || error.message;

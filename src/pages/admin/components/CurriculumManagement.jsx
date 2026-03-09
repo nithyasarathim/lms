@@ -5,14 +5,12 @@ import { Plus, Search, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";
-import AddRegulationModal from "../modal/AddRegulationModal";
 import SubjectAllocation from "./SubjectAllocation";
 import { fetchRegulation } from "../api/admin.api";
 
-const RegulationManagement = () => {
+const CurriculumManagement = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [regulations, setRegulations] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -83,7 +81,7 @@ const RegulationManagement = () => {
       className="flex w-full h-screen overflow-hidden relative"
     >
       <div className="w-full h-full flex flex-col">
-        <HeaderComponent title="Regulation Management" />
+        <HeaderComponent title="Curriculum Management" />
         <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
           <div className="w-full mx-auto py-4">
             {!selectedDeptId ? (
@@ -126,14 +124,6 @@ const RegulationManagement = () => {
                         size={16}
                       />
                     </div>
-
-                    <button
-                      className="flex items-center gap-2 bg-[#08384F] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#0a4763] transition-all shrink-0 shadow-md active:scale-95"
-                      onClick={() => setIsModalOpen(true)}
-                    >
-                      <Plus size={18} strokeWidth={2.5} />
-                      Add Regulation
-                    </button>
                   </div>
                 </div>
 
@@ -161,14 +151,8 @@ const RegulationManagement = () => {
           </div>
         </main>
       </div>
-
-      <AddRegulationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => setRefreshKey((prev) => prev + 1)}
-      />
     </motion.section>
   );
 };
 
-export default RegulationManagement;
+export default CurriculumManagement;
