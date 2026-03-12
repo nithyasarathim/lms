@@ -11,7 +11,7 @@ import {
   Power,
 } from "lucide-react";
 import { getAllFaculties } from "../api/admin.api";
-import FacultyDetailsModal from "../modal/FacultyDetailsModal";
+import FacultyDetailsModal from "../modals/FacultyDetailsModal";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 

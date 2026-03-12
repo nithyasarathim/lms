@@ -24,9 +24,9 @@ import {
 } from "../api/admin.api";
 import toast from "react-hot-toast";
 import SectionList from "./SectionList";
-import AddSectionModal from "../modal/AddSectionModal";
-import EditSectionModal from "../modal/EditSectionModal";
-import StatusConfirmationModal from "../modal/StatusConfirmationModal";
+import AddSectionModal from "../modals/AddSectionModal";
+import EditSectionModal from "../modals/EditSectionModal";
+import StatusConfirmationModal from "../modals/StatusConfirmationModal";
 
 const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const [searchParams, setSearchParams] = useSearchParams();

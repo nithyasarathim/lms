@@ -12,10 +12,10 @@ import {
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getSubjects } from "../api/admin.api";
-import EditDepartmentModal from "../modal/EditDepartmentModal";
-import AddSubjectModal from "../modal/AddSubjectModal";
-import EditSubjectModal from "../modal/EditSubjectModal";
-import DeleteConfirmModal from "../modal/DeleteConfirmModal";
+import EditDepartmentModal from "../modals/EditDepartmentModal";
+import AddSubjectModal from "../modals/AddSubjectModal";
+import EditSubjectModal from "../modals/EditSubjectModal";
+import DeleteConfirmModal from "../modals/DeleteConfirmModal";
 
 const SubjectTable = () => {
   const navigate = useNavigate();

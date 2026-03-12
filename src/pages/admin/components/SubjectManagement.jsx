@@ -5,8 +5,8 @@ import { Plus, Search } from "lucide-react";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";
 import SubjectTable from "./SubjectTable";
-import AddDepartmentModal from "../modal/AddDepartmentModal";
-import AddRegulationModal from "../modal/AddRegulationModal";
+import AddDepartmentModal from "../modals/AddDepartmentModal";
+import AddRegulationModal from "../modals/AddRegulationModal";
 
 const SubjectManagement = () => {
   const [searchParams] = useSearchParams();

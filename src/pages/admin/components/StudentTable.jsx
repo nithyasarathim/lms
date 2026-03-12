@@ -16,7 +16,7 @@ import {
   X as CloseIcon,
 } from "lucide-react";
 import { getAllStudents } from "../api/admin.api";
-import StudentDetailsModal from "../modal/StudentDetailsModal";
+import StudentDetailsModal from "../modals/StudentDetailsModal";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 
@@ -51,6 +51,7 @@ const StudentTable = ({
   const [filterYear, setFilterYear] = useState("");
   const [filterSection, setFilterSection] = useState("");
   const [filterSemType, setFilterSemType] = useState("odd");
+  const [filterStatus, setFilterStatus] = useState("");
 
   const [visibleColumns, setVisibleColumns] = useState({
     sNo: true,
@@ -146,12 +147,17 @@ const StudentTable = ({
       const isEven = semNum % 2 === 0;
       const matchesSemType = filterSemType === "odd" ? !isEven : isEven;
 
+      const matchesStatus =
+        filterStatus === "" ||
+        (filterStatus === "active" ? s.isActive : !s.isActive);
+
       return (
         matchesSearch &&
         matchesDept &&
         matchesYear &&
         matchesSection &&
-        matchesSemType
+        matchesSemType &&
+        matchesStatus
       );
     })
     .sort((a, b) => {
@@ -380,6 +386,15 @@ const StudentTable = ({
             />
           </div>
           <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500 outline-none cursor-pointer"
+          >
+            <option value="">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+          <select
             value={filterSemType}
             onChange={(e) => setFilterSemType(e.target.value)}
             className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-[#08384F] outline-none cursor-pointer"
@@ -599,7 +614,7 @@ const StudentTable = ({
                   colSpan="12"
                   className="py-20 text-center text-gray-400 font-semibold"
                 >
-                  No students found for this academic year
+                  No students found for the selected academic year with the current filter settings.
                 </td>
               </tr>
             )}
@@ -615,6 +630,10 @@ const StudentTable = ({
       )}
     </div>
   );
+};
+
+StudentTable.clearCache = () => {
+  studentCache = {};
 };
 
 export default StudentTable;

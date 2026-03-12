@@ -12,8 +12,8 @@ import {
 import toast from "react-hot-toast";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";
-import AddBatchModal from "../modal/AddBatchModal";
-import ManageAcademicYearsModal from "../modal/ManageAcademicYearsModal";
+import AddBatchModal from "../modals/AddBatchModal";
+import ManageAcademicYearsModal from "../modals/ManageAcademicYearsModal";
 import BatchAllocation from "./BatchAllocation";
 import { fetchBatch } from "../api/admin.api";
 

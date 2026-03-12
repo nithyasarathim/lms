@@ -4,8 +4,8 @@ import HeaderComponent from "../../shared/components/HeaderComponent";
 import StudentStats from "./StudentStats";
 import StudentPieChart from "./StudentPieChart";
 import StudentTable from "./StudentTable";
-import AddStudentModal from "../modal/AddStudentModal";
-import StudentStatusModal from "../modal/StudentStatusModal";
+import AddStudentModal from "../modals/AddStudentModal";
+import StudentStatusModal from "../modals/StudentStatusModal";
 import { updateStudent, getAllAcademicYears } from "../api/admin.api";
 import toast from "react-hot-toast";
 

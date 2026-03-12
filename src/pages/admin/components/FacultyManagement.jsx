@@ -4,8 +4,8 @@ import HeaderComponent from "../../shared/components/HeaderComponent";
 import FacultyStats from "./FacultyStats";
 import FacultyPieChart from "./FacultyPieChart";
 import FacultyTable from "./FacultyTable";
-import AddFacultyModal from "../modal/AddFacultyModal";
-import FacultyStatusModal from "../modal/FacultyStatusModal";
+import AddFacultyModal from "../modals/AddFacultyModal";
+import FacultyStatusModal from "../modals/FacultyStatusModal";
 import { updateFaculty } from "../api/admin.api";
 import toast from "react-hot-toast";
 

@@ -7,10 +7,10 @@ import RoleRoute from "./routes/RoleRoute";
 
 import LoginPage from "./pages/auth/pages/LoginPage";
 import AdminDashboard from "./pages/admin/pages/AdminDashboard";
+import HodDashboard from "./pages/hod/pages/HodDashboard";
 
 const StudentDashboard = () => <h1>Student Dashboard</h1>;
 const FacultyDashboard = () => <h1>Faculty Dashboard</h1>;
-const HodDashboard = () => <h1>HOD Dashboard</h1>;
 
 const App = () => {
   return (
