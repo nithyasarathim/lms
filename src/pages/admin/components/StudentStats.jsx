@@ -44,7 +44,7 @@ const StudentStats = ({ academicYearId }) => {
   }, [academicYearId, cacheKey]);
 
   const Container = ({ children }) => (
-    <section className="w-full h-[200px] font-['Poppins']">
+    <section className="w-full h-[185px] font-['Poppins']">
       <section className="grid grid-cols-20 gap-4 h-full">{children}</section>
     </section>
   );

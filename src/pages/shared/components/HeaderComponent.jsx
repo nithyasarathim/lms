@@ -12,7 +12,7 @@ const HeaderComponent = ({
   const navigate = useNavigate();
 
   return (
-    <div className="w-full grid grid-cols-3 items-center px-6 pt-5 font-['Poppins']">
+    <div className="w-full grid grid-cols-3 items-center px-6 py-3 font-['Poppins']">
       <div className="flex items-center">
         <h1 className="text-2xl font-bold text-[#282526] tracking-tight">
           {title}

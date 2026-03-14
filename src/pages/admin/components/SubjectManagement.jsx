@@ -23,9 +23,9 @@ const SubjectManagement = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "linear" }}
-      className="flex w-full min-h-screen fixed overflow-hidden relative "
+      className="flex w-full min-h-fit fixed overflow-hidden relative "
     >
-      <div className="w-full h-full flex flex-col ">
+      <div className="w-full h-fit flex flex-col ">
         <HeaderComponent title="Subject Management" />
 
         <main className="flex-1 overflow-y-auto pt-4 hide-scroll bg-[#FBFBFB]">

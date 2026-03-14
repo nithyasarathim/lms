@@ -56,7 +56,7 @@ const FacultyManagement = () => {
     >
       <HeaderComponent title="Faculty Management" />
 
-      <div className="flex-1 flex flex-col px-6 py-6 space-y-6 overflow-hidden">
+      <div className="flex-1 flex flex-col px-6 py-2 space-y-6 overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-6 shrink-0">
           <div className="lg:w-[70%] w-full h-[200px]">
             <FacultyStats key={`stats-${refreshKey}`} />

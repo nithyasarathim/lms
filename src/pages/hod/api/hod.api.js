@@ -58,3 +58,56 @@ export const updateStudentSections = async (studentIds, targetSectionId) => {
     throw err.response?.data || err.message;
   }
 };
+
+export const getDeptAcademicStructure = async () => {
+  try {
+    const response = await apiClient.get(
+      `/api/assign-faculty/academic-structure`,
+    );
+    return response;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getSectionsByBatchProgramId = async (batchProgramId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/sections?batchProgramId=${batchProgramId}`,
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const assignFacultyToSection = async (assignedData) => {
+  try {
+    const response = await apiClient.post(`/api/assign-faculty`, {
+      assignedData,
+    });
+    return response;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getSubjectsBySemester = async (batchProgramId, semesterNumber) => {
+  try {
+    const response = await apiClient.get(
+      `/api/subjects/by-semester?batchProgramId=${batchProgramId}&semesterNumber=${semesterNumber}`,
+    );
+    return response.data.data.subjects;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getAllFaculties = async () => {
+  try {
+    const response = await apiClient.get(`api/faculty`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};

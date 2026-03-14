@@ -178,7 +178,7 @@ const FacultyTable = ({ onAddClick, onEditClick, onStatusClick }) => {
                   <td className="px-8 py-4 text-xs text-gray-500 font-bold text-center">
                     {faculty.employeeId}
                   </td>
-                  <td className="px-4 py-6 text-sm text-[#08384F] font-semibold">
+                  <td className="px-4  text-sm text-[#08384F] font-semibold">
                     {faculty.salutation} {faculty.fullName}
                   </td>
                   <td className="px-4 py-4 text-xs text-gray-600">
@@ -212,7 +212,7 @@ const FacultyTable = ({ onAddClick, onEditClick, onStatusClick }) => {
                       {faculty.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
-                  <td className="px-8 py-4 text-right">
+                  <td className="px-8 text-right">
                     <div className="flex gap-1 justify-end transition-opacity">
                       <button
                         onClick={() => {

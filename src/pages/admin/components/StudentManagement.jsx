@@ -130,7 +130,7 @@ const StudentManagement = () => {
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className=" py-8 px-6 min-h-fit space-y-6"
+            className=" py-4 px-6 min-h-fit space-y-6"
           >
             <div className="flex flex-col lg:flex-row gap-6 items-stretch max-h-[25vh]">
               <div className="lg:w-[70%] w-full flex">

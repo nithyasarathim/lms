@@ -533,7 +533,7 @@ const StudentTable = ({
                     </td>
                   )}
                   {visibleColumns.fullName && (
-                    <td className="px-4 py-6 text-sm text-[#08384F] font-semibold">
+                    <td className="px-4 text-sm text-[#08384F] font-semibold">
                       {student.firstName} {student.lastName}
                     </td>
                   )}
@@ -572,7 +572,7 @@ const StudentTable = ({
                       className="px-4 py-4 border-l border-gray-100 min-w-[120px] hidden print:table-cell"
                     ></td>
                   ))}
-                  <td className="px-8 py-4 text-right print:hidden">
+                  <td className="px-8 py-2 text-right print:hidden">
                     <div className="flex gap-1 justify-end">
                       <button
                         onClick={() => {

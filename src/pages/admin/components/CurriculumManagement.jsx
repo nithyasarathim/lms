@@ -78,9 +78,9 @@ const CurriculumManagement = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "linear" }}
-      className="flex w-full h-screen overflow-hidden relative"
+      className="flex w-full h-fit overflow-hidden relative"
     >
-      <div className="w-full h-full flex flex-col">
+      <div className="w-full h-fit flex flex-col">
         <HeaderComponent title="Curriculum Management" />
         <main className="flex-1 overflow-y-auto hide-scroll bg-[#FBFBFB]">
           <div className="w-full mx-auto py-4">

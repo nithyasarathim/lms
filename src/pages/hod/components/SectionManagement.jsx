@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  ChevronRight,
-  Search,
-  ArrowRightLeft,
-  Loader2,
-  Users,
-} from "lucide-react";
+import { ChevronRight, Search, ArrowRightLeft, Loader2 } from "lucide-react";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import {
   getActiveAcademicYear,
@@ -14,6 +8,10 @@ import {
   updateStudentSections,
 } from "../api/hod.api";
 import toast from "react-hot-toast";
+
+const Shimmer = ({ className }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
 
 const SectionManagement = () => {
   const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
@@ -95,14 +93,6 @@ const SectionManagement = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#08384F]" size={40} />
-      </div>
-    );
-  }
-
   const handleUpdateSection = async () => {
     if (selectedStudents.length === 0)
       return toast.error("Select at least one student");
@@ -116,8 +106,6 @@ const SectionManagement = () => {
       );
       if (res.success) {
         toast.success("Students reallocated successfully");
-
-        // Refresh data: Fetch students for current section and refresh year/section counts
         const [studentRes, sectionRes] = await Promise.all([
           getSectionStudentData(selectedSection._id),
           getCurrentYearAndSections(),
@@ -143,17 +131,25 @@ const SectionManagement = () => {
       <div className="px-4 mx-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
         <div className="flex items-center justify-between mt-5">
           <div className="flex items-center gap-5">
-            <p className="text-sm font-semibold text-gray-500">
-              ACADEMIC YEAR -
-              <span className="text-[#08384F] px-1 font-semibold text-base">
-                {selectedAcademicYear}
+            <p className="flex items-center text-sm font-semibold text-gray-500">
+              <span>ACADEMIC YEAR -</span>
+
+              <span className="text-[#08384F] px-1 font-semibold text-base flex items-center">
+                {loading ? (
+                  <Shimmer className="w-20 h-5" />
+                ) : (
+                  selectedAcademicYear
+                )}
               </span>
             </p>
           </div>
+
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={handleUpdateSection}
-              disabled={studentLoading || selectedStudents.length === 0}
+              disabled={
+                loading || studentLoading || selectedStudents.length === 0
+              }
               className="flex items-center gap-2 bg-[#08384F] text-white px-6 py-2 rounded-xl text-sm font-semibold active:scale-95 transition-all shadow-md shadow-[#08384F]/20 disabled:opacity-50"
             >
               {studentLoading ? (
@@ -167,63 +163,70 @@ const SectionManagement = () => {
         </div>
 
         <div className="grid grid-cols-12 gap-4 h-[calc(100vh-210px)] mt-2">
-          {/* Column 1: Year Selection */}
           <div className="col-span-3 border border-gray-200 bg-white rounded-2xl p-4 flex flex-col gap-3 overflow-y-auto shadow-sm">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest px-2 mb-1">
               Select Year
             </p>
-            {yearsData.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setSelectedYearIndex(index);
-                  setSelectedSection(item.sections[0]);
-                }}
-                className={`flex items-center justify-between px-5 py-4 rounded-2xl text-[15px] font-semibold transition-all border ${
-                  selectedYearIndex === index
-                    ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/10 scale-[1.02]"
-                    : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                Year {item.year}
-                <ChevronRight
-                  size={18}
-                  className={
-                    selectedYearIndex === index ? "opacity-100" : "opacity-30"
-                  }
-                />
-              </button>
-            ))}
+            {loading
+              ? [1, 2, 3, 4].map((i) => (
+                  <Shimmer key={i} className="h-14 w-full rounded-2xl" />
+                ))
+              : yearsData.map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setSelectedYearIndex(index);
+                      setSelectedSection(item.sections[0]);
+                    }}
+                    className={`flex items-center justify-between px-5 py-4 rounded-2xl text-[15px] font-semibold transition-all border ${
+                      selectedYearIndex === index
+                        ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/10 scale-[1.02]"
+                        : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    Year {item.year}
+                    <ChevronRight
+                      size={18}
+                      className={
+                        selectedYearIndex === index
+                          ? "opacity-100"
+                          : "opacity-30"
+                      }
+                    />
+                  </button>
+                ))}
           </div>
 
-          {/* Column 2: Section Selection */}
           <div className="col-span-3 border border-gray-200 bg-white rounded-2xl p-4 flex flex-col gap-3 overflow-y-auto shadow-sm">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest px-2 mb-1">
               Section
             </p>
-            {currentYearObj?.sections.map((sec) => (
-              <button
-                key={sec._id}
-                onClick={() => setSelectedSection(sec)}
-                className={`flex items-center justify-between px-5 py-4 rounded-2xl text-[15px] font-semibold transition-all border ${
-                  selectedSection?._id === sec._id
-                    ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/10 scale-[1.02]"
-                    : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <span>
-                  {sec.name === "UNALLOCATED"
-                    ? sec.name
-                    : `Section ${sec.name}`}
-                </span>
-                <span className="text-[10px] bg-gray-100 text-[#08384F] px-2 py-0.5 rounded-full border border-gray-200">
-                  {sec.studentCount}
-                </span>
-              </button>
-            ))}
+            {loading
+              ? [1, 2, 3].map((i) => (
+                  <Shimmer key={i} className="h-14 w-full rounded-2xl" />
+                ))
+              : currentYearObj?.sections.map((sec) => (
+                  <button
+                    key={sec._id}
+                    onClick={() => setSelectedSection(sec)}
+                    className={`flex items-center justify-between px-5 py-4 rounded-2xl text-[15px] font-semibold transition-all border ${
+                      selectedSection?._id === sec._id
+                        ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/10 scale-[1.02]"
+                        : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span>
+                      {sec.name === "UNALLOCATED"
+                        ? sec.name
+                        : `Section ${sec.name}`}
+                    </span>
+                    <span className="text-[10px] bg-gray-100 text-[#08384F] px-2 py-0.5 rounded-full border border-gray-200">
+                      {sec.studentCount}
+                    </span>
+                  </button>
+                ))}
           </div>
 
-          {/* Column 3: Student List */}
           <div className="col-span-6 border border-gray-200 bg-white rounded-2xl p-5 flex flex-col overflow-hidden shadow-sm">
             <div className="flex items-center gap-3 mb-5">
               <div className="relative flex-1">
@@ -256,12 +259,15 @@ const SectionManagement = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 custom-scroll">
-              {studentLoading ? (
-                <div className="flex flex-col items-center justify-center h-full gap-2">
-                  <Loader2 className="animate-spin text-[#08384F]" size={30} />
-                  <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">
-                    Loading Students...
-                  </p>
+              {studentLoading || loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="flex gap-4 items-center px-4 py-2">
+                      <Shimmer className="w-5 h-5" />
+                      <Shimmer className="w-24 h-4" />
+                      <Shimmer className="flex-1 h-4" />
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <table className="w-full text-left">
@@ -293,7 +299,7 @@ const SectionManagement = () => {
                           key={student._id}
                           className="group hover:bg-gray-50/50 transition-colors"
                         >
-                          <td className="py-4 px-4">
+                          <td className="py-2 px-4">
                             <input
                               type="checkbox"
                               checked={selectedStudents.includes(student._id)}
@@ -301,12 +307,12 @@ const SectionManagement = () => {
                               className="w-5 h-5 accent-[#08384F] rounded cursor-pointer"
                             />
                           </td>
-                          <td className="py-4 px-2">
+                          <td className=" px-2">
                             <p className="text-[11px] font-black text-[#08384F] leading-none mb-1 uppercase tracking-wider">
                               {student.registerNumber}
                             </p>
                           </td>
-                          <td className="py-4 px-2">
+                          <td className=" px-2">
                             <p className="text-[15px] font-semibold text-gray-800 leading-tight truncate">
                               {student.fullName}
                             </p>
