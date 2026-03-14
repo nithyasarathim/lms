@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import EshwarLogo from "../../../assets/eshwarLogo.png";
 import EshwarIcon from "../../../assets/eshwarIcon.png";
@@ -14,23 +14,14 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
-const HodSidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+const HodSidebar = ({ collapsed, setCollapsed }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "dashboard";
 
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, tab: "dashboard" },
-    {
-      label: "Section Management",
-      icon: Layers,
-      tab: "section-management",
-    },
-    {
-      label: "Staff Allocation",
-      icon: Users,
-      tab: "staff-allocation",
-    },
+    { label: "Section Management", icon: Layers, tab: "section-management" },
+    { label: "Staff Allocation", icon: Users, tab: "staff-allocation" },
     {
       label: "Student Management",
       icon: GraduationCap,

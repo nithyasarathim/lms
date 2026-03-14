@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import HodSidebar from "../components/HodSidebar";
 import SectionManagement from "../components/SectionManagement";
@@ -8,6 +8,7 @@ import TimeTableManagement from "../components/TimeTableManagement";
 
 const HodDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [collapsed, setCollapsed] = useState(false);
   const activeTab = searchParams.get("tab") || "dashboard";
 
   const validTabs = [
@@ -27,31 +28,43 @@ const HodDashboard = () => {
   const renderComponent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <></>;
-
+        return (
+          <div
+            className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
+          >
+            <h1 className="p-6 text-xl font-semibold">HOD Dashboard</h1>
+          </div>
+        );
       case "staff-allocation":
-        return <StaffAllocation />;
-
+        return <StaffAllocation collapsed={collapsed} />;
       case "timetable-management":
-        return <TimeTableManagement />;
-
+        return (
+          <div
+            className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
+          >
+            <TimeTableManagement />
+          </div>
+        );
       case "section-management":
-        return <SectionManagement />;
-
+        return <SectionManagement collapsed={collapsed} />;
       case "student-management":
-        return <StudentManagement />;
-
+        return (
+          <div
+            className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
+          >
+            <StudentManagement />
+          </div>
+        );
       default:
-        return <h1 className="text-xl font-semibold">HOD Dashboard</h1>;
+        return null;
     }
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <HodSidebar />
-
-      <div className="flex-1 md:ml-[20%] transition-all duration-300">
-        <main className="p-4">{renderComponent()}</main>
+      <HodSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div className="flex-1">
+        <main className="p-0">{renderComponent()}</main>
       </div>
     </div>
   );
