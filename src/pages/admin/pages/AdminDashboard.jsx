@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
 import DashboardOverview from "../components/DashboardOverview";
@@ -10,6 +10,7 @@ import BatchManagement from "../components/BatchManagement";
 
 const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [collapsed, setCollapsed] = useState(false);
   const activeTab = searchParams.get("tab") || "dashboard";
 
   const validTabs = [
@@ -48,9 +49,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <div className="flex-1 md:ml-[20%] transition-all duration-300">
-        <main className="p-4">{renderComponent()}</main>
+      <AdminSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div
+        className={`flex-1 transition-all duration-300 ${
+          collapsed ? "md:ml-[80px]" : "md:ml-[300px]"
+        }`}
+      >
+        <main className="p-0">{renderComponent()}</main>
       </div>
     </div>
   );

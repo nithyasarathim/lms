@@ -28,7 +28,7 @@ import AddSectionModal from "../modals/AddSectionModal";
 import EditSectionModal from "../modals/EditSectionModal";
 import StatusConfirmationModal from "../modals/StatusConfirmationModal";
 
-const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
+const BatchAllocation = ({ deptId, regId: batchId, regName, collapsed }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [regulations, setRegulations] = useState([]);
@@ -206,7 +206,11 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
   const selectedRegName = regulations.find((r) => r._id === selectedReg)?.name;
 
   return (
-    <div className="relative px-6 py-6 font-['Poppins'] w-full min-h-screen">
+    <div
+      className={`relative px-6 py-6 font-['Poppins'] w-full min-h-screen transition-all duration-300 ${
+        collapsed ? "pl-[80px]" : "pl-[300px]"
+      }`}
+    >
       {shouldHighlightReg && (
         <div
           className="fixed inset-0 bg-gray-900/40 backdrop-blur-[2px] z-[40] transition-all duration-500"
@@ -226,45 +230,32 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
           {!loading && (
             <div className="flex flex-wrap items-center gap-3">
               {deptData && (
-                <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                  <GraduationCap size={16} className="text-gray-500" />
-                  <span className="text-[10px] text-gray-400 font-bold uppercase">
-                    Dept
-                  </span>
-                  <span className="font-bold text-xs text-[#08384F] uppercase">
+                <div className="flex items-center gap-2 bg-blue-50 text-[#08384F] border border-blue-100 px-4 py-2 rounded-xl shadow-sm">
+                  <GraduationCap size={16} />
+                  <span className="text-[10px] font-bold uppercase">Dept</span>
+                  <span className="font-bold text-xs uppercase">
                     {deptData.program} {deptData.code}
                   </span>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                <Layers size={16} className="text-gray-400" />
-                <span className="text-[10px] text-gray-400 font-bold uppercase">
-                  Batch
-                </span>
-                <span className="font-bold text-xs text-[#08384F] uppercase">
-                  {regName}
-                </span>
+              <div className="flex items-center gap-2 bg-blue-50 text-[#08384F] border border-blue-100 px-4 py-2 rounded-xl shadow-sm">
+                <Layers size={16} />
+                <span className="text-[10px] font-bold uppercase">Batch</span>
+                <span className="font-bold text-xs uppercase">{regName}</span>
               </div>
 
               <div
-                className={`flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm transition-all duration-500 border-2 ${
+                className={`flex items-center gap-2 bg-blue-50 text-[#08384F] px-4 py-2 rounded-xl shadow-sm transition-all duration-500 border-2 ${
                   shouldHighlightReg
                     ? "relative z-[50] border-[#08384F] ring-8 ring-[#08384F]/20 animate-pulse scale-110"
-                    : "border-gray-100"
+                    : "border-blue-100"
                 }`}
               >
-                <BookMarked
-                  size={16}
-                  className={
-                    shouldHighlightReg ? "text-[#08384F]" : "text-gray-400"
-                  }
-                />
-                <span className="text-[10px] text-gray-400 font-bold uppercase">
-                  Reg
-                </span>
+                <BookMarked size={16} />
+                <span className="text-[10px] font-bold uppercase">Reg</span>
                 {batchProgramId ? (
-                  <span className="font-bold text-xs text-[#08384F] uppercase">
+                  <span className="font-bold text-xs uppercase">
                     {selectedRegName}
                   </span>
                 ) : (
@@ -301,19 +292,13 @@ const BatchAllocation = ({ deptId, regId: batchId, regName }) => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                        <CalendarDays size={16} className="text-emerald-500" />
-                        <span className="text-[10px] text-gray-400 font-bold uppercase">
+                      <div className="flex items-center gap-2 bg-blue-50 text-[#08384F] border border-blue-100 px-4 py-2 rounded-xl shadow-sm">
+                        <CalendarDays size={16} />
+                        <span className="text-[10px] font-bold uppercase">
                           Sem :
                         </span>
-                        <span className="font-bold text-xs text-[#08384F] uppercase flex items-center">
-                          {currentSem ? (
-                            currentSem
-                          ) : (
-                            <span className="text-red-500 text-[10px]">
-                              No Students
-                            </span>
-                          )}
+                        <span className="font-bold text-xs uppercase flex items-center">
+                          {currentSem || "N/A"}
                         </span>
                       </div>
 

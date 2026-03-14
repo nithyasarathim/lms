@@ -316,15 +316,30 @@ const StaffAllocation = ({ collapsed }) => {
               </>
             ) : (
               <>
-                <span className="bg-blue-50 text-[#08384F] border border-blue-100 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Dept: <span className="p-1 ">{currentLevel?.department?.name || "N/A"}</span>
-                </span>
-                <span className="bg-blue-50 text-[#08384F] border border-blue-100 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Batch: {currentLevel?.batch?.name}
-                </span>
-                <span className="bg-blue-50 text-[#08384F] border border-blue-100 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Regulation: {currentLevel?.regulation?.name}
-                </span>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-1.5  text-[#08384F] px-3 py-1.5 rounded-full text-xs">
+                    <span className="font-medium text-gray-500">Dept</span>
+                    <span className="font-semibold">
+                      {currentLevel?.department?.name || "N/A"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5  text-[#08384F] px-3 py-1.5 rounded-full text-xs">
+                    <span className="font-medium text-gray-500">Batch</span>
+                    <span className="font-semibold">
+                      {currentLevel?.batch?.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-[#08384F] px-3 py-1.5 rounded-full text-xs ">
+                    <span className="font-medium text-gray-500">
+                      Regulation
+                    </span>
+                    <span className="font-semibold">
+                      {currentLevel?.regulation?.name}
+                    </span>
+                  </div>
+                </div>
               </>
             )}
           </div>

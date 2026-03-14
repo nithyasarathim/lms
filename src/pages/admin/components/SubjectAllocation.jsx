@@ -6,10 +6,10 @@ import {
   ChevronRight,
   Search,
   BookOpen,
+  GraduationCap,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import {
-  getSubjects,
   getCurriculum,
   createCurriculum,
   updateCurriculum,
@@ -23,6 +23,7 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
   const [curriculumId, setCurriculumId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [deptInfo, setDeptInfo] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSemester, setSelectedSemester] = useState(1);
@@ -43,11 +44,15 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
           getSubjectsByRegulation(regId),
           getCurriculum(deptId, regId),
         ]);
-
+        console.log(subjectsRes);
         const filtered = subjectsRes.filter(
           (s) => s.departmentId?._id === deptId || s.departmentId === deptId,
         );
         setSubjects(filtered);
+
+        if (filtered.length > 0 && filtered[0].departmentId) {
+          setDeptInfo(filtered[0].departmentId);
+        }
 
         if (
           curriculumRes?.success &&
@@ -145,8 +150,8 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
   });
 
   return (
-    <div className="px-4  animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex items-center justify-between ">
+    <div className="px-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-5">
           <button
             onClick={handleBack}
@@ -155,9 +160,14 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
             <ArrowLeft size={18} /> Back
           </button>
           <div className="h-5 w-[1.5px] bg-gray-300"></div>
-          <p className="text-sm font-semibold gap-10 text-gray-500">
+
+          <div className="flex items-center gap-2 text-gray-500 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+            Dept: <span className="text-[#08384F]">{deptInfo ? `${deptInfo.program} ${deptInfo.name}` : "..."}</span>
+          </div>
+
+          <p className="text-sm font-semibold text-gray-500">
             Regulation -
-            <span className="text-[#08384F] px-1 font-semibold text-base">
+            <span className="text-[#08384F] px-1 font-bold text-xs ">
               {regName}
             </span>
           </p>
@@ -170,7 +180,7 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
               setSemesterType(e.target.value);
               setSelectedSemester(e.target.value === "odd" ? 1 : 2);
             }}
-            className="border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold text-[#08384F] outline-none shadow-sm cursor-pointer hover:border-[#08384F] transition-colors"
+            className="border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold text-[#08384F] outline-none shadow-sm cursor-pointer hover:border-[#08384F] transition-colors bg-white"
           >
             <option value="odd">Odd Semesters</option>
             <option value="even">Even Semesters</option>
@@ -250,7 +260,7 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
               placeholder="Search code or subject name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-[#08384F]/5 focus:border-[#08384F] transition-all text-sm font-medium outline-none"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-[#08384F]/5 focus:border-[#08384F] transition-all text-sm font-medium outline-none"
             />
           </div>
 

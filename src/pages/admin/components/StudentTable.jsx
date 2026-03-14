@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import Eshwar from "../../../assets/eshwar.png";
 import {
   Plus,
   Search,
@@ -7,7 +8,6 @@ import {
   FileSpreadsheet,
   Printer,
   Eye,
-  Filter,
   Power,
   Settings2,
   Check,
@@ -68,20 +68,14 @@ const StudentTable = ({
   const [extraColumns, setExtraColumns] = useState([]);
   const configRef = useRef(null);
 
-  StudentTable.clearCache = () => {
-    studentCache = {};
-  };
-
   useEffect(() => {
     if (!academicYearId) return;
-
     if (studentCache[academicYearId]) {
       setStudents(studentCache[academicYearId]);
       setLoading(false);
     } else {
       fetchData();
     }
-
     const handleClickOutside = (e) => {
       if (configRef.current && !configRef.current.contains(e.target))
         setShowColConfig(false);
@@ -111,7 +105,6 @@ const StudentTable = ({
         setStudents([]);
       }
     } catch (err) {
-      console.error("API Fetch failed");
       toast.error("Failed to load students");
     } finally {
       setLoading(false);
@@ -120,9 +113,8 @@ const StudentTable = ({
 
   const handleSort = (key) => {
     let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
+    if (sortConfig.key === key && sortConfig.direction === "asc")
       direction = "desc";
-    }
     setSortConfig({ key, direction });
   };
 
@@ -142,15 +134,12 @@ const StudentTable = ({
       const matchesSection =
         filterSection === "" ||
         s.section?.name?.toLowerCase() === filterSection.toLowerCase();
-
       const semNum = Number(s.semesterNumber);
       const isEven = semNum % 2 === 0;
       const matchesSemType = filterSemType === "odd" ? !isEven : isEven;
-
       const matchesStatus =
         filterStatus === "" ||
         (filterStatus === "active" ? s.isActive : !s.isActive);
-
       return (
         matchesSearch &&
         matchesDept &&
@@ -161,11 +150,10 @@ const StudentTable = ({
       );
     })
     .sort((a, b) => {
-      if (sortConfig.key === "yearLevel") {
+      if (sortConfig.key === "yearLevel")
         return sortConfig.direction === "asc"
           ? a.yearLevel - b.yearLevel
           : b.yearLevel - a.yearLevel;
-      }
       return 0;
     });
 
@@ -174,16 +162,17 @@ const StudentTable = ({
     const exportData = filteredStudents.map((s, index) => {
       const row = {};
       if (visibleColumns.sNo) row["S.No"] = index + 1;
-      if (visibleColumns.rollNumber) row["Roll Number"] = s.rollNumber;
-      if (visibleColumns.registerNumber) row["REG. NO"] = s.registerNumber;
+      if (visibleColumns.rollNumber) row["Roll Number"] = s.rollNumber || "";
+      if (visibleColumns.registerNumber)
+        row["REG. NO"] = s.registerNumber || "";
       if (visibleColumns.fullName)
         row["Student Name"] = `${s.firstName} ${s.lastName}`;
       if (visibleColumns.department)
-        row["Department"] = s.department?.name || "N/A";
-      if (visibleColumns.section) row["Section"] = s.section?.name || "N/A";
-      if (visibleColumns.year) row["Year"] = s.yearLevel || "N/A";
-      if (visibleColumns.sem) row["SEM"] = s.semesterNumber || "N/A";
-      if (visibleColumns.email) row["Email"] = s.user?.email || "N/A";
+        row["Department"] = s.department?.code || "";
+      if (visibleColumns.section) row["Section"] = s.section?.name || "";
+      if (visibleColumns.year) row["Year"] = s.yearLevel || "";
+      if (visibleColumns.sem) row["SEM"] = s.semesterNumber || "";
+      if (visibleColumns.email) row["Email"] = s.user?.email || "";
       extraColumns.forEach((col) => (row[col.title] = ""));
       return row;
     });
@@ -193,89 +182,152 @@ const StudentTable = ({
     XLSX.writeFile(wb, "Student_Records.xlsx");
   };
 
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    const printHtml = `
+      <html>
+        <head>
+          <title>Student Records</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'Poppins', sans-serif; padding: 10px; color: #333; margin: 0; }
+            .header-container { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #08384F; padding-bottom: 10px; margin-bottom: 15px; }
+            .logo { height: 60px; }
+            .report-title { text-align: right; }
+            .report-title h1 { margin: 0; color: #08384F; font-size: 18px; }
+            .report-title p { margin: 2px 0 0 0; font-size: 10px; color: #666; }
+            .filter-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 10px; border: 1px solid #eee; }
+            .filter-label { font-weight: 700; color: #08384F; text-transform: uppercase; margin-right: 4px; }
+            table { width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #ccc; }
+            th { background-color: #08384F !important; color: white !important; -webkit-print-color-adjust: exact; padding: 6px 4px; text-align: left; border: 1px solid #ccc; text-transform: uppercase; }
+            td { padding: 4px; border: 1px solid #ccc; }
+            tr:nth-child(even) { background-color: #fcfcfc; }
+            @media print { .no-print { display: none; } @page { margin: 1cm; } }
+          </style>
+        </head>
+        <body>
+          <div class="header-container">
+            <img src="${Eshwar}" class="logo" />
+            <div class="report-title">
+              <h1>Student Information Report</h1>
+              <p>Date: ${new Date().toLocaleDateString()} | Time: ${new Date().toLocaleTimeString()}</p>
+            </div>
+          </div>
+          <div class="filter-info">
+            <div><span class="filter-label">Dept:</span> ${filterDept || "All"}</div>
+            <div><span class="filter-label">Sec:</span> ${filterSection || "All"}</div>
+            <div><span class="filter-label">Year:</span> ${filterYear || "All"}</div>
+            <div><span class="filter-label">Sem Type:</span> ${filterSemType}</div>
+            <div><span class="filter-label">Status:</span> ${filterStatus || "All"}</div>
+            <div><span class="filter-label">Search:</span> ${searchTerm || "None"}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                ${visibleColumns.sNo ? "<th>S.No</th>" : ""}
+                ${visibleColumns.rollNumber ? "<th>Roll No</th>" : ""}
+                ${visibleColumns.registerNumber ? "<th>Reg.No</th>" : ""}
+                ${visibleColumns.fullName ? "<th>Name</th>" : ""}
+                ${visibleColumns.department ? "<th>Dept</th>" : ""}
+                ${visibleColumns.section ? "<th>Sec</th>" : ""}
+                ${visibleColumns.year ? "<th>Year</th>" : ""}
+                ${visibleColumns.sem ? "<th>Sem</th>" : ""}
+                ${visibleColumns.email ? "<th>Email</th>" : ""}
+                ${extraColumns.map((col) => `<th>${col.title}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredStudents
+                .map(
+                  (s, i) => `
+                <tr>
+                  ${visibleColumns.sNo ? `<td>${i + 1}</td>` : ""}
+                  ${visibleColumns.rollNumber ? `<td>${s.rollNumber || ""}</td>` : ""}
+                  ${visibleColumns.registerNumber ? `<td>${s.registerNumber || ""}</td>` : ""}
+                  ${visibleColumns.fullName ? `<td>${s.firstName} ${s.lastName}</td>` : ""}
+                  ${visibleColumns.department ? `<td>${s.department?.code || ""}</td>` : ""}
+                  ${visibleColumns.section ? `<td>${s.section?.name || ""}</td>` : ""}
+                  ${visibleColumns.year ? `<td>${s.yearLevel || ""}</td>` : ""}
+                  ${visibleColumns.sem ? `<td>${s.semesterNumber || ""}</td>` : ""}
+                  ${visibleColumns.email ? `<td>${s.user?.email || ""}</td>` : ""}
+                  ${extraColumns.map(() => `<td></td>`).join("")}
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() { window.print(); setTimeout(function() { window.close(); }, 500); };
+          </script>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(printHtml);
+    printWindow.document.close();
+  };
+
   const toggleColumn = (col) =>
     setVisibleColumns((prev) => ({ ...prev, [col]: !prev[col] }));
 
   const addExtraColumn = () => {
-    const title = prompt("Enter Column Title (e.g. Signature, Remarks):");
-    if (title) {
-      setExtraColumns([...extraColumns, { id: Date.now(), title }]);
-    }
+    const title = prompt("Enter Column Title:");
+    if (title) setExtraColumns([...extraColumns, { id: Date.now(), title }]);
   };
 
   const uniqueDepts = [...new Set(students.map((s) => s.department?.code))]
     .filter(Boolean)
     .sort();
-
   const uniqueYears = [...new Set(students.map((s) => String(s.yearLevel)))]
     .filter(Boolean)
     .sort((a, b) => Number(a) - Number(b));
-
   const uniqueSections = [...new Set(students.map((s) => s.section?.name))]
     .filter(Boolean)
     .sort();
 
   const ShimmerRow = () => (
     <tr className="animate-pulse border-b border-gray-50">
-      {visibleColumns.sNo && (
-        <td className="px-6 py-5">
-          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
-        </td>
-      )}
-      {visibleColumns.rollNumber && (
-        <td className="px-6 py-5">
-          <div className="h-3 bg-gray-200 rounded-full w-16 mx-auto"></div>
-        </td>
-      )}
-      {visibleColumns.fullName && (
-        <td className="px-4 py-5">
-          <div className="h-4 bg-gray-200 rounded-full w-32"></div>
-        </td>
-      )}
-      {visibleColumns.department && (
-        <td className="px-4 py-5">
-          <div className="h-5 bg-gray-100 rounded-md w-12"></div>
-        </td>
-      )}
-      {visibleColumns.section && (
-        <td className="px-4 py-5">
-          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
-        </td>
-      )}
-      {visibleColumns.year && (
-        <td className="px-4 py-5">
-          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
-        </td>
-      )}
-      {visibleColumns.sem && (
-        <td className="px-4 py-5">
-          <div className="h-3 bg-gray-200 rounded-full w-4 mx-auto"></div>
-        </td>
-      )}
-      {visibleColumns.email && (
-        <td className="px-4 py-5">
-          <div className="h-3 bg-gray-200 rounded-full w-24 mx-auto"></div>
-        </td>
-      )}
-      <td className="px-8 py-5">
+      <td className="px-6 py-2">
+        <div className="h-3 bg-gray-100 rounded w-4 mx-auto"></div>
+      </td>
+      <td className="px-6 py-2">
+        <div className="h-3 bg-gray-100 rounded w-16 mx-auto"></div>
+      </td>
+      <td className="px-4 py-2">
+        <div className="h-3 bg-gray-100 rounded w-32"></div>
+      </td>
+      <td className="px-4 py-2">
+        <div className="h-3 bg-gray-100 rounded w-12"></div>
+      </td>
+      <td className="px-4 py-2">
+        <div className="h-3 bg-gray-100 rounded w-4 mx-auto"></div>
+      </td>
+      <td className="px-4 py-2">
+        <div className="h-3 bg-gray-100 rounded w-4 mx-auto"></div>
+      </td>
+      <td className="px-4 py-2">
+        <div className="h-3 bg-gray-100 rounded w-4 mx-auto"></div>
+      </td>
+      <td className="px-4 py-2">
+        <div className="h-3 bg-gray-100 rounded w-24 mx-auto"></div>
+      </td>
+      <td className="px-8 py-2">
         <div className="flex gap-2 justify-end">
-          <div className="h-8 w-8 bg-gray-100 rounded-lg"></div>
-          <div className="h-8 w-8 bg-gray-100 rounded-lg"></div>
-          <div className="h-8 w-8 bg-gray-100 rounded-lg"></div>
+          <div className="h-8 w-24 bg-gray-50 rounded-lg"></div>
         </div>
       </td>
     </tr>
   );
 
   return (
-    <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-350px)] min-h-[400px] font-['Poppins'] relative">
+    <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden flex flex-col h-[calc(100vh-320px)] min-h-[400px] font-['Poppins'] relative">
       <div className="px-8 py-5 border-b border-gray-50 bg-white print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-[#08384F]">
               Student Information
             </h2>
-            <span className="text-[#08384F] text-sm font-bold py-1 rounded-full uppercase tracking-wider ">
+            <span className="text-[#08384F] text-sm font-bold">
               ({filteredStudents.length})
             </span>
           </div>
@@ -283,30 +335,28 @@ const StudentTable = ({
             <div className="relative" ref={configRef}>
               <button
                 onClick={() => setShowColConfig(!showColConfig)}
-                className={`p-2.5 flex items-center gap-2 rounded-xl border transition-all ${showColConfig ? "bg-[#08384F] text-white border-[#08384F]" : "bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100"}`}
+                className={`p-2.5 flex items-center gap-2 rounded-xl border transition-all ${showColConfig ? "bg-[#08384F] text-white border-[#08384F]" : "bg-gray-50 text-gray-600 border-gray-100"}`}
               >
                 <Settings2 size={18} />
-                <span className="font-semibold text-sm">Configure</span>
+                <span className="font-semibold text-sm">Configure Export</span>
               </button>
               {showColConfig && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[100] p-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pb-2 border-b border-gray-50 mb-2">
-                    Visible Columns
+                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[100] p-3">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pb-2 border-b mb-2">
+                    Visible Export Columns
                   </p>
                   <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
                     {Object.keys(visibleColumns).map((key) => (
                       <button
                         key={key}
                         onClick={() => toggleColumn(key)}
-                        className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-gray-50 rounded-lg group"
+                        className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-gray-50 rounded-lg"
                       >
                         <span className="text-xs font-semibold text-gray-600 capitalize">
-                          {key === "sNo"
-                            ? "S.No"
-                            : key.replace(/([A-Z])/g, " $1")}
+                          {key.replace(/([A-Z])/g, " $1")}
                         </span>
                         <div
-                          className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${visibleColumns[key] ? "bg-[#08384F] border-[#08384F]" : "border-gray-300"}`}
+                          className={`w-4 h-4 rounded border flex items-center justify-center ${visibleColumns[key] ? "bg-[#08384F] border-[#08384F]" : "border-gray-300"}`}
                         >
                           {visibleColumns[key] && (
                             <Check size={10} className="text-white" />
@@ -315,7 +365,7 @@ const StudentTable = ({
                       </button>
                     ))}
                   </div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pt-3 pb-2 border-b border-gray-50 mt-2 mb-2">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-3 pb-2 border-b mt-2 mb-2">
                     Extra Print Columns
                   </p>
                   <div className="space-y-2">
@@ -333,7 +383,7 @@ const StudentTable = ({
                               extraColumns.filter((c) => c.id !== col.id),
                             )
                           }
-                          className="text-red-400 hover:text-red-600"
+                          className="text-red-400"
                         >
                           <CloseIcon size={14} />
                         </button>
@@ -341,9 +391,9 @@ const StudentTable = ({
                     ))}
                     <button
                       onClick={addExtraColumn}
-                      className="w-full py-2 border border-dashed border-gray-200 rounded-lg text-[10px] font-bold text-gray-400 hover:border-[#08384F] hover:text-[#08384F] transition-all"
+                      className="w-full py-2 border border-dashed rounded-lg text-[10px] font-bold text-gray-400 hover:text-[#08384F]"
                     >
-                      + Add Empty Column
+                      + Add Column
                     </button>
                   </div>
                 </div>
@@ -351,21 +401,21 @@ const StudentTable = ({
             </div>
             <button
               onClick={exportToExcel}
-              className="p-2.5 bg-emerald-50 text-emerald-600 flex items-center rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-colors"
+              className="p-2.5 bg-emerald-50 text-emerald-600 flex items-center rounded-xl border border-emerald-100"
             >
-              <FileSpreadsheet size={18} />{" "}
+              <FileSpreadsheet size={18} />
               <span className="font-semibold text-sm px-2">Excel</span>
             </button>
             <button
-              onClick={() => window.print()}
-              className="p-2.5 bg-gray-50 text-gray-600 flex items-center rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
+              onClick={handlePrint}
+              className="p-2.5 bg-gray-50 text-gray-600 flex items-center rounded-xl border border-gray-100"
             >
-              <Printer size={18} />{" "}
+              <Printer size={18} />
               <span className="font-semibold text-sm px-2">Print</span>
             </button>
             <button
               onClick={onAddClick}
-              className="flex items-center gap-2 bg-[#08384F] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#0b3a53] transition-all"
+              className="flex items-center gap-2 bg-[#08384F] text-white px-5 py-2.5 rounded-xl text-sm font-bold"
             >
               <Plus size={18} /> Add Student
             </button>
@@ -379,7 +429,7 @@ const StudentTable = ({
             />
             <input
               type="text"
-              placeholder="Search students by name, roll number"
+              placeholder="Search students..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:border-[#08384F]"
@@ -388,16 +438,16 @@ const StudentTable = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500 outline-none cursor-pointer"
+            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500"
           >
             <option value="">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
           <select
             value={filterSemType}
             onChange={(e) => setFilterSemType(e.target.value)}
-            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-[#08384F] outline-none cursor-pointer"
+            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-[#08384F]"
           >
             <option value="odd">Odd Sem</option>
             <option value="even">Even Sem</option>
@@ -405,219 +455,132 @@ const StudentTable = ({
           <select
             value={filterDept}
             onChange={(e) => setFilterDept(e.target.value)}
-            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500 outline-none cursor-pointer"
+            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500"
           >
             <option value="">All Depts</option>
-            {uniqueDepts.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
+            {uniqueDepts.map((d) => (
+              <option key={d} value={d}>
+                {d}
               </option>
             ))}
           </select>
           <select
             value={filterYear}
             onChange={(e) => setFilterYear(e.target.value)}
-            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500 outline-none cursor-pointer"
+            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500"
           >
             <option value="">All Years</option>
-            {uniqueYears.map((year) => (
-              <option key={year} value={year}>
-                {year === "1"
-                  ? "1st Year"
-                  : year === "2"
-                    ? "2nd Year"
-                    : year === "3"
-                      ? "3rd Year"
-                      : year === "4"
-                        ? "4th Year"
-                        : year}
+            {uniqueYears.map((y) => (
+              <option key={y} value={y}>
+                {y} Year
               </option>
             ))}
           </select>
           <select
             value={filterSection}
             onChange={(e) => setFilterSection(e.target.value)}
-            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500 outline-none cursor-pointer"
+            className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-500"
           >
             <option value="">All Sections</option>
-            {uniqueSections.map((sec) => (
-              <option key={sec} value={sec}>
-                Section {sec}
+            {uniqueSections.map((s) => (
+              <option key={s} value={s}>
+                Section {s}
               </option>
             ))}
           </select>
         </div>
       </div>
-
-      <div className="flex-1 overflow-y-auto custom-scrollbar relative print:overflow-visible">
-        <table className="w-full text-left border-collapse min-w-[1100px]">
-          <thead className="sticky top-0 bg-[#08384F] z-20 print:static">
+      <div className="flex-1 overflow-y-auto relative">
+        <table className="w-full text-left border-collapse min-w-[1000px]">
+          <thead className="sticky top-0 bg-[#08384F] z-20">
             <tr className="text-[11px] font-bold text-white uppercase tracking-widest">
-              {visibleColumns.sNo && (
-                <th className="px-6 py-4 text-center">S.No</th>
-              )}
-              {visibleColumns.rollNumber && (
-                <th className="px-3 py-4 text-center">Roll No</th>
-              )}
-              {visibleColumns.fullName && (
-                <th className="px-2 py-4">Student Name</th>
-              )}
-              {visibleColumns.department && <th className="px-4 py-4">Dept</th>}
-              {visibleColumns.section && (
-                <th className="px-2 py-4 text-center">Sec</th>
-              )}
-              {visibleColumns.year && (
-                <th
-                  className="px-4 py-4 text-center cursor-pointer select-none group"
-                  onClick={() => handleSort("yearLevel")}
-                >
-                  <div className="flex items-center justify-center gap-1">
-                    Year
-                    <div className="flex flex-col opacity-50 group-hover:opacity-100 transition-opacity">
-                      <ChevronUp
-                        size={10}
-                        className={
-                          sortConfig.key === "yearLevel" &&
-                          sortConfig.direction === "asc"
-                            ? "text-white opacity-100"
-                            : ""
-                        }
-                      />
-                      <ChevronDown
-                        size={10}
-                        className={
-                          sortConfig.key === "yearLevel" &&
-                          sortConfig.direction === "desc"
-                            ? "text-white opacity-100"
-                            : ""
-                        }
-                      />
-                    </div>
-                  </div>
-                </th>
-              )}
-              {visibleColumns.sem && (
-                <th className="px-4 py-4 text-center">SEM</th>
-              )}
-              {visibleColumns.email && (
-                <th className="px-2 py-4 text-center">Email</th>
-              )}
-              {extraColumns.map((col) => (
-                <th
-                  key={col.id}
-                  className="px-4 py-4 text-center border-l border-white/20 hidden print:table-cell"
-                >
-                  {col.title}
-                </th>
-              ))}
+              <th className="px-6 py-4 text-center">S.No</th>
+              <th className="px-3 py-4 text-center">Roll No</th>
+              <th className="px-2 py-4">Student Name</th>
+              <th className="px-4 py-4">Dept</th>
+              <th className="px-2 py-4 text-center">Sec</th>
+              <th
+                className="px-4 py-4 text-center cursor-pointer"
+                onClick={() => handleSort("yearLevel")}
+              >
+                <div className="flex items-center justify-center gap-1">
+                  Year{" "}
+                  {sortConfig.key === "yearLevel" &&
+                    (sortConfig.direction === "asc" ? (
+                      <ChevronUp size={10} />
+                    ) : (
+                      <ChevronDown size={10} />
+                    ))}
+                </div>
+              </th>
+              <th className="px-4 py-4 text-center">SEM</th>
+              <th className="px-2 py-4 text-center">Email</th>
               <th className="px-8 py-4 text-center print:hidden">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50 font-medium">
-            {loading ? (
-              [...Array(6)].map((_, i) => <ShimmerRow key={i} />)
-            ) : filteredStudents.length > 0 ? (
-              filteredStudents.map((student, index) => (
-                <tr
-                  key={student._id}
-                  className="hover:bg-gray-50/50 group transition-colors print:opacity-100"
-                >
-                  {visibleColumns.sNo && (
-                    <td className="px-6 py-4 text-xs text-gray-400 font-bold text-center">
+          <tbody className="divide-y divide-gray-50">
+            {loading
+              ? [...Array(6)].map((_, i) => <ShimmerRow key={i} />)
+              : filteredStudents.map((student, index) => (
+                  <tr
+                    key={student._id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
+                    <td className="px-6 py-2 text-xs text-gray-400 font-bold text-center">
                       {index + 1}
                     </td>
-                  )}
-                  {visibleColumns.rollNumber && (
-                    <td className="px-6 py-4 text-xs text-gray-500 font-bold text-center">
+                    <td className="px-6 py-2 text-xs text-gray-500 font-bold text-center">
                       {student.rollNumber || "N/A"}
                     </td>
-                  )}
-                  {visibleColumns.fullName && (
                     <td className="px-4 text-sm text-[#08384F] font-semibold">
                       {student.firstName} {student.lastName}
                     </td>
-                  )}
-                  {visibleColumns.department && (
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-2">
                       <span className="text-[10px] font-bold bg-gray-100 px-2 py-1 rounded-md text-gray-500">
                         {student.department?.code}
                       </span>
                     </td>
-                  )}
-                  {visibleColumns.section && (
-                    <td className="px-4 py-4 text-xs text-gray-600 text-center font-bold">
+                    <td className="px-4 py-2 text-xs text-gray-600 text-center font-bold">
                       {student.section?.name === "UNALLOCATED"
                         ? "U"
                         : student.section?.name || "N/A"}
                     </td>
-                  )}
-                  {visibleColumns.year && (
-                    <td className="px-4 py-4 text-xs text-gray-600 text-center font-bold">
+                    <td className="px-4 py-2 text-xs text-gray-600 text-center font-bold">
                       {student.yearLevel}
                     </td>
-                  )}
-                  {visibleColumns.sem && (
-                    <td className="px-4 py-4 text-xs text-gray-600 text-center font-bold">
+                    <td className="px-4 py-2 text-xs text-gray-600 text-center font-bold">
                       {student.semesterNumber || "N/A"}
                     </td>
-                  )}
-                  {visibleColumns.email && (
-                    <td className="px-4 py-4 text-center text-xs text-gray-500">
+                    <td className="px-4 py-2 text-center text-xs text-gray-500">
                       {student.user?.email}
                     </td>
-                  )}
-                  {extraColumns.map((col) => (
-                    <td
-                      key={col.id}
-                      className="px-4 py-4 border-l border-gray-100 min-w-[120px] hidden print:table-cell"
-                    ></td>
-                  ))}
-                  <td className="px-8 py-2 text-right print:hidden">
-                    <div className="flex gap-1 justify-end">
-                      <button
-                        onClick={() => {
-                          setSelectedStudent(student);
-                          setIsViewModalOpen(true);
-                        }}
-                        className="p-2 text-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        onClick={() => onEditClick(student)}
-                        className="p-2 text-orange-500 bg-orange-50 rounded-lg hover:bg-orange-100"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          onStatusClick({
-                            ...student,
-                            isActive: student.isActive,
-                          })
-                        }
-                        className={`p-2 rounded-lg ${
-                          student.isActive
-                            ? "text-red-500 bg-red-50"
-                            : "text-green-500 bg-green-50"
-                        }`}
-                      >
-                        <Power size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="12"
-                  className="py-20 text-center text-gray-400 font-semibold"
-                >
-                  No students found for the selected academic year with the current filter settings.
-                </td>
-              </tr>
-            )}
+                    <td className="px-8 py-2 text-right print:hidden">
+                      <div className="flex gap-1 justify-end">
+                        <button
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setIsViewModalOpen(true);
+                          }}
+                          className="p-2 text-blue-500 bg-blue-50 rounded-lg"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => onEditClick(student)}
+                          className="p-2 text-orange-500 bg-orange-50 rounded-lg"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => onStatusClick(student)}
+                          className={`p-2 rounded-lg ${student.isActive ? "text-red-500 bg-red-50" : "text-green-500 bg-green-50"}`}
+                        >
+                          <Power size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>
@@ -630,10 +593,6 @@ const StudentTable = ({
       )}
     </div>
   );
-};
-
-StudentTable.clearCache = () => {
-  studentCache = {};
 };
 
 export default StudentTable;
