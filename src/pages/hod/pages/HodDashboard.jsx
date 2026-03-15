@@ -61,7 +61,7 @@ const HodDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen">
       <HodSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div className="flex-1">
         <main className="p-0">{renderComponent()}</main>

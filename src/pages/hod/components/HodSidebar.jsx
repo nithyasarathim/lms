@@ -56,7 +56,7 @@ const HodSidebar = ({ collapsed, setCollapsed }) => {
             height: 20px;
             background: transparent;
             border-bottom-right-radius: 10px;
-            box-shadow: 4px 4px 0 0 white;
+            box-shadow: 6px 6px 0 0 white;
             z-index: 20;
           }
           .curve-after::after {
@@ -68,7 +68,7 @@ const HodSidebar = ({ collapsed, setCollapsed }) => {
             height: 20px;
             background: transparent;
             border-top-right-radius: 10px;
-            box-shadow: 4px -4px 0 0 white;
+            box-shadow: 6px -6px 0 0 white;
             z-index: 20;
           }
         `}

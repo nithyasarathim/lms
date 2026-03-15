@@ -48,7 +48,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen ">
       <AdminSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div
         className={`flex-1 transition-all duration-300 ${
