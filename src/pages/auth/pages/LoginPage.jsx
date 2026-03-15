@@ -3,7 +3,7 @@ import SriEshwarLogo from "../../../assets/eshwar.png";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import LoginBackground from "../../../assets/LoginBackground.svg";
+import LoginBackground from "../../../assets/Background.svg";
 import { login } from "../api/auth.api";
 
 const LoginPage = () => {
