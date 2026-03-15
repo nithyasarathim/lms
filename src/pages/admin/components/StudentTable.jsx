@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import Eshwar from "../../../assets/eshwar.png";
+import Eshwar from "../../../assets/EshwarImg.png";
 import {
   Plus,
   Search,
