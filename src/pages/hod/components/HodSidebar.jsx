@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import EshwarLogo from "../../../assets/eshwarLogo.png";
-import EshwarIcon from "../../../assets/eshwarIcon.png";
+import EshwarLogo from "../../../assets/EshwarLogo.png";
+import EshwarIcon from "../../../assets/EshwarIcon.png";
 import {
   Menu,
   LayoutDashboard,

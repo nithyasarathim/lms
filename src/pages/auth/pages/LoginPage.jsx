@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import SriEshwarLogo from "../../../assets/eshwar.png";
+import SriEshwarLogo from "../../../assets/EshwarImg.png";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
