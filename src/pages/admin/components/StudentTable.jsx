@@ -22,6 +22,10 @@ import * as XLSX from "xlsx";
 
 let studentCache = {};
 
+export const clearTableCache = () => {
+  studentCache = {};
+};
+
 const StudentTable = ({
   academicYearId,
   onAddClick,

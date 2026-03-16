@@ -22,9 +22,7 @@ import {
   bulkUploadStudents,
   getAllAcademicYears,
 } from "../api/admin.api";
-import StudentStats from "../components/StudentStats";
-import StudentPieChart from "../components/StudentPieChart";
-import StudentTable from "../components/StudentTable";
+import { clearTableCache } from "../components/StudentTable";
 import toast from "react-hot-toast";
 
 const ValidationStatus = ({ loading, isValid, onSetup, hasSelection }) => {
@@ -32,7 +30,7 @@ const ValidationStatus = ({ loading, isValid, onSetup, hasSelection }) => {
 
   if (loading)
     return (
-      <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-semibold text-gray-500 z-50 fixed">
+      <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-semibold text-gray-500">
         <Loader2 size={16} className="animate-spin" />
         Validating configuration...
       </div>
@@ -261,9 +259,7 @@ const AddStudentModal = ({
       toast.promise(bulkUploadStudents(bulkFormData), {
         loading: "Uploading and processing file...",
         success: () => {
-          StudentStats.clearCache();
-          StudentPieChart.clearCache();
-          StudentTable.clearCache();
+          clearTableCache();
           onClose();
           if (handleApicall) handleApicall();
           return "Bulk upload completed successfully!";
@@ -282,9 +278,7 @@ const AddStudentModal = ({
         ? "Updating student details..."
         : "Creating new student...",
       success: () => {
-        StudentStats.clearCache();
-        StudentPieChart.clearCache();
-        StudentTable.clearCache();
+        clearTableCache();
         onClose();
         if (handleApicall) handleApicall();
         return isEdit
@@ -367,7 +361,7 @@ const AddStudentModal = ({
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm focus:bg-white focus:border-[#08384F] outline-none transition-all"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   />
                 </div>
                 <div className="space-y-1">
@@ -379,15 +373,14 @@ const AddStudentModal = ({
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm focus:bg-white focus:border-[#08384F] outline-none transition-all"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
-                    Register Number
+                    Register No
                   </label>
                   <input
                     type="text"
@@ -399,7 +392,7 @@ const AddStudentModal = ({
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
-                    Roll Number
+                    Roll No
                   </label>
                   <input
                     type="text"
@@ -410,7 +403,6 @@ const AddStudentModal = ({
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
@@ -420,9 +412,9 @@ const AddStudentModal = ({
                     name="departmentId"
                     value={formData.departmentId}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   >
-                    <option value="">Select Department</option>
+                    <option value="">Select Dept</option>
                     {departments.map((dept) => (
                       <option key={dept._id} value={dept._id}>
                         {dept.name}
@@ -438,7 +430,7 @@ const AddStudentModal = ({
                     name="batchId"
                     value={formData.batchId}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   >
                     <option value="">Select Batch</option>
                     {batches.map((batch) => (
@@ -450,14 +442,12 @@ const AddStudentModal = ({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <ValidationStatus
-                  hasSelection={formData.departmentId && formData.batchId}
-                  loading={loadingSections}
-                  isValid={sections.length > 0}
-                  onSetup={handleRedirectToManagement}
-                />
-              </div>
+              <ValidationStatus
+                hasSelection={formData.departmentId && formData.batchId}
+                loading={loadingSections}
+                isValid={sections.length > 0}
+                onSetup={handleRedirectToManagement}
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -469,7 +459,7 @@ const AddStudentModal = ({
                     value={formData.sectionId}
                     onChange={handleChange}
                     disabled={!sections.length}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   >
                     <option value="">Select Section</option>
                     {sections.map((sec) => (
@@ -488,7 +478,7 @@ const AddStudentModal = ({
                     value={formData.semesterNumber}
                     onChange={handleChange}
                     disabled={!formData.batchId}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   >
                     <option value="">Select Semester</option>
                     {availableSemesters.map((sem) => (
@@ -499,7 +489,6 @@ const AddStudentModal = ({
                   </select>
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
@@ -509,17 +498,16 @@ const AddStudentModal = ({
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none cursor-pointer"
+                    className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                   >
                     <option value="">Select</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
-                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-gray-500 uppercase">
-                    Date of Birth
+                    DOB
                   </label>
                   <input
                     type="date"
@@ -530,142 +518,24 @@ const AddStudentModal = ({
                   />
                 </div>
               </div>
-
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-500 uppercase">
-                  Email ID
+                  Email
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none focus:bg-white focus:border-[#08384F]"
+                  className="w-full border border-gray-200 bg-gray-50 px-4 py-2 rounded-xl text-sm outline-none"
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-500 uppercase">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full border border-gray-200 bg-gray-100 px-4 py-2 pr-10 rounded-xl text-sm outline-none focus:bg-white focus:border-[#08384F] transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#08384F] transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
               </div>
             </>
           ) : (
             <div className="space-y-6">
-              <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl space-y-3">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                  Required Excel Columns
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "firstName",
-                    "lastName",
-                    "registerNumber",
-                    "rollNumber",
-                    "semesterNumber",
-                    "email",
-                    "gender",
-                    "dateOfBirth",
-                    "departmentCode",
-                    "batchName",
-                  ].map((col) => (
-                    <span
-                      key={col}
-                      className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#08384F]"
-                    >
-                      {col}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-[#08384F] tracking-wide">
-                    Bulk Validation
-                  </h3>
-                  <span className="text-[10px] font-semibold text-gray-400 uppercase">
-                    Department & Batch
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      Department
-                    </label>
-
-                    <select
-                      value={bulkValidate.deptId}
-                      onChange={(e) =>
-                        setBulkValidate((prev) => ({
-                          ...prev,
-                          deptId: e.target.value,
-                        }))
-                      }
-                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl text cursor-pointer focus:border-[#08384F] focus:bg-white transition-all font-[poppins] font-semibold uppercase text-[11px] outline-none"
-                    >
-                      <option value="">Select Department</option>
-                      {departments.map((dept) => (
-                        <option key={dept._id} value={dept._id}>
-                          {dept.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      Batch
-                    </label>
-
-                    <select
-                      value={bulkValidate.batchId}
-                      onChange={(e) =>
-                        setBulkValidate((prev) => ({
-                          ...prev,
-                          batchId: e.target.value,
-                        }))
-                      }
-                      className="w-full border border-gray-200 bg-gray-50 px-4 py-2.5 rounded-xl text-sm outline-none cursor-pointer focus:border-[#08384F] focus:bg-white transition-all font-[poppins] font-semibold uppercase text-[11px]"
-                    >
-                      <option value="">Select Batch</option>
-                      {batches.map((batch) => (
-                        <option key={batch._id} value={batch._id}>
-                          {batch.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <ValidationStatus
-                  hasSelection={bulkValidate.deptId && bulkValidate.batchId}
-                  loading={bulkValidate.loading}
-                  isValid={bulkValidate.isValid}
-                  onSetup={handleRedirectToManagement}
-                />
-              </div>
-
               <div
                 onClick={() => fileInputRef.current.click()}
-                className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center hover:border-[#08384F] transition-all cursor-pointer group"
+                className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:border-[#08384F]"
               >
                 <input
                   type="file"
@@ -675,31 +545,14 @@ const AddStudentModal = ({
                   accept=".csv, .xlsx"
                 />
                 {selectedFile ? (
-                  <div className="space-y-2">
-                    <CheckCircle2
-                      size={40}
-                      className="mx-auto text-emerald-500"
-                    />
-                    <p className="text-sm font-bold text-[#08384F]">
-                      {selectedFile.name}
-                    </p>
-                    <p className="text-[10px] text-gray-400">
-                      Click to change file
-                    </p>
-                  </div>
+                  <p className="text-sm font-bold text-[#08384F]">
+                    {selectedFile.name}
+                  </p>
                 ) : (
-                  <>
-                    <UploadCloud
-                      size={40}
-                      className="mx-auto text-gray-300 mb-4 group-hover:text-[#08384F] transition-colors"
-                    />
-                    <p className="text-sm font-bold text-[#08384F]">
-                      Upload Students List
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      Accepts .xlsx or .csv files
-                    </p>
-                  </>
+                  <div className="text-gray-400">
+                    <UploadCloud size={40} className="mx-auto mb-2" />
+                    <p className="text-sm font-bold">Upload Student List</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -708,28 +561,18 @@ const AddStudentModal = ({
 
         <div className="p-6 border-t border-gray-100 flex gap-3 bg-white shrink-0">
           <button
-            className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+            className="flex-1 py-3 border rounded-xl text-sm font-bold text-gray-500"
             onClick={onClose}
           >
             Cancel
           </button>
           <button
-            className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-sm font-bold shadow-lg shadow-gray-900/10 hover:bg-[#0b4a68] transition-all disabled:opacity-50"
+            className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-sm font-bold"
             onClick={handleSubmit}
-            disabled={
-              activeTab === "single"
-                ? !formData.departmentId ||
-                  !formData.batchId ||
-                  sections.length === 0 ||
-                  !formData.semesterNumber
-                : !selectedFile ||
-                  (bulkValidate.deptId &&
-                    bulkValidate.batchId &&
-                    !bulkValidate.isValid)
-            }
+            disabled={activeTab === "single" ? !formData.email : !selectedFile}
           >
             {isEdit
-              ? "Update Changes"
+              ? "Update"
               : activeTab === "multiple"
                 ? "Upload File"
                 : "Save Student"}

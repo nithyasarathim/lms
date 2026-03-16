@@ -209,7 +209,7 @@ const StudentPieChart = ({ academicYearId }) => {
   );
 };
 
-StudentPieChart.clearCache = () => {
+export const clearPieCache = () => {
   pieStatsCache = {};
 };
 

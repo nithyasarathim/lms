@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Search,
   BookOpen,
-  GraduationCap,
 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -27,13 +26,11 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSemester, setSelectedSemester] = useState(1);
-  const [selectedType, setSelectedType] = useState("Theory");
+  const [selectedType, setSelectedType] = useState("T");
   const [allocatedData, setAllocatedData] = useState({});
-  const [semesterType, setSemesterType] = useState("odd");
 
-  const oddSemesters = [1, 3, 5, 7];
-  const evenSemesters = [2, 4, 6, 8];
-  const currentSems = semesterType === "odd" ? oddSemesters : evenSemesters;
+  const deliveryTypes = ["T", "TP", "TPJ", "P", "PJ", "I"];
+  const allSemesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
   useEffect(() => {
     const initData = async () => {
@@ -44,8 +41,9 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
           getSubjectsByRegulation(regId),
           getCurriculum(deptId, regId),
         ]);
-        console.log(subjectsRes);
-        const filtered = subjectsRes.filter(
+
+        const subjectList = subjectsRes?.data?.subjects || subjectsRes || [];
+        const filtered = subjectList.filter(
           (s) => s.departmentId?._id === deptId || s.departmentId === deptId,
         );
         setSubjects(filtered);
@@ -138,13 +136,7 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
       sub.code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sub.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const subType = sub.courseType?.toUpperCase();
-    let matchesType = false;
-    if (selectedType === "Theory")
-      matchesType = ["T", "TP", "TPJ"].includes(subType);
-    else if (selectedType === "Lab")
-      matchesType = ["P", "PJ"].includes(subType);
-    else if (selectedType === "Internship") matchesType = subType === "I";
+    const matchesType = sub.deliveryType?.toUpperCase() === selectedType;
 
     return matchesSearch && matchesType;
   });
@@ -162,7 +154,10 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
           <div className="h-5 w-[1.5px] bg-gray-300"></div>
 
           <div className="flex items-center gap-2 text-gray-500 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-            Dept: <span className="text-[#08384F]">{deptInfo ? `${deptInfo.program} ${deptInfo.name}` : "..."}</span>
+            Dept:{" "}
+            <span className="text-[#08384F]">
+              {deptInfo ? `${deptInfo.program} ${deptInfo.name}` : "..."}
+            </span>
           </div>
 
           <p className="text-sm font-semibold text-gray-500">
@@ -174,17 +169,6 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <select
-            value={semesterType}
-            onChange={(e) => {
-              setSemesterType(e.target.value);
-              setSelectedSemester(e.target.value === "odd" ? 1 : 2);
-            }}
-            className="border border-gray-300 px-4 py-2 rounded-xl text-sm font-semibold text-[#08384F] outline-none shadow-sm cursor-pointer hover:border-[#08384F] transition-colors bg-white"
-          >
-            <option value="odd">Odd Semesters</option>
-            <option value="even">Even Semesters</option>
-          </select>
           <button
             onClick={handleSave}
             disabled={isSaving}
@@ -201,36 +185,40 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
       </div>
 
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-190px)] mt-2">
-        <div className="col-span-3 border border-gray-200 bg-white rounded-2xl p-4 flex flex-col gap-3 overflow-y-auto shadow-sm">
+        <div className="col-span-3 border border-gray-200 bg-white rounded-2xl p-4 flex flex-col gap-2 overflow-y-auto shadow-sm">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest px-2 mb-1">
-            Select Semester
+            All Semesters
           </p>
-          {currentSems.map((sem) => (
-            <button
-              key={sem}
-              onClick={() => setSelectedSemester(sem)}
-              className={`flex items-center justify-between px-5 py-4 rounded-2xl text-[15px] font-semibold transition-all border ${
-                selectedSemester === sem
-                  ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/10 scale-[1.02]"
-                  : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              Semester {sem}
-              <ChevronRight
-                size={18}
-                className={
-                  selectedSemester === sem ? "opacity-100" : "opacity-30"
-                }
-              />
-            </button>
-          ))}
+          {allSemesters.map((sem) => {
+            return (
+              <button
+                key={sem}
+                onClick={() => setSelectedSemester(sem)}
+                className={`flex items-center justify-between px-4 py-3.5 rounded-2xl text-[14px] font-semibold transition-all border ${
+                  selectedSemester === sem
+                    ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/10"
+                    : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <div className="flex flex-col items-start">
+                  <span>Semester {sem}</span>
+                </div>
+                <ChevronRight
+                  size={16}
+                  className={
+                    selectedSemester === sem ? "opacity-100" : "opacity-30"
+                  }
+                />
+              </button>
+            );
+          })}
         </div>
 
-        <div className="col-span-3 border border-gray-200 bg-white rounded-2xl p-4 flex flex-col gap-3 overflow-y-auto shadow-sm">
+        <div className="col-span-3 border border-gray-200 bg-white rounded-2xl p-4 flex flex-col gap-2 overflow-y-auto shadow-sm">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest px-2 mb-1">
-            Subject Category
+            Delivery Type
           </p>
-          {["Theory", "Lab", "Internship"].map((type) => (
+          {deliveryTypes.map((type) => (
             <button
               key={type}
               onClick={() => setSelectedType(type)}
@@ -300,9 +288,14 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
                         {sub.name}
                       </p>
                     </div>
-                    <span className="text-[11px] font-black bg-gray-100 border border-gray-200 px-3 py-1 rounded-lg text-[#08384F] uppercase tracking-wide">
-                      {sub.courseType}
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                        Credits: {sub.credits}
+                      </span>
+                      <span className="text-[11px] font-black bg-gray-100 border border-gray-200 px-3 py-1 rounded-lg text-[#08384F] uppercase tracking-wide">
+                        {sub.deliveryType}
+                      </span>
+                    </div>
                   </label>
                 );
               })
@@ -310,7 +303,7 @@ const SubjectAllocation = ({ deptId, regId, regName }) => {
               <div className="flex flex-col items-center justify-center h-full opacity-40 py-10">
                 <BookOpen size={60} strokeWidth={1} />
                 <p className="text-sm font-semibold mt-4 text-center px-10">
-                  No subjects found in this category.
+                  No subjects found for "{selectedType}".
                 </p>
               </div>
             )}

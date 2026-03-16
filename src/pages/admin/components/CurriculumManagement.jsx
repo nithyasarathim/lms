@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, ChevronDown } from "lucide-react";
+import { motion } from "framer-motion";
+import { Search, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import DepartmentList from "./DepartmentList";

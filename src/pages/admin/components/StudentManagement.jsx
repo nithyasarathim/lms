@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeaderComponent from "../../shared/components/HeaderComponent";
-import StudentStats from "./StudentStats";
-import StudentPieChart from "./StudentPieChart";
-import StudentTable from "./StudentTable";
+import StudentStats, { clearStatsCache } from "./StudentStats";
+import StudentPieChart, { clearPieCache } from "./StudentPieChart";
+import StudentTable, { clearTableCache } from "./StudentTable";
 import AddStudentModal from "../modals/AddStudentModal";
 import StudentStatusModal from "../modals/StudentStatusModal";
 import { updateStudent, getAllAcademicYears } from "../api/admin.api";
@@ -64,9 +64,9 @@ const StudentManagement = () => {
   }, [selectedYear]);
 
   const handleRefreshData = () => {
-    StudentStats.clearCache();
-    StudentPieChart.clearCache();
-    StudentTable.clearCache();
+    clearStatsCache();
+    clearPieCache();
+    clearTableCache();
     setRefreshKey((prev) => prev + 1);
   };
 

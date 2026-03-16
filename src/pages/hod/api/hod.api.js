@@ -83,12 +83,25 @@ export const getSectionsByBatchProgramId = async (batchProgramId) => {
 
 export const assignFacultyToSection = async (assignedData) => {
   try {
-    const response = await apiClient.post(`/api/assign-faculty`, {
-      assignedData,
-    });
+    const response = await apiClient.post(`/api/assign-faculty`, assignedData);
     return response;
   } catch (err) {
     throw err.response?.data || err.message;
+  }
+};
+
+export const getAssignedFaculties = async (sectionId, semesterNumber) => {
+  try {
+    const response = await apiClient.get(
+      `/api/assign-faculty?sectionId=${sectionId}&semesterNumber=${semesterNumber}`,
+    );
+    return response.data;
+  } catch (error) {
+    // If 404 is returned when no assignments exist, handle it gracefully
+    if (error.response && error.response.status === 404) {
+      return { success: true, data: { assignments: [] } };
+    }
+    throw error;
   }
 };
 
@@ -97,7 +110,7 @@ export const getSubjectsBySemester = async (batchProgramId, semesterNumber) => {
     const response = await apiClient.get(
       `/api/subjects/by-semester?batchProgramId=${batchProgramId}&semesterNumber=${semesterNumber}`,
     );
-    return response.data.data.subjects;
+    return response.data;
   } catch (err) {
     throw err.response?.data || err.message;
   }

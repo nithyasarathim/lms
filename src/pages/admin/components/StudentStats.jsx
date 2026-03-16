@@ -142,7 +142,7 @@ const StudentStats = ({ academicYearId }) => {
   );
 };
 
-StudentStats.clearCache = () => {
+export const clearStatsCache = () => {
   globalStudentCache = {};
 };
 

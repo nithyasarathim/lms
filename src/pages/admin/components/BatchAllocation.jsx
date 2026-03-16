@@ -207,9 +207,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName, collapsed }) => {
 
   return (
     <div
-      className={`relative px-6 py-6 font-['Poppins'] w-full min-h-screen transition-all duration-300 ${
-        collapsed ? "pl-[80px]" : "pl-[300px]"
-      }`}
+      className={`relative px-6 py-6 font-['Poppins'] w-full min-h-screen transition-all duration-300`}
     >
       {shouldHighlightReg && (
         <div
@@ -374,7 +372,7 @@ const BatchAllocation = ({ deptId, regId: batchId, regName, collapsed }) => {
 
       {showConfirm && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="text-amber-500" size={22} />
               <h3 className="font-semibold text-gray-800">

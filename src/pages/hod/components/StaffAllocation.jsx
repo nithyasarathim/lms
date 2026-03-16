@@ -8,6 +8,7 @@ import {
   User,
   ChevronDown,
   Check,
+  X,
 } from "lucide-react";
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import {
@@ -16,6 +17,7 @@ import {
   assignFacultyToSection,
   getSubjectsBySemester,
   getAllFaculties,
+  getAssignedFaculties,
 } from "../api/hod.api";
 import toast from "react-hot-toast";
 
@@ -23,9 +25,9 @@ const Shimmer = ({ className }) => (
   <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
 );
 
-const SearchableDropdown = ({
+const MultiSearchableDropdown = ({
   options,
-  value,
+  selectedIds = [],
   onChange,
   placeholder,
   loading,
@@ -33,8 +35,6 @@ const SearchableDropdown = ({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const ref = useRef(null);
-
-  const selected = options.find((o) => o._id === value);
 
   const filtered = options.filter(
     (o) =>
@@ -51,41 +51,57 @@ const SearchableDropdown = ({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  if (loading) return <Shimmer className="h-10 w-full max-w-sm rounded-xl" />;
+  const toggleOption = (id) => {
+    const newSelection = selectedIds.includes(id)
+      ? selectedIds.filter((item) => item !== id)
+      : [...selectedIds, id];
+    onChange(newSelection);
+  };
+
+  if (loading) return <Shimmer className="h-10 w-full rounded-xl" />;
 
   return (
-    <div className="relative w-full max-w-sm" ref={ref}>
-      <button
-        type="button"
+    <div className="relative w-full" ref={ref}>
+      <div
         onClick={() => setOpen(!open)}
-        className={`w-full flex items-center justify-between px-4 py-2.5 bg-white border rounded-xl text-sm transition-all ${
+        className={`w-full flex flex-wrap gap-1 items-center min-h-[42px] px-3 py-1.5 bg-white border rounded-xl text-sm cursor-pointer transition-all ${
           open
             ? "border-[#08384F] ring-2 ring-[#08384F]/10"
             : "border-gray-200 hover:border-gray-300"
         }`}
       >
-        <div className="flex items-center gap-2 truncate">
-          <User size={14} className="text-gray-400 shrink-0" />
-          <span
-            className={`truncate ${
-              selected ? "text-gray-900 font-medium" : "text-gray-400"
-            }`}
-          >
-            {selected
-              ? `${selected.fullName} (${selected.employeeId})`
-              : placeholder}
+        {selectedIds.length > 0 ? (
+          selectedIds.map((id) => {
+            const faculty = options.find((o) => o._id === id);
+            return (
+              <span
+                key={id}
+                className="flex items-center gap-1 bg-blue-50 text-[#08384F] px-2 py-1 rounded-lg text-[11px] font-bold border border-blue-100"
+              >
+                {faculty?.fullName?.split(" ")[0] ||
+                  faculty?.firstName ||
+                  "Faculty"}
+                <X
+                  size={12}
+                  className="hover:text-red-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleOption(id);
+                  }}
+                />
+              </span>
+            );
+          })
+        ) : (
+          <span className="text-gray-400 flex items-center gap-2">
+            <User size={14} /> {placeholder}
           </span>
-        </div>
-        <ChevronDown
-          size={16}
-          className={`text-gray-400 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+        )}
+        <ChevronDown size={16} className="ml-auto text-gray-400" />
+      </div>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-50 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
           <div className="p-2 border-b border-gray-100">
             <div className="relative">
               <Search
@@ -97,44 +113,37 @@ const SearchableDropdown = ({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search faculty..."
-                className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#08384F]/10"
+                className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-xs outline-none"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
           </div>
-
-          <div className="max-h-60 overflow-y-auto">
-            {filtered.length > 0 ? (
-              filtered.map((opt) => (
-                <div
-                  key={opt._id}
-                  onClick={() => {
-                    onChange(opt._id);
-                    setOpen(false);
-                    setQuery("");
-                  }}
-                  className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-colors ${
-                    value === opt._id
-                      ? "bg-blue-50 text-[#08384F]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-semibold">{opt.fullName}</span>
-                    <span className="text-[10px] text-gray-500 uppercase">
-                      {opt.employeeId} • {opt.departmentId?.code}
-                    </span>
-                  </div>
-                  {value === opt._id && (
-                    <Check size={14} className="text-[#08384F]" />
-                  )}
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.map((opt) => (
+              <div
+                key={opt._id}
+                onClick={() => toggleOption(opt._id)}
+                className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
+              >
+                <div className="flex flex-col">
+                  <span
+                    className={`text-sm ${
+                      selectedIds.includes(opt._id)
+                        ? "font-bold text-[#08384F]"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    {opt.fullName || `${opt.firstName} ${opt.lastName}`}
+                  </span>
+                  <span className="text-[10px] text-gray-500 uppercase">
+                    {opt.employeeId}
+                  </span>
                 </div>
-              ))
-            ) : (
-              <div className="px-4 py-8 text-center text-gray-400 text-xs">
-                No faculty found
+                {selectedIds.includes(opt._id) && (
+                  <Check size={14} className="text-[#08384F]" />
+                )}
               </div>
-            )}
+            ))}
           </div>
         </div>
       )}
@@ -143,50 +152,35 @@ const SearchableDropdown = ({
 };
 
 const StaffAllocation = ({ collapsed }) => {
-  const [academicStructure, setAcademicStructure] = useState(() => {
-    const cached = sessionStorage.getItem("cache_staff_academicStructure");
-    return cached ? JSON.parse(cached) : [];
-  });
+  const [academicStructure, setAcademicStructure] = useState([]);
   const [selectedStructureIndex, setSelectedStructureIndex] = useState(0);
   const [sections, setSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState(null);
   const [subjects, setSubjects] = useState([]);
-  const [faculties, setFaculties] = useState(() => {
-    const cached = sessionStorage.getItem("cache_staff_faculties");
-    return cached ? JSON.parse(cached) : [];
-  });
+  const [faculties, setFaculties] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(!academicStructure.length);
-  const [sectionLoading, setSectionLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [subjectLoading, setSubjectLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [allocationMap, setAllocationMap] = useState({});
 
   useEffect(() => {
     const initData = async () => {
-      if (!academicStructure.length) setLoading(true);
+      setLoading(true);
       try {
         const [structRes, facultyRes] = await Promise.all([
           getDeptAcademicStructure(),
           getAllFaculties(),
         ]);
-
-        if (structRes?.data?.success) {
+        if (structRes?.success || structRes?.data?.success) {
           const struct =
-            structRes.data.academicStructure ||
-            structRes.data.data.academicStructure ||
+            structRes.data?.academicStructure ||
+            structRes.data?.data?.academicStructure ||
             [];
           setAcademicStructure(struct);
-          sessionStorage.setItem(
-            "cache_staff_academicStructure",
-            JSON.stringify(struct),
-          );
         }
-
         if (facultyRes?.success) {
-          const list = facultyRes.data.facultyList || [];
-          setFaculties(list);
-          sessionStorage.setItem("cache_staff_faculties", JSON.stringify(list));
+          setFaculties(facultyRes.data.facultyList || []);
         }
       } catch {
         toast.error("Failed to load initial data");
@@ -194,99 +188,103 @@ const StaffAllocation = ({ collapsed }) => {
         setLoading(false);
       }
     };
-
     initData();
   }, []);
 
   useEffect(() => {
-    const fetchDependencies = async () => {
+    const fetchDeps = async () => {
       const current = academicStructure[selectedStructureIndex];
       if (!current) return;
-
-      const sectionCacheKey = `sections_${current.batchProgramId}`;
-      const subjectCacheKey = `subjects_${current.batchProgramId}_${current.semester}`;
-
-      const cachedSections = sessionStorage.getItem(sectionCacheKey);
-      const cachedSubjects = sessionStorage.getItem(subjectCacheKey);
-
-      if (cachedSections && cachedSubjects) {
-        const parsedSections = JSON.parse(cachedSections);
-        setSections(parsedSections);
-        setSelectedSection(parsedSections[0] || null);
-        setSubjects(JSON.parse(cachedSubjects));
-      } else {
-        setSectionLoading(true);
-        setSubjectLoading(true);
-      }
-
-      setAllocationMap({});
-
+      setSubjectLoading(true);
       try {
-        const [sectionRes, subjectData] = await Promise.all([
+        const [secRes, subRes] = await Promise.all([
           getSectionsByBatchProgramId(current.batchProgramId),
           getSubjectsBySemester(current.batchProgramId, current.semester),
         ]);
-
-        if (sectionRes?.success) {
-          const fetchedSections = sectionRes.data.sections || [];
-          const filteredSections = fetchedSections.filter(
-            (sec) => sec.name !== "UNALLOCATED",
+        if (secRes?.success) {
+          const validSecs = (secRes.data.sections || []).filter(
+            (s) => s.name !== "UNALLOCATED",
           );
-          setSections(filteredSections);
-          setSelectedSection(filteredSections[0] || null);
-          sessionStorage.setItem(
-            sectionCacheKey,
-            JSON.stringify(filteredSections),
-          );
+          setSections(validSecs);
+          setSelectedSection(validSecs[0] || null);
         }
-
-        if (subjectData) {
-          setSubjects(subjectData);
-          sessionStorage.setItem(subjectCacheKey, JSON.stringify(subjectData));
+        if (subRes?.success) {
+          setSubjects(subRes.data.subjects || []);
         }
       } catch {
-        toast.error("Error fetching data");
+        toast.error("Error fetching dependencies");
       } finally {
-        setSectionLoading(false);
         setSubjectLoading(false);
       }
     };
-
-    fetchDependencies();
+    fetchDeps();
   }, [selectedStructureIndex, academicStructure]);
 
-  const handleFacultyChange = (subjectId, facultyId) => {
-    setAllocationMap((prev) => ({
-      ...prev,
-      [subjectId]: facultyId,
-    }));
-  };
+  // Fetch Existing Assignments when Section or Semester Level changes
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      const current = academicStructure[selectedStructureIndex];
+      if (!selectedSection || !current) return;
 
-  const filteredSubjects = (subjects || []).filter(
-    (sub) =>
-      sub?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sub?.code?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+      try {
+        const res = await getAssignedFaculties(
+          selectedSection._id,
+          current.semester,
+        );
+        if (res?.success) {
+          const mapping = {};
+          res.data.assignments.forEach((assign) => {
+            const componentId =
+              assign.subjectComponentId?._id || assign.subjectComponentId;
+            mapping[componentId] = assign.facultyIds.map((f) => f._id || f);
+          });
+          setAllocationMap(mapping);
+        }
+      } catch (err) {
+        // Silent fail for assignments to avoid annoying error toasts when nothing is allocated
+        console.log("No existing assignments found");
+        setAllocationMap({});
+      }
+    };
+    fetchAssignments();
+  }, [selectedSection, selectedStructureIndex, academicStructure]);
 
-  const handleSaveAllocation = async () => {
+  const flattenedComponents = (subjects || [])
+    .flatMap((sub) =>
+      (sub.components || []).map((comp) => ({
+        ...comp,
+        parentCode: sub.code,
+        parentName: sub.name,
+      })),
+    )
+    .filter(
+      (c) =>
+        c.parentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.parentCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.name?.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+
+  const handleSave = async () => {
+    const current = academicStructure[selectedStructureIndex];
     if (!selectedSection) return toast.error("Select a section first");
 
-    const entries = Object.entries(allocationMap || {});
-    const assignedData = entries
-      .filter(([_, facultyId]) => facultyId && facultyId !== "")
-      .map(([subjectId, facultyId]) => ({
-        subjectId,
-        facultyId,
-        sectionId: selectedSection._id,
+    const allocationEntries = Object.entries(allocationMap)
+      .filter(([_, ids]) => ids.length > 0)
+      .map(([compId, ids]) => ({
+        subjectComponentId: compId,
+        facultyIds: ids,
       }));
 
-    if (assignedData.length === 0)
-      return toast.error("Assign at least one faculty");
+    const payload = {
+      sectionId: selectedSection._id,
+      academicYearId: current.academicYearId,
+      semesterNumber: current.semester,
+      allocations: allocationEntries,
+    };
 
     setIsSaving(true);
-
     try {
-      await assignFacultyToSection(assignedData);
+      await assignFacultyToSection(payload);
       toast.success("Staff allocated successfully");
     } catch (err) {
       toast.error(err.message || "Allocation failed");
@@ -295,59 +293,28 @@ const StaffAllocation = ({ collapsed }) => {
     }
   };
 
-  const currentLevel = academicStructure[selectedStructureIndex];
-
   return (
     <div
-      className={`transition-all duration-300 min-h-screen bg-gray-50 ${
-        collapsed ? "pl-[80px]" : "pl-[300px]"
-      }`}
+      className={`transition-all duration-300 min-h-screen bg-gray-50 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
     >
       <HeaderComponent title="Staff Allocation" />
-
       <div className="px-6 py-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            {loading && !academicStructure.length ? (
-              <>
-                <Shimmer className="w-32 h-8 rounded-full" />
-                <Shimmer className="w-32 h-8 rounded-full" />
-                <Shimmer className="w-32 h-8 rounded-full" />
-              </>
-            ) : (
-              <>
-                <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-1.5  text-[#08384F] px-3 py-1.5 rounded-full text-xs">
-                    <span className="font-medium text-gray-500">Dept</span>
-                    <span className="font-semibold">
-                      {currentLevel?.department?.name || "N/A"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5  text-[#08384F] px-3 py-1.5 rounded-full text-xs">
-                    <span className="font-medium text-gray-500">Batch</span>
-                    <span className="font-semibold">
-                      {currentLevel?.batch?.name}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 text-[#08384F] px-3 py-1.5 rounded-full text-xs ">
-                    <span className="font-medium text-gray-500">
-                      Regulation
-                    </span>
-                    <span className="font-semibold">
-                      {currentLevel?.regulation?.name}
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
+          <div className="flex flex-wrap gap-3">
+            <div className="bg-white border px-3 py-1.5 rounded-full text-xs font-bold text-[#08384F]">
+              Batch:{" "}
+              {academicStructure[selectedStructureIndex]?.batch?.name || "..."}
+            </div>
+            <div className="bg-white border px-3 py-1.5 rounded-full text-xs font-bold text-[#08384F]">
+              Reg:{" "}
+              {academicStructure[selectedStructureIndex]?.regulation?.name ||
+                "..."}
+            </div>
           </div>
-
           <button
-            onClick={handleSaveAllocation}
+            onClick={handleSave}
             disabled={isSaving || loading}
-            className="flex items-center gap-2 bg-[#08384F] text-white px-8 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all shadow-md shadow-[#08384F]/20"
+            className="flex items-center gap-2 bg-[#08384F] text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-[#08384F]/20 disabled:opacity-50 transition-all active:scale-95"
           >
             {isSaving ? (
               <Loader2 size={18} className="animate-spin" />
@@ -359,82 +326,57 @@ const StaffAllocation = ({ collapsed }) => {
         </div>
 
         <div className="grid grid-cols-12 gap-5 h-[calc(100vh-200px)]">
-          <div className="col-span-3 border border-gray-200 bg-white rounded-3xl p-5 flex flex-col gap-3 overflow-y-auto shadow-sm">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-2 mb-2">
+          <div className="col-span-3 border bg-white rounded-3xl p-5 flex flex-col gap-3 overflow-y-auto shadow-sm">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">
               Academic Year
             </p>
-
-            {loading && !academicStructure.length
-              ? [1, 2, 3, 4].map((i) => (
-                  <Shimmer key={i} className="h-16 w-full rounded-2xl" />
-                ))
-              : academicStructure.map((item, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedStructureIndex(index)}
-                    className={`flex items-center justify-between px-5 py-4 rounded-2xl text-[15px] font-bold transition-all border ${
-                      selectedStructureIndex === index
-                        ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/20 scale-[1.02]"
-                        : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="text-left">
-                      <p className="text-[10px] opacity-70 mb-1 uppercase font-bold tracking-wider">
-                        Year {item.year}
-                      </p>
-                      <p>Semester {item.semester}</p>
-                    </div>
-                    <ChevronRight
-                      size={18}
-                      className={
-                        selectedStructureIndex === index
-                          ? "opacity-100"
-                          : "opacity-30"
-                      }
-                    />
-                  </button>
-                ))}
+            {academicStructure.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedStructureIndex(index)}
+                className={`flex flex-col p-4 rounded-2xl text-left border transition-all ${
+                  selectedStructureIndex === index
+                    ? "bg-[#08384F] text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <span className="text-[10px] font-bold uppercase opacity-60">
+                  Year {item.year}
+                </span>
+                <span className="font-bold">Semester {item.semester}</span>
+              </button>
+            ))}
           </div>
 
-          <div className="col-span-3 border border-gray-200 bg-white rounded-3xl p-5 flex flex-col gap-3 overflow-y-auto shadow-sm">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] px-2 mb-2">
-              Select Section
+          <div className="col-span-3 border bg-white rounded-3xl p-5 flex flex-col gap-3 overflow-y-auto shadow-sm">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">
+              Sections
             </p>
-
-            {sectionLoading && !sections.length
-              ? [1, 2, 3].map((i) => (
-                  <Shimmer key={i} className="h-14 w-full rounded-2xl" />
-                ))
-              : sections.map((sec) => (
-                  <button
-                    key={sec._id}
-                    onClick={() => setSelectedSection(sec)}
-                    className={`flex items-center justify-between px-5 py-4 rounded-2xl text-[15px] font-bold transition-all border ${
-                      selectedSection?._id === sec._id
-                        ? "bg-[#08384F] text-white border-[#08384F] shadow-lg shadow-[#08384F]/20 scale-[1.02]"
-                        : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    Section {sec.name}
-                    <span
-                      className={`text-[10px] px-2.5 py-1 rounded-full border ${
-                        selectedSection?._id === sec._id
-                          ? "bg-white/20 border-white/30 text-white"
-                          : "bg-gray-100 border-gray-200 text-[#08384F]"
-                      }`}
-                    >
-                      {sec.studentCount}
-                    </span>
-                  </button>
-                ))}
+            {sections.map((sec) => (
+              <button
+                key={sec._id}
+                onClick={() => setSelectedSection(sec)}
+                className={`flex items-center justify-between p-4 rounded-2xl border font-bold transition-all ${
+                  selectedSection?._id === sec._id
+                    ? "bg-[#08384F] text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                Section {sec.name}
+                <span
+                  className={`text-[10px] px-2.5 py-1 rounded-full ${selectedSection?._id === sec._id ? "bg-white/20" : "bg-gray-100"}`}
+                >
+                  {sec.studentCount}
+                </span>
+              </button>
+            ))}
           </div>
 
-          <div className="col-span-6 border border-gray-200 bg-white rounded-3xl p-6 flex flex-col overflow-hidden shadow-sm">
+          <div className="col-span-6 border bg-white rounded-3xl p-6 flex flex-col overflow-hidden shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-[#08384F] flex items-center gap-2">
-                <BookOpen size={20} /> Subject Allocation
+                <BookOpen size={20} /> Components
               </h3>
-
               <div className="relative w-1/2">
                 <Search
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
@@ -442,63 +384,50 @@ const StaffAllocation = ({ collapsed }) => {
                 />
                 <input
                   type="text"
-                  placeholder="Search subject..."
+                  placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium outline-none focus:bg-white focus:border-[#08384F] transition-all"
+                  className="w-full pl-11 pr-4 py-2 bg-gray-50 border rounded-2xl text-sm outline-none focus:bg-white focus:border-[#08384F] transition-all"
                 />
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scroll">
-              {subjectLoading && !subjects.length ? (
-                [1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="p-5 border border-gray-50 rounded-3xl flex items-center gap-6 bg-gray-50/30"
-                  >
-                    <div className="space-y-2 flex-1">
-                      <Shimmer className="h-3 w-20" />
-                      <Shimmer className="h-5 w-48" />
-                    </div>
-                    <Shimmer className="h-10 w-64 rounded-xl" />
-                  </div>
-                ))
-              ) : filteredSubjects.length > 0 ? (
-                filteredSubjects.map((sub) => (
-                  <div
-                    key={sub._id}
-                    className="p-5 border border-gray-100 rounded-3xl flex items-center justify-between gap-6 hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex flex-col w-[50%]">
-                      <p className="text-[10px] font-black text-[#08384F] uppercase mb-1 tracking-wider opacity-60">
-                        {sub.code}
-                      </p>
-                      <p className="text-[15px] font-bold text-gray-800 leading-tight">
-                        {sub.name}
-                      </p>
-                    </div>
-
-                    <div className="flex-1 w-[50%]">
-                      <SearchableDropdown
-                        options={faculties}
-                        value={allocationMap[sub._id] || ""}
-                        onChange={(facultyId) =>
-                          handleFacultyChange(sub._id, facultyId)
-                        }
-                        placeholder="Assign Faculty"
-                        loading={loading && !faculties.length}
-                      />
-                    </div>
-                  </div>
-                ))
+              {subjectLoading ? (
+                <Loader2 className="animate-spin mx-auto mt-20 text-[#08384F]" />
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2">
-                  <BookOpen size={40} className="opacity-10" />
-                  <p className="italic text-sm">
-                    No subjects found for this semester
-                  </p>
-                </div>
+                flattenedComponents.map((comp) => (
+                  <div
+                    key={comp._id}
+                    className="p-4 border rounded-3xl flex flex-col gap-3 hover:bg-gray-50 transition-all"
+                  >
+                    <div>
+                      <p className="text-[9px] font-black text-[#08384F] uppercase tracking-wider opacity-60">
+                        {comp.parentCode} • {comp.componentType}
+                      </p>
+                      <p className="text-[14px] font-bold text-gray-800 leading-tight">
+                        {comp.name}
+                      </p>
+                      {comp.name !== comp.parentName && (
+                        <p className="text-[11px] text-gray-500 italic">
+                          Part of: {comp.parentName}
+                        </p>
+                      )}
+                    </div>
+                    <MultiSearchableDropdown
+                      options={faculties}
+                      selectedIds={allocationMap[comp._id] || []}
+                      onChange={(ids) =>
+                        setAllocationMap((prev) => ({
+                          ...prev,
+                          [comp._id]: ids,
+                        }))
+                      }
+                      placeholder="Assign Faculties"
+                      loading={loading && !faculties.length}
+                    />
+                  </div>
+                ))
               )}
             </div>
           </div>
