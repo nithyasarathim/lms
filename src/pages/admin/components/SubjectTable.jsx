@@ -9,6 +9,7 @@ import {
   Loader2,
   BookX,
   Scale,
+  Tag,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getSubjects } from "../api/admin.api";
@@ -53,19 +54,10 @@ const SubjectTable = () => {
 
   const handleBack = () => navigate("/admin/dashboard?tab=subject-management");
 
-  const getCourseTypeLabel = (type) => {
-    const types = {
-      T: "Theory",
-      P: "Prac",
-      TP: "Th+Pr",
-      TPJ: "Th+Pr+Proj",
-      PJ: "Project",
-      I: "Intern",
-    };
-    const label = types[type?.toUpperCase()] || type;
+  const getDeliveryTypeLabel = (type) => {
     return (
       <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#08384F]/5 text-[#08384F] border border-[#08384F]/10 uppercase">
-        {label}
+        {type || "N/A"}
       </span>
     );
   };
@@ -73,7 +65,8 @@ const SubjectTable = () => {
   const filteredSubjects = subjects.filter(
     (item) =>
       item.name?.toLowerCase().includes(search.toLowerCase()) ||
-      item.code?.toLowerCase().includes(search.toLowerCase()),
+      item.code?.toLowerCase().includes(search.toLowerCase()) ||
+      item.shortName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -126,18 +119,22 @@ const SubjectTable = () => {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
+          <table className="w-full min-w-[1000px]">
             <thead>
               <tr className="bg-gray-50/50 text-[#08384F] text-[11px] uppercase tracking-wider border-b border-gray-100">
                 <th className="text-left px-4 py-3 w-[120px] font-bold">
                   Code
                 </th>
+                <th className="text-left px-4 py-3 w-[100px] font-bold">
+                  Short Name
+                </th>
                 <th className="text-left px-4 py-3 font-bold">Subject Name</th>
+                <th className="text-left px-4 py-3 font-bold">Category</th>
                 <th className="text-center px-4 py-3 w-[120px] font-bold">
                   Regulation
                 </th>
                 <th className="text-center px-4 py-3 w-[100px] font-bold">
-                  Type
+                  Delivery
                 </th>
                 <th className="text-center px-4 py-3 w-[80px] font-bold">
                   Credits
@@ -150,7 +147,7 @@ const SubjectTable = () => {
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="py-20 text-center">
+                  <td colSpan="8" className="py-20 text-center">
                     <Loader2
                       className="animate-spin mx-auto text-[#08384F] mb-2"
                       size={24}
@@ -166,13 +163,24 @@ const SubjectTable = () => {
                     key={item._id}
                     className="hover:bg-blue-50/20 transition-colors group"
                   >
-                    <td className="px-4 py-3 font-mono text-md font-bold text-[#08384F] w-[120px] uppercase">
+                    <td className="px-4 py-3 font-mono text-sm font-bold text-[#08384F] uppercase">
                       {item.code}
                     </td>
-                    <td className="px-4 py-3 text-md text-gray-700 font-medium">
+                    <td className="px-4 py-3 text-sm font-bold text-gray-500 uppercase">
+                      {item.shortName || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700 font-medium">
                       {item.name}
                     </td>
-                    <td className="px-4 py-3 text-center w-[120px]">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <Tag size={12} />
+                        <span className="text-xs">
+                          {item.courseCategory || "N/A"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1.5 text-[#08384F] bg-[#08384F]/5 py-1 px-2 rounded-lg border border-[#08384F]/10">
                         <Scale size={12} />
                         <span className="text-xs font-bold uppercase">
@@ -180,14 +188,14 @@ const SubjectTable = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center w-[100px]">
-                      {getCourseTypeLabel(item.courseType)}
+                    <td className="px-4 py-3 text-center">
+                      {getDeliveryTypeLabel(item.deliveryType)}
                     </td>
-                    <td className="px-4 py-3 text-center font-bold text-gray-600 text-md w-[80px]">
+                    <td className="px-4 py-3 text-center font-bold text-gray-600 text-sm">
                       {item.credits}
                     </td>
-                    <td className="px-4 py-3 w-[100px]">
-                      <div className="flex justify-end gap-2 opacity-100 transition-opacity">
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
                         <button
                           onClick={() => setEditSubjectData(item)}
                           className="p-2 text-emerald-600 bg-emerald-100 rounded-lg transition-colors"
@@ -206,7 +214,7 @@ const SubjectTable = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="py-20 text-center">
+                  <td colSpan="8" className="py-20 text-center">
                     <div className="flex flex-col items-center text-gray-300">
                       <BookX size={40} strokeWidth={1} />
                       <p className="text-md font-semibold mt-2 text-gray-400">
