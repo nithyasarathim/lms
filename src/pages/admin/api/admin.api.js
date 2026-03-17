@@ -54,10 +54,10 @@ export const getDepartmentById = async (id) => {
   }
 };
 
-export const bulkUploadSubjects = async (deptId, formData) => {
+export const bulkUploadSubjects = async (deptId, formData, regId) => {
   try {
     const response = await apiClient.post(
-      `api/subjects/upload/${deptId}`,
+      `api/subjects/upload/${deptId}/${regId}`,
       formData,
       {
         headers: {

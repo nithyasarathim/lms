@@ -90,6 +90,10 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
     setError("");
 
     try {
+      if (!formData.regulationId) {
+        throw new Error("Please select a Regulation");
+      }
+
       if (activeTab === "single") {
         const payload = {
           ...formData,
@@ -306,7 +310,7 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
                         placeholder="CS123"
                         value={formData.code}
                         onChange={handleInputChange}
-                        className="w-full pl-9 py-2 bg-gray-50 rounded-lg outline-none text-sm font-mono"
+                        className="w-full pl-9 py-2 bg-gray-50 rounded-lg outline-none text-sm font-mono border border-transparent focus:border-[#08384F]/20"
                       />
                     </div>
                   </div>
@@ -326,7 +330,7 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
                         placeholder="0"
                         value={formData.credits}
                         onChange={handleInputChange}
-                        className="w-full pl-9 py-2 bg-gray-50 rounded-lg outline-none text-sm font-bold"
+                        className="w-full pl-9 py-2 bg-gray-50 rounded-lg outline-none text-sm font-bold border border-transparent focus:border-[#08384F]/20"
                       />
                     </div>
                   </div>
@@ -343,7 +347,7 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
                         name="deliveryType"
                         value={formData.deliveryType}
                         onChange={handleInputChange}
-                        className="w-full pl-9 pr-8 py-2 bg-gray-50 rounded-lg outline-none text-sm appearance-none font-semibold"
+                        className="w-full pl-9 pr-8 py-2 bg-gray-50 rounded-lg outline-none text-sm appearance-none font-semibold border border-transparent focus:border-[#08384F]/20"
                       >
                         <option value="T">Theory</option>
                         <option value="P">Practical</option>
@@ -441,20 +445,54 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
                 </div>
               </>
             ) : (
-              <div className="border-2 border-dashed border-gray-100 rounded-xl py-8 flex flex-col items-center justify-center bg-gray-50/50 relative group transition-colors hover:border-[#08384F]/20">
-                <input
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  onChange={(e) => setFile(e.target.files[0])}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-                <Upload
-                  className="text-[#08384F]/40 mb-2 group-hover:scale-110 transition-transform"
-                  size={24}
-                />
-                <p className="text-[11px] font-semibold text-[#08384F]">
-                  {file ? file.name : "Click or drag Excel template here"}
-                </p>
+              <div className="flex flex-col gap-4">
+                <div className="bg-[#08384F]/5 border border-[#08384F]/10 rounded-xl p-4 space-y-4 text-[11px]">
+                  <div className="flex items-center gap-2 font-bold text-[#08384F]">
+                    <Info size={14} />
+                    Excel Upload Format
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-700 mb-2">
+                      Mandatory Columns
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "name",
+                        "shortName",
+                        "code",
+                        "deliveryType",
+                        "courseCategory",
+                        "credits",
+                        "lectureHours",
+                        "practicalHours",
+                        "projectHours",
+                      ].map((field) => (
+                        <span
+                          key={field}
+                          className="px-3 py-1 rounded-full border font-semibold border-gray-300 bg-white text-[10px] tracking-wider"
+                        >
+                          {field}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-2 border-dashed border-gray-100 rounded-xl py-8 flex flex-col items-center justify-center bg-gray-50/50 relative group transition-colors hover:border-[#08384F]/20">
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={(e) => setFile(e.target.files[0])}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <Upload
+                    className="text-[#08384F]/40 mb-2 group-hover:scale-110 transition-transform"
+                    size={24}
+                  />
+                  <p className="text-[11px] font-semibold text-[#08384F]">
+                    {file ? file.name : "Click or drag Excel template here"}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -475,9 +513,7 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
                 {loading ? (
                   <Loader2 className="animate-spin" size={16} />
                 ) : activeTab === "single" ? (
-                  <>
-                    Save Subject
-                  </>
+                  <>Save Subject</>
                 ) : (
                   "Start Bulk Upload"
                 )}

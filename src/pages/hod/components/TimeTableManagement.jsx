@@ -479,6 +479,9 @@ const TimeTableManagement = () => {
           additionalHours={additionalHours}
           onClose={() => setShowSubjectModal(false)}
           onAssign={handleSubjectUpdate}
+          academicYearId={ayId}
+          sectionId={secId}
+          semesterNumber={semNum}
         />
       )}
       {showAdditionalHourModal && (

@@ -533,6 +533,38 @@ const AddStudentModal = ({
             </>
           ) : (
             <div className="space-y-6">
+              <div className="bg-[#08384F]/5 border border-[#08384F]/10 rounded-xl p-4 space-y-4 text-[11px]">
+                <div className="flex items-center gap-2 font-bold text-[#08384F]">
+                  <Info size={14} />
+                  Excel Upload Format
+                </div>
+
+                <div>
+                  <p className="font-semibold text-gray-700 mb-2">
+                    Mandatory Columns
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "firstName",
+                      "lastName",
+                      "registerNumber",
+                      "rollNumber",
+                      "semesterNumber",
+                      "email",
+                      "departmentCode",
+                      "batchName",
+                    ].map((field) => (
+                      <span
+                        key={field}
+                        className="px-3 py-1 rounded-full border font-semibold border-gray-300 bg-white text-[10px] tracking-wider"
+                      >
+                        {field}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div
                 onClick={() => fileInputRef.current.click()}
                 className="border-2 border-dashed border-gray-200 bg-gray-50 rounded-2xl p-10 text-center cursor-pointer hover:border-[#08384F]"

@@ -32,6 +32,26 @@ const EditSubjectModal = ({ isOpen, onClose, subject, onSuccess }) => {
 
   useEffect(() => {
     if (subject && isOpen) {
+      let lHours = subject.lectureHours || 0;
+      let pHours = subject.practicalHours || 0;
+      let jHours = subject.projectHours || 0;
+
+      if (subject.components && Array.isArray(subject.components)) {
+        const theoryComp = subject.components.find(
+          (c) => c.componentType === "THEORY",
+        );
+        const practicalComp = subject.components.find(
+          (c) => c.componentType === "PRACTICAL",
+        );
+        const projectComp = subject.components.find(
+          (c) => c.componentType === "PROJECT",
+        );
+
+        if (theoryComp) lHours = theoryComp.hours || 0;
+        if (practicalComp) pHours = practicalComp.hours || 0;
+        if (projectComp) jHours = projectComp.hours || 0;
+      }
+
       setFormData({
         code: subject.code || "",
         name: subject.name || "",
@@ -39,9 +59,9 @@ const EditSubjectModal = ({ isOpen, onClose, subject, onSuccess }) => {
         courseCategory: subject.courseCategory || "Professional Core",
         deliveryType: subject.deliveryType || "T",
         credits: subject.credits || "",
-        lectureHours: subject.lectureHours || 0,
-        practicalHours: subject.practicalHours || 0,
-        projectHours: subject.projectHours || 0,
+        lectureHours: lHours,
+        practicalHours: pHours,
+        projectHours: jHours,
       });
     }
   }, [subject, isOpen]);

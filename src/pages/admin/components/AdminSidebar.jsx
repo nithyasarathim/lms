@@ -63,7 +63,7 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
             background: transparent;
             border-bottom-right-radius: 10px;
             box-shadow: 4px 4px 0 0 white;
-            z-index: 20;
+            z-index: 10;
           }
           .curve-after::after {
             content: "";
@@ -75,7 +75,7 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
             background: transparent;
             border-top-right-radius: 10px;
             box-shadow: 4px -4px 0 0 white;
-            z-index: 20;
+            z-index: 10;
           }
         `}
       </style>
