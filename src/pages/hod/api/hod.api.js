@@ -124,3 +124,42 @@ export const getAllFaculties = async () => {
     throw error.response?.data || error.data;
   }
 };
+
+export const getTimeTable = async (
+  academicYearId,
+  sectionId,
+  semesterNumber,
+) => {
+  try {
+    const response = await apiClient.get(
+      `/api/timetable?academicYearId=${academicYearId}&sectionId=${sectionId}&semesterNumber=${semesterNumber}`,
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const saveTimeTable = async (timetableData) => {
+  try {
+    const response = await apiClient.post(`/api/timetable`, timetableData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const getSubjectsForTimeTable = async (
+  academicYearId,
+  sectionId,
+  semesterNumber,
+) => {
+  try {
+    const response = await apiClient.get(
+      `/api/timetable/components?academicYearId=${academicYearId}&sectionId=${sectionId}&semesterNumber=${semesterNumber}`,
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};

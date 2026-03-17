@@ -6,13 +6,10 @@ import {
   CalendarDays,
   GraduationCap,
   Fingerprint,
-  ShieldCheck,
-  ShieldAlert,
   Layers,
   BookOpen,
   Calendar,
   Award,
-  Copy,
   Hash,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -100,7 +97,7 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                       : "bg-red-50 text-red-700 border-red-200"
                   }`}
                 >
-                  {student.isActive?"active":"inactive"}
+                  {student.isActive ? "active" : "inactive"}
                 </span>
               </div>
               <p className="text-sm text-gray-600 font-medium">
@@ -173,22 +170,29 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                         : student.section?.name
                     }
                   />
-                  <InfoRow
-                    icon={BookOpen}
-                    label="Current Semester"
-                    value={
-                      student.semesterNumber
-                        ? `${student.semesterNumber} Sem`
-                        : "N/A"
-                    }
-                  />
-                  <InfoRow
-                    icon={Award}
-                    label="Year Level"
-                    value={
-                      student.yearLevel ? `${student.yearLevel} Year` : "N/A"
-                    }
-                  />
+                  <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0 group/row">
+                    <div className="flex items-center gap-3">
+                      <div className="text-gray-500">
+                        <Award size={14} strokeWidth={2} />
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        Current Level
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-gray-800">
+                        {student.yearLevel
+                          ? `${student.yearLevel} Year`
+                          : "N/A"}
+                        <span className="mx-2 text-gray-300 font-normal">
+                          /
+                        </span>
+                        {student.semesterNumber
+                          ? `${student.semesterNumber} Semester`
+                          : "N/A"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
