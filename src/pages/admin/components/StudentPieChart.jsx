@@ -92,7 +92,8 @@ const StudentPieChart = ({ academicYearId }) => {
   const hasData = total > 0;
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm h-full flex flex-col w-full overflow-hidden font-['Poppins']">
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm w-full">
+      <div className=" p-4 h-full flex flex-col w-[340px] mx-auto overflow-hidden font-['Poppins']">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-gray-100 rounded-lg">
@@ -205,6 +206,7 @@ const StudentPieChart = ({ academicYearId }) => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

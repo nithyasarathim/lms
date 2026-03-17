@@ -71,7 +71,8 @@ const FacultyPieChart = () => {
   }, [selectedDeptId]);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm h-full flex flex-col w-full overflow-hidden font-['Poppins']">
+    <div className="w-full bg-white border border-gray-100 h-full rounded-2xl shadow-sm">
+      <div className="bg-white rounded-2xl p-4 h-full flex mx-auto flex-col w-[350px] overflow-hidden font-['Poppins']">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-gray-50 rounded-lg">
@@ -178,6 +179,7 @@ const FacultyPieChart = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

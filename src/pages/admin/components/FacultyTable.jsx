@@ -338,15 +338,15 @@ const FacultyTable = ({ onAddClick, onEditClick, onStatusClick }) => {
           </div>
           <button
             onClick={exportToExcel}
-            className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100"
+            className="py-1.5 px-2 bg-emerald-50 flex font-semibold text-sm gap-2 text-emerald-600 rounded-xl border border-emerald-100"
           >
-            <FileSpreadsheet size={18} />
+            <FileSpreadsheet size={18} /> Excel
           </button>
           <button
             onClick={handlePrint}
-            className="p-2.5 bg-gray-50 text-gray-600 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
+            className="py-1.5 px-2 text-sm font-semibold flex gap-2 bg-gray-50 text-gray-600 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
           >
-            <Printer size={18} />
+            <Printer size={18} /> Print
           </button>
           <button
             onClick={onAddClick}
