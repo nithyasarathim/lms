@@ -149,15 +149,15 @@ const HodSidebar = ({ collapsed, setCollapsed }) => {
           })}
         </div>
 
-        <div className="px-4 py-6 mb-4">
+        <div className="px-4 py-6 mb-4 font-semibold text-sm">
           <button
             onClick={handleLogout}
             className={`flex items-center gap-3 text-white font-medium px-4 py-2 w-full rounded-lg cursor-pointer hover:bg-white/10 transition-all duration-200 ${
-              collapsed ? "justify-center px-0" : ""
+              collapsed ? "justify-center px-0 " : " w-fit"
             }`}
           >
             <LogOut size={18} />
-            {!collapsed && <span>Logout</span>}
+            {!collapsed && <span className="">Logout</span>}
           </button>
         </div>
       </div>
