@@ -444,3 +444,14 @@ export const getActiveAcademicYear = async () => {
     throw err.response?.data || err.message;
   }
 };
+
+export const getDeptAcademicStructure = async () => {
+  try {
+    const response = await apiClient.get(
+      `/api/assign-faculty/academic-structure`,
+    );
+    return response;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};

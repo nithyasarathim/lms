@@ -15,13 +15,12 @@ import {
   ChevronDown,
   X as CloseIcon,
 } from "lucide-react";
-import { getAllStudents } from "../api/admin.api";
+import { getAllStudents} from "../api/admin.api";
 import StudentDetailsModal from "../modals/StudentDetailsModal";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 
 let studentCache = {};
-
 export const clearTableCache = () => {
   studentCache = {};
 };

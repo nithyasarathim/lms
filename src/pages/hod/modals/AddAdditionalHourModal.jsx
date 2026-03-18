@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { PlusCircle, ChevronDown } from "lucide-react";
+import { PlusCircle, ChevronDown, Edit3 } from "lucide-react";
 import toast from "react-hot-toast";
 
-const AddAdditionalHourModal = ({ onClose, onAdd, availableFaculties }) => {
+const AddAdditionalHourModal = ({
+  onClose,
+  onAdd,
+  availableFaculties,
+  editingHour,
+}) => {
   const [form, setForm] = useState({
     name: "",
     shortName: "",
@@ -13,6 +18,18 @@ const AddAdditionalHourModal = ({ onClose, onAdd, availableFaculties }) => {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (editingHour) {
+      setForm({
+        name: editingHour.name || "",
+        shortName: editingHour.shortName || "",
+        venue: editingHour.venue || "",
+        hours: editingHour.hours || 1,
+        facultyIds: editingHour.facultyIds || [],
+      });
+    }
+  }, [editingHour]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -42,14 +59,22 @@ const AddAdditionalHourModal = ({ onClose, onAdd, availableFaculties }) => {
     e.preventDefault();
     if (!form.name || !form.shortName)
       return toast.error("Please fill all fields");
-    onAdd(form);
+    onAdd(form, !!editingHour, editingHour?._id);
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
         <h3 className="text-lg font-black text-[#08384F] mb-4 flex items-center gap-2">
-          <PlusCircle size={20} /> Add Additional Hour
+          {editingHour ? (
+            <>
+              <Edit3 size={20} /> Edit Additional Hour
+            </>
+          ) : (
+            <>
+              <PlusCircle size={20} /> Add Additional Hour
+            </>
+          )}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -185,9 +210,9 @@ const AddAdditionalHourModal = ({ onClose, onAdd, availableFaculties }) => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-xs font-black shadow-sm hover:shadow-lg  transition-colors"
+              className="flex-1 py-3 bg-[#08384F] text-white rounded-xl text-xs font-black shadow-sm hover:shadow-lg transition-colors"
             >
-              Add Hour
+              {editingHour ? "Update Hour" : "Add Hour"}
             </button>
           </div>
         </form>
