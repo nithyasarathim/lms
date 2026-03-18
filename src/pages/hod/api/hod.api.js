@@ -8,6 +8,7 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
+const { departmentId: deptId } = JSON.parse(localStorage.getItem("lms-user"));
 
 apiClient.interceptors.request.use((config) => {
   const userdata = JSON.parse(localStorage.getItem("lms-user"));
@@ -29,7 +30,9 @@ export const getActiveAcademicYear = async () => {
 
 export const getCurrentYearAndSections = async () => {
   try {
-    const response = await apiClient.get(`/api/sections/current-year`);
+    const response = await apiClient.get(
+      `/api/sections/current-year/${deptId}`,
+    );
     return response.data;
   } catch (err) {
     throw err.response?.data || err.message;
@@ -62,7 +65,7 @@ export const updateStudentSections = async (studentIds, targetSectionId) => {
 export const getDeptAcademicStructure = async () => {
   try {
     const response = await apiClient.get(
-      `/api/assign-faculty/academic-structure`,
+      `/api/assign-faculty/academic-structure/${deptId}`,
     );
     return response;
   } catch (err) {
@@ -97,7 +100,6 @@ export const getAssignedFaculties = async (sectionId, semesterNumber) => {
     );
     return response.data;
   } catch (error) {
-    // If 404 is returned when no assignments exist, handle it gracefully
     if (error.response && error.response.status === 404) {
       return { success: true, data: { assignments: [] } };
     }
@@ -161,5 +163,38 @@ export const getSubjectsForTimeTable = async (
     return response.data;
   } catch (error) {
     throw error.response?.data || error.data;
+  }
+};
+
+export const getStudentStats = async (academicYearId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/students/stats/year-wise?academicYearId=${academicYearId}&departmentId=${deptId}`,
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.data;
+  }
+};
+
+export const getStudentByDeptStats = async (academicYearId) => {
+  try {
+    const response = await apiClient.get(
+      `api/students/stats/department-wise?academicYearId=${academicYearId}&departmentId=${deptId}`,
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const getAllStudents = async (academicYearId) => {
+  try {
+    const response = await apiClient.get(
+      `api/students?academicYearId=${academicYearId}&departmentId=${deptId}`,
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
   }
 };
