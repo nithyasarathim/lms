@@ -157,7 +157,7 @@ const MatrixSection = ({
       )}
     </div>
 
-    <table className="w-full text-left border-collapse">
+    <table className="w-full  border-collapse text-center">
       <thead className="bg-white text-[11px] font-black text-slate-600 uppercase tracking-widest border-b border-slate-200">
         <tr>
           <th className="p-4 border-r border-slate-100 w-32">Short Name</th>

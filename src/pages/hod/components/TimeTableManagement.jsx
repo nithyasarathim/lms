@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Loader2, AlertCircle, Save, X, Lock, Printer } from "lucide-react";
+import EshwarLogo from "../../../assets/EshwarImg.png";
 
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import {
@@ -519,12 +520,10 @@ const TimeTableManagement = () => {
         };
       }
 
+      // Store full faculty objects instead of just strings
       subjectsMap[sub._id].components.push({
         title: comp.name,
-        faculties:
-          fa.facultyIds?.map((f) =>
-            `${f.salutation || ""} ${f.fullName || ""}`.trim(),
-          ) || [],
+        facultiesData: fa.facultyIds || [], // Store full faculty objects
         venue: facultyVenues[fa._id] || "",
         hrs: comp.hours,
         id: fa._id,
