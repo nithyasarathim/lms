@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { Loader2, AlertCircle, Save, X, Lock } from "lucide-react";
 
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import {
@@ -15,7 +16,6 @@ import {
 import AdjustSlotModal from "../modals/AdjustSlotModal";
 import AssignSubjectModal from "../modals/AssignSubjectModal";
 import AddAdditionalHourModal from "../modals/AddAdditionalHourModal";
-import TimeTableHeader from "./TimeTableHeader";
 import TimetableGrid from "./TimetableGrid";
 import CourseMatrix from "./CourseMatrix";
 
@@ -43,6 +43,233 @@ const INITIAL_SLOTS = [
   { type: "class", startTime: "03:20", endTime: "04:15", order: 9 },
 ];
 
+const TimeTableHeader = ({
+  activeYear,
+  academicStructure,
+  structLoading,
+  selectedStructureIndex,
+  onStructureChange,
+  deps,
+  depsLoading,
+  selectedSection,
+  onSectionChange,
+  onSave,
+  onCancelEdit,
+  isSaving,
+  isConfigMode,
+  onToggleConfigMode,
+  activeTab,
+  onTabChange,
+}) => {
+  const showEditTimeline = activeTab === "timetable";
+
+  return (
+    <div className="flex flex-col md:flex-row items-center justify-between px-8 py-3 bg-white border-b border-slate-100 gap-4 shrink-0">
+      <div className="flex items-center gap-6">
+        <div className="flex flex-col border-r border-slate-200 pr-6">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Academic Year
+          </span>
+          <span className="text-sm font-bold text-[#08384F]">
+            {activeYear?.name || "..."}
+          </span>
+        </div>
+        <div className="flex gap-3">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">
+              Semester
+            </span>
+
+            {structLoading ? (
+              <div className="flex items-center gap-2 h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-lg min-w-[180px]">
+                <Loader2 size={16} className="animate-spin text-[#08384F]" />
+                <span className="text-xs font-semibold text-slate-500">
+                  Loading semesters...
+                </span>
+              </div>
+            ) : academicStructure.length > 0 ? (
+              <select
+                value={selectedStructureIndex}
+                onChange={(e) => onStructureChange(Number(e.target.value))}
+                disabled={isConfigMode}
+                className={`bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-[#08384F] outline-none h-[38px] ${
+                  isConfigMode
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
+                }`}
+              >
+                {academicStructure.map((item, idx) => (
+                  <option key={idx} value={idx}>
+                    Sem {item.semester} ({item.batch?.name})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="flex items-center gap-2 bg-orange-50 border border-orange-100 rounded-lg px-3 py-1.5 h-[38px]">
+                <AlertCircle size={14} className="text-orange-400" />
+                <span className="text-xs text-orange-600 font-bold">
+                  No semesters
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">
+              Section
+            </span>
+
+            {depsLoading ? (
+              <div className="flex items-center gap-2 h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-lg min-w-[160px]">
+                <Loader2 size={16} className="animate-spin text-[#08384F]" />
+                <span className="text-xs font-semibold text-slate-500">
+                  Loading...
+                </span>
+              </div>
+            ) : academicStructure.length > 0 ? (
+              deps.sections.length > 0 ? (
+                <select
+                  value={selectedSection?._id || ""}
+                  onChange={(e) => onSectionChange(e.target.value)}
+                  disabled={isConfigMode}
+                  className={`bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-[#08384F] outline-none h-[38px] ${
+                    isConfigMode
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
+                >
+                  {deps.sections.map((sec) => (
+                    <option key={sec._id} value={sec._id}>
+                      Section {sec.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5 h-[38px]">
+                  <AlertCircle size={14} className="text-red-400" />
+                  <span className="text-xs text-red-600 font-bold">
+                    No sections
+                  </span>
+                </div>
+              )
+            ) : null}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        {isConfigMode ? (
+          <>
+            <button
+              onClick={onCancelEdit}
+              className="flex items-center gap-2 px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all"
+            >
+              <X size={14} />
+              Cancel
+            </button>
+            <button
+              onClick={onSave}
+              disabled={isSaving || !selectedSection}
+              className="flex items-center gap-2 px-5 py-2 bg-[#08384F] text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50 hover:bg-[#0B56A4]"
+            >
+              {isSaving ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Save size={14} />
+              )}
+              Save Changes
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={onSave}
+              disabled={isSaving || !selectedSection}
+              className="flex items-center gap-2 px-5 py-2 bg-[#08384F] text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50 hover:bg-[#0B56A4]"
+            >
+              {isSaving ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Save size={14} />
+              )}
+              Save Configuration
+            </button>
+            {showEditTimeline && (
+              <button
+                onClick={onToggleConfigMode}
+                className="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border text-slate-400 hover:text-[#08384F]"
+              >
+                Edit Timeline
+              </button>
+            )}
+          </>
+        )}
+        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <button
+            onClick={() => onTabChange("timetable")}
+            className={`px-6 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+              activeTab === "timetable"
+                ? "bg-white text-[#08384F] shadow-sm"
+                : "text-slate-400"
+            }`}
+          >
+            Timetable
+          </button>
+          <button
+            onClick={() => onTabChange("faculty")}
+            className={`px-6 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+              activeTab === "faculty"
+                ? "bg-white text-[#08384F] shadow-sm"
+                : "text-slate-400"
+            }`}
+          >
+            Course Matrix
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GridShimmer = () => (
+  <div className="bg-white border border-slate-200 rounded-[1.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 h-full">
+    <div className="p-8 space-y-4">
+      {[...Array(7)].map((_, i) => (
+        <div key={i} className="flex gap-4">
+          <div className="w-20 h-12 bg-slate-200 rounded animate-pulse"></div>
+          {[...Array(9)].map((_, j) => (
+            <div
+              key={j}
+              className="flex-1 h-12 bg-slate-100 rounded animate-pulse"
+            ></div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const NoSectionsOverlay = () => (
+  <div className="relative h-full w-full">
+    <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-10 flex items-center justify-center p-6">
+      <div className="bg-white border border-red-100 p-8 rounded-3xl shadow-2xl max-w-md text-center flex flex-col items-center gap-4">
+        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center">
+          <Lock className="text-red-500" size={32} />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900">Sections Missing</h3>
+          <p className="text-sm text-slate-500 mt-1">
+            No sections found for this semester. Please contact the Admin to
+            create sections before managing the timetable.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div className="opacity-30 pointer-events-none grayscale">
+      <GridShimmer />
+    </div>
+  </div>
+);
+
 const TimeTableManagement = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("timetable");
@@ -58,8 +285,9 @@ const TimeTableManagement = () => {
   const [showAdditionalHourModal, setShowAdditionalHourModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [editingAdditionalHour, setEditingAdditionalHour] = useState(null);
 
-  const { data: activeYear } = useQuery({
+  const { data: activeYear, isLoading: activeYearLoading } = useQuery({
     queryKey: ["activeYear"],
     queryFn: async () => {
       const res = await getActiveAcademicYear();
@@ -173,6 +401,7 @@ const TimeTableManagement = () => {
     onSuccess: () => {
       toast.success("Timetable saved successfully");
       queryClient.invalidateQueries(["timeTableFetch"]);
+      setIsConfigMode(false);
     },
     onError: (err) => toast.error(err.message || "Failed to save"),
   });
@@ -206,6 +435,50 @@ const TimeTableManagement = () => {
     };
     saveMutation.mutate(payload);
   };
+
+  const handleCancelEdit = () => {
+    setIsConfigMode(false);
+    if (serverData) {
+      const timetableObj = serverData.timetable || serverData.data?.timetable;
+      const responseSlots =
+        timetableObj?.slots || serverData.slots || serverData.data?.slots;
+
+      if (responseSlots?.length > 0) {
+        setSlots([...responseSlots].sort((a, b) => a.order - b.order));
+      } else {
+        setSlots(INITIAL_SLOTS);
+      }
+
+      const grid = {};
+      ["MON", "TUE", "WED", "THU", "FRI", "SAT"].forEach((day) => {
+        grid[day] = {};
+      });
+
+      const responseEntries =
+        timetableObj?.entries ||
+        serverData.entries ||
+        serverData.data?.entries ||
+        [];
+      responseEntries.forEach((entry) => {
+        if (grid[entry.day]) {
+          grid[entry.day][entry.slotOrder] = {
+            code: entry.subjectCode || entry.additionalHourId?.shortName,
+            short: entry.subjectShortName || entry.additionalHourId?.shortName,
+            facultyAssignmentId: entry.facultyAssignmentId,
+            additionalHourId:
+              entry.additionalHourId?._id || entry.additionalHourId,
+          };
+        }
+      });
+      setTimetableData(grid);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== "timetable" && isConfigMode) {
+      setIsConfigMode(false);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (
@@ -367,13 +640,31 @@ const TimeTableManagement = () => {
     setShowTimeModal(false);
   };
 
-  const handleAddAdditionalHourSubmit = (form) => {
-    setAdditionalHours((prev) => [
-      ...prev,
-      { _id: `temp-${Date.now()}`, ...form },
-    ]);
+  const handleAddAdditionalHourSubmit = (form, isEdit, id) => {
+    if (isEdit) {
+      setAdditionalHours((prev) =>
+        prev.map((item) => (item._id === id ? { ...item, ...form } : item)),
+      );
+      toast.success("Additional hour updated");
+    } else {
+      setAdditionalHours((prev) => [
+        ...prev,
+        { _id: `temp-${Date.now()}`, ...form },
+      ]);
+      toast.success("Additional hour added");
+    }
     setShowAdditionalHourModal(false);
-    toast.success("Additional hour added");
+    setEditingAdditionalHour(null);
+  };
+
+  const handleDeleteAdditionalHour = (id) => {
+    setAdditionalHours((prev) => prev.filter((item) => item._id !== id));
+    toast.success("Additional hour deleted");
+  };
+
+  const handleEditAdditionalHour = (hour) => {
+    setEditingAdditionalHour(hour);
+    setShowAdditionalHourModal(true);
   };
 
   const handleSubjectUpdate = (val) => {
@@ -417,6 +708,14 @@ const TimeTableManagement = () => {
     setShowSubjectModal(false);
   };
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
+  const isInitialLoading = structLoading || activeYearLoading;
+  const noSectionsFound =
+    !depsLoading && academicStructure.length > 0 && deps.sections.length === 0;
+
   return (
     <div className="h-screen flex flex-col bg-white font-['Poppins']">
       <HeaderComponent title="Academic Management" />
@@ -432,16 +731,21 @@ const TimeTableManagement = () => {
         selectedSection={selectedSection}
         onSectionChange={handleSectionChange}
         onSave={handleGlobalSave}
+        onCancelEdit={handleCancelEdit}
         isSaving={saveMutation.isLoading}
         isConfigMode={isConfigMode}
-        onToggleConfigMode={() => setIsConfigMode(!isConfigMode)}
+        onToggleConfigMode={() => setIsConfigMode(true)}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
       />
 
       <div className="flex-1 overflow-y-auto bg-[#FCFDFE]">
         <div className="h-full px-6 py-6">
-          {activeTab === "timetable" ? (
+          {isInitialLoading ? (
+            <GridShimmer />
+          ) : noSectionsFound ? (
+            <NoSectionsOverlay />
+          ) : activeTab === "timetable" ? (
             <TimetableGrid
               isLoading={timeTableLoading}
               slots={slots}
@@ -460,7 +764,12 @@ const TimeTableManagement = () => {
               additionalHours={additionalHours}
               onAdditionalVenueChange={handleAdditionalVenueChange}
               allAvailableFaculties={allAvailableFaculties}
-              onAddAdditional={() => setShowAdditionalHourModal(true)}
+              onAddAdditional={() => {
+                setEditingAdditionalHour(null);
+                setShowAdditionalHourModal(true);
+              }}
+              onEditAdditional={handleEditAdditionalHour}
+              onDeleteAdditional={handleDeleteAdditionalHour}
             />
           )}
         </div>
@@ -487,8 +796,12 @@ const TimeTableManagement = () => {
       {showAdditionalHourModal && (
         <AddAdditionalHourModal
           availableFaculties={allAvailableFaculties}
-          onClose={() => setShowAdditionalHourModal(false)}
+          onClose={() => {
+            setShowAdditionalHourModal(false);
+            setEditingAdditionalHour(null);
+          }}
           onAdd={handleAddAdditionalHourSubmit}
+          editingHour={editingAdditionalHour}
         />
       )}
     </div>

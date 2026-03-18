@@ -1,11 +1,12 @@
+// TimetableGrid.jsx
 import React from "react";
 import {
-  X,
+  Loader2,
   Plus,
+  X,
   ArrowLeft,
   ArrowRight,
   Settings,
-  Loader2,
 } from "lucide-react";
 
 const INITIAL_DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -24,13 +25,26 @@ const TimetableGrid = ({
     const cell = timetableData?.[day]?.[slotOrder];
     if (!cell) return null;
 
-    const component = cell.facultyAssignmentId?.subjectComponentId;
-    const subject = component?.subjectId;
+    let code = cell.code || "";
+    let short = cell.short || "";
 
-    return {
-      code: subject?.code || cell.code || "",
-      short: component?.shortName || subject?.shortName || cell.short || "",
-    };
+    if (
+      cell.facultyAssignmentId &&
+      typeof cell.facultyAssignmentId === "object"
+    ) {
+      const subjectId = cell.facultyAssignmentId.subjectComponentId?.subjectId;
+      const component = cell.facultyAssignmentId.subjectComponentId;
+      code = subjectId?.code || code;
+      short = component?.shortName || subjectId?.shortName || short;
+    } else if (
+      cell.additionalHourId &&
+      typeof cell.additionalHourId === "object"
+    ) {
+      code = cell.additionalHourId.shortName || code;
+      short = cell.additionalHourId.shortName || short;
+    }
+
+    return { code, short };
   };
 
   return (
@@ -193,4 +207,3 @@ const TimetableGrid = ({
 };
 
 export default TimetableGrid;
-    

@@ -8,7 +8,9 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
-const { departmentId: deptId } = JSON.parse(localStorage.getItem("lms-user"));
+
+const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
+const deptId = user.departmentId;
 
 apiClient.interceptors.request.use((config) => {
   const userdata = JSON.parse(localStorage.getItem("lms-user"));
@@ -196,5 +198,14 @@ export const getAllStudents = async (academicYearId) => {
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
+  }
+};
+
+export const getAllAcademicYears = async () => {
+  try {
+    const response = await apiClient.get(`/api/academic-years`);
+    return response.data;
+  } catch (error) {
+    throw err.response?.data || err.data;
   }
 };
