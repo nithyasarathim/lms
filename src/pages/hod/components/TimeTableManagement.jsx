@@ -1,3 +1,4 @@
+// TimetableManagement.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -76,10 +77,6 @@ const TimeTableHeader = ({
         </div>
         <div className="flex gap-3">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">
-              Semester
-            </span>
-
             {structLoading ? (
               <div className="flex items-center gap-2 h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-lg min-w-[180px]">
                 <Loader2 size={16} className="animate-spin text-[#08384F]" />
@@ -115,15 +112,11 @@ const TimeTableHeader = ({
           </div>
 
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">
-              Section
-            </span>
-
             {depsLoading ? (
               <div className="flex items-center gap-2 h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-lg min-w-[160px]">
                 <Loader2 size={16} className="animate-spin text-[#08384F]" />
                 <span className="text-xs font-semibold text-slate-500">
-                  Loading...
+                  Loading sections...
                 </span>
               </div>
             ) : academicStructure.length > 0 ? (
@@ -191,7 +184,7 @@ const TimeTableHeader = ({
               ) : (
                 <Save size={14} />
               )}
-              Save Configuration
+              Save changes
             </button>
             {showEditTimeline && (
               <button
@@ -230,42 +223,35 @@ const TimeTableHeader = ({
   );
 };
 
-const GridShimmer = () => (
-  <div className="bg-white border border-slate-200 rounded-[1.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 h-full">
-    <div className="p-8 space-y-4">
-      {[...Array(7)].map((_, i) => (
-        <div key={i} className="flex gap-4">
-          <div className="w-20 h-12 bg-slate-200 rounded animate-pulse"></div>
-          {[...Array(9)].map((_, j) => (
-            <div
-              key={j}
-              className="flex-1 h-12 bg-slate-100 rounded animate-pulse"
-            ></div>
-          ))}
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
 const NoSectionsOverlay = () => (
   <div className="relative h-full w-full">
     <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-10 flex items-center justify-center p-6">
-      <div className="bg-white border border-red-100 p-8 rounded-3xl shadow-2xl max-w-md text-center flex flex-col items-center gap-4">
-        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center">
-          <Lock className="text-red-500" size={32} />
+      <div className="bg-white border border-slate-200 p-7 rounded-3xl shadow-xl max-w-md text-center flex flex-col items-center gap-5">
+        <div className="w-16 h-16 bg-[#08384F]/10 rounded-2xl flex items-center justify-center">
+          <Lock className="text-[#08384F]" size={30} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Sections Missing</h3>
-          <p className="text-sm text-slate-500 mt-1">
-            No sections found for this semester. Please contact the Admin to
-            create sections before managing the timetable.
+          <h3 className="text-lg font-bold text-[#08384F]">
+            Sections Not Available
+          </h3>
+          <p className="text-xs text-slate-500 mt-2 leading-relaxed max-w-xs mx-auto">
+            No sections are created for this semester yet. Please contact the
+            administrator to create sections before managing the timetable.
           </p>
         </div>
+        <div className="w-full h-px bg-slate-100" />
+        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+          Academic structure required
+        </span>
       </div>
     </div>
     <div className="opacity-30 pointer-events-none grayscale">
-      <GridShimmer />
+      <TimetableGrid
+        isLoading={true}
+        slots={[]}
+        timetableData={{}}
+        isConfigMode={false}
+      />
     </div>
   </div>
 );
@@ -742,7 +728,12 @@ const TimeTableManagement = () => {
       <div className="flex-1 overflow-y-auto bg-[#FCFDFE]">
         <div className="h-full px-6 py-6">
           {isInitialLoading ? (
-            <GridShimmer />
+            <TimetableGrid
+              isLoading={true}
+              slots={[]}
+              timetableData={{}}
+              isConfigMode={false}
+            />
           ) : noSectionsFound ? (
             <NoSectionsOverlay />
           ) : activeTab === "timetable" ? (

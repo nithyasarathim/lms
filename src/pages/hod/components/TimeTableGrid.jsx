@@ -11,6 +11,52 @@ import {
 
 const INITIAL_DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
+const TimetableGridShimmer = () => {
+  return (
+    <div className="bg-white border border-slate-200 rounded-[1.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 flex flex-col h-full">
+      <div className="flex-1 overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="w-20 p-4 border-r border-slate-200">
+                <div className="h-4 w-10 bg-slate-200 rounded animate-pulse mx-auto"></div>
+              </th>
+              {[...Array(9)].map((_, i) => (
+                <th
+                  key={i}
+                  className="p-2 text-center border-r border-slate-100 min-w-[100px]"
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="h-3 w-16 bg-slate-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-20 bg-slate-200 rounded animate-pulse"></div>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-300">
+            {INITIAL_DAYS.map((day) => (
+              <tr key={day} className="hover:bg-slate-50/30 transition-colors">
+                <td className="p-2 text-center border-r border-slate-300 bg-slate-50/50">
+                  <div className="h-4 w-8 bg-slate-200 rounded animate-pulse mx-auto"></div>
+                </td>
+                {[...Array(9)].map((_, i) => (
+                  <td
+                    key={i}
+                    className="p-1 border-r border-slate-100 h-[85px] align-middle min-w-[100px]"
+                  >
+                    <div className="w-full h-full rounded-sm bg-slate-100 animate-pulse"></div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 const TimetableGrid = ({
   isLoading,
   slots,
@@ -47,16 +93,18 @@ const TimetableGrid = ({
     return { code, short };
   };
 
+  const getColumnWidth = (slot) => {
+    return slot.type !== "class" ? "w-12" : "min-w-[100px]";
+  };
+
+  if (isLoading) {
+    return <TimetableGridShimmer />;
+  }
+
   return (
     <div className="bg-white border border-slate-200 rounded-[1.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 flex flex-col h-full relative">
-      {isLoading && (
-        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <Loader2 className="animate-spin text-[#08384F]" size={40} />
-        </div>
-      )}
-
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse table-fixed min-w-[1100px] h-full">
+      <div className="flex-1 overflow-x-auto">
+        <table className="w-full border-collapse">
           <thead>
             <tr className="bg-slate-50 sticky top-0 z-40 border-b border-slate-200">
               <th className="w-20 p-4 text-[12px] font-black text-slate-400 border-r border-slate-200 bg-slate-50 shadow-[1px_0_0_#e2e8f0]">
@@ -66,17 +114,19 @@ const TimetableGrid = ({
               {slots.map((slot, i) => (
                 <th
                   key={slot.order}
-                  onClick={() => isConfigMode && onEditSlotTime(slot)}
-                  className={`p-4 text-center border-r border-slate-100 ${
-                    isConfigMode ? "cursor-pointer hover:bg-slate-100" : ""
-                  } ${slot.type !== "class" ? "w-16 bg-[#08384F]/5" : ""}`}
+                  className={`p-2 text-center border-r border-slate-100 ${getColumnWidth(slot)} ${
+                    slot.type !== "class" ? "bg-[#08384F]/5" : ""
+                  }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="flex items-center gap-2 text-[9px] font-black text-[#0B56A4] opacity-50 uppercase">
+                  <div
+                    onClick={() => isConfigMode && onEditSlotTime(slot)}
+                    className={`flex flex-col items-center gap-1 ${isConfigMode ? "cursor-pointer group/header" : ""}`}
+                  >
+                    <span className="flex items-center gap-1 text-[9px] font-black text-[#0B56A4] opacity-50 uppercase whitespace-nowrap">
                       {isConfigMode && slot.type !== "class" && (
                         <ArrowLeft
                           size={10}
-                          className="hover:text-black cursor-pointer"
+                          className="hover:text-black cursor-pointer shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             onMoveSlot(i, -1);
@@ -84,18 +134,20 @@ const TimetableGrid = ({
                         />
                       )}
 
-                      {slot.type !== "class"
-                        ? slot.name || slot.type.toUpperCase()
-                        : `Slot ${
-                            slots.filter(
-                              (s, idx) => idx < i && s.type === "class",
-                            ).length + 1
-                          }`}
+                      <span className="truncate max-w-[50px]">
+                        {slot.type !== "class"
+                          ? slot.name || slot.type.toUpperCase()
+                          : `${
+                              slots.filter(
+                                (s, idx) => idx < i && s.type === "class",
+                              ).length + 1
+                            }`}
+                      </span>
 
                       {isConfigMode && slot.type !== "class" && (
                         <ArrowRight
                           size={10}
-                          className="hover:text-black cursor-pointer"
+                          className="hover:text-black cursor-pointer shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             onMoveSlot(i, 1);
@@ -104,8 +156,10 @@ const TimetableGrid = ({
                       )}
                     </span>
 
-                    <span className="text-[12px] font-black text-[#08384F] underline decoration-dotted underline-offset-4">
-                      {slot.startTime} - {slot.endTime}
+                    <span
+                      className={`text-[9px] font-black text-[#08384F] whitespace-nowrap ${isConfigMode ? "group-hover/header:underline decoration-dotted underline-offset-4" : ""}`}
+                    >
+                      {slot.startTime}-{slot.endTime}
                     </span>
                   </div>
                 </th>
@@ -115,11 +169,8 @@ const TimetableGrid = ({
 
           <tbody className="divide-y divide-slate-300">
             {INITIAL_DAYS.map((day, rIdx) => (
-              <tr
-                key={day}
-                className="group hover:bg-slate-50/30 transition-colors"
-              >
-                <td className="p-4 text-center text-xs font-black text-[#08384F] bg-slate-50/50 border-r border-slate-300 sticky left-0 z-20 shadow-[1px_0_0_#cbd5e1]">
+              <tr key={day} className="hover:bg-slate-50/30 transition-colors">
+                <td className="p-2 text-center text-xs font-black text-[#08384F] bg-slate-50/50 border-r border-slate-300 sticky left-0 z-20 shadow-[1px_0_0_#cbd5e1]">
                   {day}
                 </td>
 
@@ -130,10 +181,10 @@ const TimetableGrid = ({
                         <td
                           key={slot.order}
                           rowSpan={INITIAL_DAYS.length}
-                          className="bg-[#08384F] border-x border-white/5 relative"
+                          className="bg-[#08384F] border-x border-white/5 relative w-12"
                         >
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="[writing-mode:vertical-lr] rotate-180 text-[12px] font-black text-white/30 tracking-[0.4em] uppercase">
+                            <span className="[writing-mode:vertical-lr] rotate-180 text-[11px] font-black text-white/30 tracking-[0.2em] uppercase whitespace-nowrap">
                               {slot.name || slot.type}
                             </span>
                           </div>
@@ -146,54 +197,54 @@ const TimetableGrid = ({
 
                   return (
                     <td
-                      key={slot.order}
-                      className="p-2 text-center align-middle border-r border-slate-100"
+                      key={`${day}-${slot.order}`}
+                      className="p-1 border-r border-slate-100 h-[85px] align-middle min-w-[100px]"
                     >
-                      {cellData ? (
-                        <div className="relative w-full h-full min-h-[50px]">
-                          <div className="w-full h-full rounded-xl flex flex-col items-center justify-center p-2 border-2 bg-blue-50/50 border-blue-100 text-[#0B56A4]">
-                            <span className="text-[9px] font-black opacity-40 mb-1">
+                      <div className="relative group/cell w-full h-full">
+                        {cellData ? (
+                          <div className="w-full h-full rounded-sm flex flex-col items-center justify-center p-1.5 border-2 bg-blue-50/50 border-blue-100 text-[#0B56A4] transition-all group-hover/cell:border-blue-300">
+                            <span className="text-[8px] font-black opacity-40 mb-0.5 truncate max-w-[90px]">
                               {cellData.code}
                             </span>
 
-                            <span className="text-[11px] font-black uppercase text-center leading-tight">
+                            <span className="text-[10px] font-semibold uppercase text-center leading-tight line-clamp-2 max-w-[90px]">
                               {cellData.short}
                             </span>
-                          </div>
 
-                          <div className="absolute -top-1 -right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onRemoveCell(day, slot.order);
-                              }}
-                              className="p-1 bg-white border border-red-100 rounded-full text-red-500 hover:bg-red-50 shadow-sm"
-                            >
-                              <X size={10} />
-                            </button>
+                            <div className="absolute -top-2 -right-2 flex flex-col gap-1 opacity-0 group-hover/cell:opacity-100 transition-opacity z-10">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemoveCell(day, slot.order);
+                                }}
+                                className="p-1.5 bg-white border border-red-100 rounded-full text-red-500 hover:bg-red-500 hover:text-white shadow-md transition-all"
+                              >
+                                <X size={10} />
+                              </button>
 
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onAssignSubject(slot, day);
-                              }}
-                              className="p-1 bg-white border border-slate-200 rounded-full text-slate-500 hover:text-[#08384F] shadow-sm"
-                            >
-                              <Settings size={10} />
-                            </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAssignSubject(slot, day);
+                                }}
+                                className="p-1.5 bg-white border border-slate-200 rounded-full text-slate-500 hover:text-[#08384F] hover:border-[#08384F] shadow-md transition-all"
+                              >
+                                <Settings size={10} />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => onAssignSubject(slot, day)}
-                          className="w-full h-full min-h-[80px] flex items-center justify-center group/add"
-                        >
-                          <Plus
-                            size={14}
-                            className="text-slate-200 group-hover/add:text-[#08384F]"
-                          />
-                        </button>
-                      )}
+                        ) : (
+                          <button
+                            onClick={() => onAssignSubject(slot, day)}
+                            className="w-full h-full rounded-md border-2 border-dashed border-slate-100 flex items-center justify-center transition-all hover:border-slate-300 hover:bg-slate-50 group/add"
+                          >
+                            <Plus
+                              size={14}
+                              className="text-slate-200 group-hover/add:text-[#08384F] transition-colors"
+                            />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   );
                 })}
