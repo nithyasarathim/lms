@@ -31,11 +31,11 @@ const LoginPage = () => {
         return toast.error(res?.message || "Invalid credentials");
       }
 
-      const { token, role, _id, email } = res.data;
+      const { token, role, _id, email, departmentId } = res.data;
 
       localStorage.setItem(
         "lms-user",
-        JSON.stringify({ token, role, _id, email }),
+        JSON.stringify({ token, role, _id, email, departmentId }),
       );
 
       toast.success("Welcome back!");
