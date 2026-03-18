@@ -1,5 +1,12 @@
 import React from "react";
-import { PlusCircle, User, Trash2, BookOpen, AlertCircle } from "lucide-react";
+import {
+  PlusCircle,
+  User,
+  Trash2,
+  BookOpen,
+  AlertCircle,
+  Edit3,
+} from "lucide-react";
 
 const getCategoryShort = (category) => {
   if (!category) return "-";
@@ -10,23 +17,55 @@ const getCategoryShort = (category) => {
     .toUpperCase();
 };
 
+const formatFacultyName = (faculty) => {
+  if (!faculty) return "";
+    console.log(faculty);
+  const salutation = faculty.salutation || "";
+  const fullName =
+    faculty.fullName ||
+    `${faculty.firstName || ""} ${faculty.lastName || ""}`.trim();
+  const designation = faculty.designation || "";
+  const deptCode = faculty.departmentId?.code || "";
+
+  return (
+    <span>
+      <span className="font-bold text-[#08384F]">
+        {salutation} {fullName}
+      </span>
+      {designation && deptCode && (
+        <span className="text-slate-500 font-medium">
+          , {designation} / {deptCode}
+        </span>
+      )}
+    </span>
+  );
+};
+
 const MatrixShimmer = () => (
   <div className="max-w-[1400px] mx-auto pb-10 space-y-8 animate-pulse">
-    {[...Array(3)].map((_, i) => (
+    {[...Array(5)].map((_, i) => (
       <div
         key={i}
-        className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
+        className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white"
       >
-        <div className="h-14 bg-slate-50 border-b border-slate-100 flex items-center px-6">
-          <div className="h-4 w-40 bg-slate-200 rounded"></div>
+        <div className="h-14 bg-slate-100 border-b border-slate-200 flex items-center px-6">
+          <div className="h-4 w-48 bg-slate-300 rounded"></div>
         </div>
-        <div className="p-4 space-y-4">
-          {[...Array(4)].map((_, j) => (
-            <div key={j} className="flex gap-4">
-              <div className="h-10 flex-[1] bg-slate-50 rounded"></div>
-              <div className="h-10 flex-[2] bg-slate-100 rounded"></div>
-              <div className="h-10 flex-[3] bg-slate-50 rounded"></div>
-              <div className="h-10 flex-[1] bg-slate-100 rounded"></div>
+        <div className="p-4">
+          <div className="flex gap-4 border-b border-slate-100 pb-3 mb-3">
+            <div className="h-4 w-24 bg-slate-200 rounded"></div>
+            <div className="h-4 w-32 bg-slate-200 rounded"></div>
+            <div className="h-4 w-48 bg-slate-200 rounded"></div>
+            <div className="h-4 w-40 bg-slate-200 rounded"></div>
+            <div className="h-4 w-20 bg-slate-200 rounded"></div>
+          </div>
+          {[...Array(3)].map((_, j) => (
+            <div key={j} className="flex gap-4 py-2">
+              <div className="h-6 w-24 bg-slate-100 rounded"></div>
+              <div className="h-6 w-32 bg-slate-100 rounded"></div>
+              <div className="h-6 w-48 bg-slate-100 rounded"></div>
+              <div className="h-6 w-40 bg-slate-100 rounded"></div>
+              <div className="h-6 w-20 bg-slate-100 rounded"></div>
             </div>
           ))}
         </div>
@@ -35,9 +74,27 @@ const MatrixShimmer = () => (
   </div>
 );
 
+const NoSectionsMessage = () => (
+  <div className="flex flex-col items-center justify-center py-20 px-8 bg-white border border-slate-200 rounded-[2rem] shadow-sm max-w-[620px] mx-auto my-12 text-center">
+    <div className="relative mb-6">
+      <div className="w-20 h-20 bg-[#08384F]/10 rounded-2xl flex items-center justify-center">
+        <AlertCircle className="text-[#08384F]" size={38} />
+      </div>
+      <div className="absolute inset-0 rounded-2xl ring-1 ring-[#08384F]/10"></div>
+    </div>
+
+    <h3 className="text-xl font-bold text-[#08384F]">No Sections Available</h3>
+
+    <p className="text-slate-500 text-sm mt-2">
+      Please select a section to view the course matrix.
+    </p>
+
+    <div className="mt-6 w-16 h-[2px] bg-[#08384F]/20 rounded-full"></div>
+  </div>
+);
+
 const NoDataMessage = () => (
   <div className="flex flex-col items-center justify-center py-20 px-8 bg-white border border-slate-200 rounded-[2rem] shadow-sm max-w-[620px] mx-auto my-12 text-center">
-
     <div className="relative mb-6">
       <div className="w-20 h-20 bg-[#08384F]/10 rounded-2xl flex items-center justify-center">
         <BookOpen className="text-[#08384F]" size={38} />
@@ -45,9 +102,7 @@ const NoDataMessage = () => (
       <div className="absolute inset-0 rounded-2xl ring-1 ring-[#08384F]/10"></div>
     </div>
 
-    <h3 className="text-xl font-bold text-[#08384F]">
-      No Courses Found
-    </h3>
+    <h3 className="text-xl font-bold text-[#08384F]">No Courses Found</h3>
 
     <p className="text-slate-500 text-sm mt-2">
       To continue, please request the administrator to complete the setup.
@@ -70,10 +125,8 @@ const NoDataMessage = () => (
     </div>
 
     <div className="mt-6 w-16 h-[2px] bg-[#08384F]/20 rounded-full"></div>
-
   </div>
 );
-
 
 const MatrixSection = ({
   title,
@@ -86,6 +139,7 @@ const MatrixSection = ({
   onAdditionalVenueChange,
   onAddAdditional,
   onDeleteAdditional,
+  onEditAdditional,
 }) => (
   <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
     <div className="flex items-center px-4 justify-between bg-slate-50/80 py-4 border-b border-slate-200">
@@ -111,7 +165,7 @@ const MatrixSection = ({
             <th className="p-4 border-r border-slate-100 w-36">Code</th>
           )}
           <th className="p-4 border-r border-slate-100">Course Title</th>
-          <th className="p-4 border-r border-slate-100 w-60">
+          <th className="p-4 border-r border-slate-100 w-72">
             Faculty Incharge
           </th>
           <th className="p-4 border-r border-slate-100 w-32">Venue</th>
@@ -145,40 +199,44 @@ const MatrixSection = ({
                 <td className="p-4 font-bold text-slate-700 border-r border-slate-100">
                   <div className="flex items-center justify-between">
                     {ah.name}
-                    <button
-                      onClick={() =>
-                        onDeleteAdditional && onDeleteAdditional(ah._id)
-                      }
-                      className="text-red-400 hover:text-red-600 ml-2"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onEditAdditional && onEditAdditional(ah)}
+                        className="text-blue-400 hover:text-blue-600 ml-2"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button
+                        onClick={() =>
+                          onDeleteAdditional && onDeleteAdditional(ah._id)
+                        }
+                        className="text-red-400 hover:text-red-600 ml-1"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </div>
                 </td>
                 <td className="p-4 text-slate-600 font-medium border-r border-slate-100">
                   <div className="flex flex-col gap-1">
                     {ah.facultyIds?.length > 0 ? (
                       ah.facultyIds.map((f, fi) => {
-                        let name = "";
-                        if (typeof f === "object" && f !== null) {
-                          name =
-                            `${f.salutation || ""} ${f.fullName || f.lastName || ""}`.trim();
-                        } else {
-                          const found = allAvailableFaculties?.find(
+                        let facultyObj = f;
+                        if (typeof f === "string") {
+                          facultyObj = allAvailableFaculties?.find(
                             (fac) => fac._id === f,
                           );
-                          name = found
-                            ? `${found.salutation || ""} ${found.fullName || found.lastName || ""}`.trim()
-                            : "Unknown";
                         }
-                        return (
+                        return facultyObj ? (
                           <div
                             key={fi}
-                            className="flex items-center gap-1.5 text-xs"
+                            className="flex items-start gap-1.5 text-xs"
                           >
-                            <User size={12} className="text-slate-400" /> {name}
+                            <span className="text-xs">
+                              {formatFacultyName(facultyObj)}
+                            </span>
                           </div>
-                        );
+                        ) : null;
                       })
                     ) : (
                       <span className="text-slate-300 italic text-[10px]">
@@ -193,7 +251,8 @@ const MatrixSection = ({
                     onChange={(e) =>
                       onAdditionalVenueChange(ah._id, e.target.value)
                     }
-                    className="w-full bg-white px-2 py-1 rounded border border-slate-200 text-xs font-bold focus:border-[#08384F] outline-none"
+                    className="w-full bg-white px-2 py-1 rounded border border-slate-200 text-xs font-bold focus:border-[#08384F] outline-none placeholder:text-slate-300 text-center"
+                    placeholder={ah.venue ? "Enter venue" : "No venue"}
                   />
                 </td>
                 <td className="p-4 text-center text-slate-400 border-r border-slate-100">
@@ -245,10 +304,21 @@ const MatrixSection = ({
                 </td>
                 <td className="p-4 text-slate-600 text-xs font-medium border-r border-slate-100">
                   <div className="flex flex-col gap-1">
-                    {item.faculties?.length > 0 ? (
+                    {item.facultiesData?.length > 0 ? (
+                      item.facultiesData.map((f, fi) => (
+                        <div key={fi} className="flex items-start gap-1.5">
+                          
+                          <span className="text-xs whitespace-normal break-words">
+                            {formatFacultyName(f)}
+                          </span>
+                        </div>
+                      ))
+                    ) : item.faculties?.length > 0 ? (
                       item.faculties.map((f, fi) => (
-                        <div key={fi} className="flex items-center gap-1.5">
-                          {f}
+                        <div key={fi} className="flex items-start gap-1.5">
+                          <span className="text-xs whitespace-normal break-words">
+                            {f}
+                          </span>
                         </div>
                       ))
                     ) : (
@@ -262,7 +332,8 @@ const MatrixSection = ({
                   <input
                     value={facultyVenues[item.id] || ""}
                     onChange={(e) => onVenueChange(item.id, e.target.value)}
-                    className="w-full bg-white px-2 py-1 rounded border border-slate-200 text-xs font-bold focus:border-[#08384F] outline-none"
+                    className="w-full bg-white text-center px-2 py-1 rounded border border-slate-200 text-xs font-bold focus:border-[#08384F] outline-none placeholder:text-slate-300"
+                    placeholder={facultyVenues[item.id] ? "Enter venue" : "N/A"}
                   />
                 </td>
                 {iIdx === 0 && (
@@ -304,6 +375,7 @@ const CourseMatrix = ({
   onEditAdditional,
   onDeleteAdditional,
   isLoading,
+  hasSelectedSection = true,
 }) => {
   const handleAdditionalChange = (id, field, value) => {
     const target = additionalHours.find((a) => a._id === id);
@@ -318,6 +390,10 @@ const CourseMatrix = ({
 
   if (isLoading) {
     return <MatrixShimmer />;
+  }
+
+  if (!hasSelectedSection) {
+    return <NoSectionsMessage />;
   }
 
   if (!hasData) {

@@ -1,8 +1,7 @@
-// TimetableManagement.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Loader2, AlertCircle, Save, X, Lock } from "lucide-react";
+import { Loader2, AlertCircle, Save, X, Lock, Printer } from "lucide-react";
 
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import {
@@ -61,6 +60,7 @@ const TimeTableHeader = ({
   onToggleConfigMode,
   activeTab,
   onTabChange,
+  isTabChangeDisabled,
 }) => {
   const showEditTimeline = activeTab === "timetable";
 
@@ -71,7 +71,7 @@ const TimeTableHeader = ({
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Academic Year
           </span>
-          <span className="text-sm font-bold text-[#08384F]">
+          <span className="text-xs font-bold text-[#08384F]">
             {activeYear?.name || "..."}
           </span>
         </div>
@@ -89,7 +89,7 @@ const TimeTableHeader = ({
                 value={selectedStructureIndex}
                 onChange={(e) => onStructureChange(Number(e.target.value))}
                 disabled={isConfigMode}
-                className={`bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-[#08384F] outline-none h-[38px] ${
+                className={`bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 text-xs font-bold text-[#08384F] outline-none h-[38px] ${
                   isConfigMode
                     ? "opacity-50 cursor-not-allowed"
                     : "cursor-pointer"
@@ -113,10 +113,10 @@ const TimeTableHeader = ({
 
           <div className="flex flex-col">
             {depsLoading ? (
-              <div className="flex items-center gap-2 h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-lg min-w-[160px]">
+              <div className="flex items-center gap-2 h-[38px] px-3 bg-slate-50 border border-slate-200 rounded-lg min-w-">
                 <Loader2 size={16} className="animate-spin text-[#08384F]" />
                 <span className="text-xs font-semibold text-slate-500">
-                  Loading sections...
+                  Loading ..
                 </span>
               </div>
             ) : academicStructure.length > 0 ? (
@@ -125,7 +125,7 @@ const TimeTableHeader = ({
                   value={selectedSection?._id || ""}
                   onChange={(e) => onSectionChange(e.target.value)}
                   disabled={isConfigMode}
-                  className={`bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-[#08384F] outline-none h-[38px] ${
+                  className={`bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold text-[#08384F] outline-none h-[38px] ${
                     isConfigMode
                       ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer"
@@ -162,7 +162,12 @@ const TimeTableHeader = ({
             <button
               onClick={onSave}
               disabled={isSaving || !selectedSection}
-              className="flex items-center gap-2 px-5 py-2 bg-[#08384F] text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50 hover:bg-[#0B56A4]"
+              className="flex items-center gap-2 px-5 py-2 
+  bg-[#08384F] text-white rounded-xl text-[11px] font-black uppercase tracking-widest 
+  shadow-lg transition-all duration-200
+  hover:bg-gradient-to-r hover:from-[#08384F] hover:to-[#0B56A4] hover:shadow-xl
+  active:scale-95
+  disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -199,24 +204,29 @@ const TimeTableHeader = ({
         <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
           <button
             onClick={() => onTabChange("timetable")}
+            disabled={isTabChangeDisabled}
             className={`px-6 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
               activeTab === "timetable"
                 ? "bg-white text-[#08384F] shadow-sm"
                 : "text-slate-400"
-            }`}
+            } ${isTabChangeDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             Timetable
           </button>
           <button
             onClick={() => onTabChange("faculty")}
+            disabled={isTabChangeDisabled}
             className={`px-6 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
               activeTab === "faculty"
                 ? "bg-white text-[#08384F] shadow-sm"
                 : "text-slate-400"
-            }`}
+            } ${isTabChangeDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             Course Matrix
           </button>
+        </div>
+        <div className="p-2 bg-green-100 font-semibold text-sm items-center flex gap-2 rounded-lg text-green-900 cursor-pointer">
+          <Printer size={15} /> Print
         </div>
       </div>
     </div>
@@ -698,9 +708,12 @@ const TimeTableManagement = () => {
     setActiveTab(tab);
   };
 
-  const isInitialLoading = structLoading || activeYearLoading;
+  const isInitialLoading = structLoading || activeYearLoading || depsLoading;
+
   const noSectionsFound =
     !depsLoading && academicStructure.length > 0 && deps.sections.length === 0;
+
+  const isTabChangeDisabled = isInitialLoading;
 
   return (
     <div className="h-screen flex flex-col bg-white font-['Poppins']">
@@ -723,6 +736,7 @@ const TimeTableManagement = () => {
         onToggleConfigMode={() => setIsConfigMode(true)}
         activeTab={activeTab}
         onTabChange={handleTabChange}
+        isTabChangeDisabled={isTabChangeDisabled}
       />
 
       <div className="flex-1 overflow-y-auto bg-[#FCFDFE]">
@@ -761,6 +775,8 @@ const TimeTableManagement = () => {
               }}
               onEditAdditional={handleEditAdditionalHour}
               onDeleteAdditional={handleDeleteAdditionalHour}
+              isLoading={timeTableLoading}
+              hasSelectedSection={!!selectedSection}
             />
           )}
         </div>

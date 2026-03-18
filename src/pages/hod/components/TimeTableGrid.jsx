@@ -1,4 +1,3 @@
-// TimetableGrid.jsx
 import React from "react";
 import {
   Loader2,
@@ -10,6 +9,15 @@ import {
 } from "lucide-react";
 
 const INITIAL_DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+const formatTimeWithAMPM = (time) => {
+  if (!time) return "";
+  const [hours, minutes] = time.split(":");
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes} ${ampm}`;
+};
 
 const TimetableGridShimmer = () => {
   return (
@@ -159,7 +167,7 @@ const TimetableGrid = ({
                     <span
                       className={`text-[9px] font-black text-[#08384F] whitespace-nowrap ${isConfigMode ? "group-hover/header:underline decoration-dotted underline-offset-4" : ""}`}
                     >
-                      {slot.startTime}-{slot.endTime}
+                      {formatTimeWithAMPM(slot.startTime)} - {formatTimeWithAMPM(slot.endTime)}
                     </span>
                   </div>
                 </th>
@@ -207,7 +215,7 @@ const TimetableGrid = ({
                               {cellData.code}
                             </span>
 
-                            <span className="text-[10px] font-semibold uppercase text-center leading-tight line-clamp-2 max-w-[90px]">
+                            <span className="text-[13px] font-bold uppercase text-center leading-tight line-clamp-2 max-w-[90px]">
                               {cellData.short}
                             </span>
 
