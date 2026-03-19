@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Loader2, AlertCircle, Save, X, Lock, Printer } from "lucide-react";
-import EshwarLogo from "../../../assets/EshwarImg.png";
+import { useReactToPrint } from "react-to-print";
+import PrintTableComponent from "../components/PrintTableComponent";
 
 import HeaderComponent from "../../shared/components/HeaderComponent";
 import {
@@ -62,6 +63,7 @@ const TimeTableHeader = ({
   activeTab,
   onTabChange,
   isTabChangeDisabled,
+  onPrint,
 }) => {
   const showEditTimeline = activeTab === "timetable";
 
@@ -141,9 +143,7 @@ const TimeTableHeader = ({
               ) : (
                 <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5 h-[38px]">
                   <AlertCircle size={14} className="text-red-400" />
-                  <span className="text-xs text-red-600 font-bold">
-                    No sections
-                  </span>
+                  <span className="text-xs text-red-600 font-bold">N/A</span>
                 </div>
               )
             ) : null}
@@ -226,7 +226,10 @@ const TimeTableHeader = ({
             Course Matrix
           </button>
         </div>
-        <div className="p-2 bg-green-100 font-semibold text-sm items-center flex gap-2 rounded-lg text-green-900 cursor-pointer">
+        <div
+          onClick={onPrint}
+          className="px-4 py-2 bg-green-100 font-semibold text-sm items-center flex gap-2 rounded-lg text-green-900 cursor-pointer hover:bg-green-200 transition-colors"
+        >
           <Printer size={15} /> Print
         </div>
       </div>
@@ -269,6 +272,7 @@ const NoSectionsOverlay = () => (
 
 const TimeTableManagement = () => {
   const queryClient = useQueryClient();
+  const printRef = useRef(null);
   const [activeTab, setActiveTab] = useState("timetable");
   const [slots, setSlots] = useState(INITIAL_SLOTS);
   const [selectedStructureIndex, setSelectedStructureIndex] = useState(0);
@@ -283,6 +287,7 @@ const TimeTableManagement = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [editingAdditionalHour, setEditingAdditionalHour] = useState(null);
+  const [printData, setPrintData] = useState(null);
 
   const { data: activeYear, isLoading: activeYearLoading } = useQuery({
     queryKey: ["activeYear"],
@@ -403,6 +408,46 @@ const TimeTableManagement = () => {
     onError: (err) => toast.error(err.message || "Failed to save"),
   });
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Timetable_${selectedSection?.name || ""}_Sem${semNum || ""}`,
+    onAfterPrint: () => toast.success("Print initiated"),
+  });
+
+  const preparePrintData = () => {
+    const currentAcademicStructure = academicStructure[selectedStructureIndex];
+    const faList =
+      serverData?.facultyAssignments ||
+      serverData?.data?.facultyAssignments ||
+      [];
+
+    return {
+      academicYear: activeYear,
+      batch: currentAcademicStructure?.batch,
+      semester: semNum,
+      department: currentAcademicStructure?.department,
+      section: selectedSection,
+      slots: slots,
+      timetableData: timetableData,
+      facultyAssignments: faList,
+      additionalHours: additionalHours,
+      subjects: deps.subjects,
+      sectionDetails: selectedSection,
+    };
+  };
+
+  const handlePrintClick = () => {
+    if (!selectedSection) {
+      toast.error("Please select a section to print");
+      return;
+    }
+    const data = preparePrintData();
+    setPrintData(data);
+    setTimeout(() => {
+      handlePrint();
+    }, 100);
+  };
+
   const handleGlobalSave = () => {
     const entries = [];
     Object.entries(timetableData).forEach(([day, daySlots]) => {
@@ -520,10 +565,9 @@ const TimeTableManagement = () => {
         };
       }
 
-      // Store full faculty objects instead of just strings
       subjectsMap[sub._id].components.push({
         title: comp.name,
-        facultiesData: fa.facultyIds || [], // Store full faculty objects
+        facultiesData: fa.facultyIds || [],
         venue: facultyVenues[fa._id] || "",
         hrs: comp.hours,
         id: fa._id,
@@ -736,6 +780,7 @@ const TimeTableManagement = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         isTabChangeDisabled={isTabChangeDisabled}
+        onPrint={handlePrintClick}
       />
 
       <div className="flex-1 overflow-y-auto bg-[#FCFDFE]">
@@ -810,6 +855,10 @@ const TimeTableManagement = () => {
           editingHour={editingAdditionalHour}
         />
       )}
+
+      <div style={{ display: "none" }}>
+        {printData && <PrintTableComponent ref={printRef} data={printData} />}
+      </div>
     </div>
   );
 };

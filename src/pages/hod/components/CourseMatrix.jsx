@@ -19,7 +19,7 @@ const getCategoryShort = (category) => {
 
 const formatFacultyName = (faculty) => {
   if (!faculty) return "";
-    console.log(faculty);
+  console.log(faculty);
   const salutation = faculty.salutation || "";
   const fullName =
     faculty.fullName ||
@@ -42,30 +42,42 @@ const formatFacultyName = (faculty) => {
 };
 
 const MatrixShimmer = () => (
-  <div className="max-w-[1400px] mx-auto pb-10 space-y-8 animate-pulse">
+  <div className="min-w-[1100px] mx-auto pb-10 space-y-8">
     {[...Array(5)].map((_, i) => (
       <div
         key={i}
-        className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white"
+        className="relative rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white"
       >
+        <div className="absolute inset-0">
+          <div className="w-full h-full animate-pulse bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+        </div>
+
         <div className="h-14 bg-slate-100 border-b border-slate-200 flex items-center px-6">
           <div className="h-4 w-48 bg-slate-300 rounded"></div>
         </div>
-        <div className="p-4">
-          <div className="flex gap-4 border-b border-slate-100 pb-3 mb-3">
-            <div className="h-4 w-24 bg-slate-200 rounded"></div>
-            <div className="h-4 w-32 bg-slate-200 rounded"></div>
-            <div className="h-4 w-48 bg-slate-200 rounded"></div>
-            <div className="h-4 w-40 bg-slate-200 rounded"></div>
-            <div className="h-4 w-20 bg-slate-200 rounded"></div>
+
+        <div className="p-4 w-[100%]">
+          <div className="flex gap-4 w-full border-b border-slate-100 pb-3 mb-3">
+            <div className="h-4 w-[10%] bg-slate-200 rounded"></div>
+            <div className="h-4 w-[10%] bg-slate-200 rounded"></div>
+            <div className="h-4 w-[15%] bg-slate-200 rounded"></div>
+            <div className="h-4 w-[25%] bg-slate-200 rounded"></div>
+            <div className="h-4 w-[15%] bg-slate-200 rounded"></div>
+            <div className="h-4 w-[10%] bg-slate-200 rounded"></div>
+            <div className="h-4 w-[10%] bg-slate-200 rounded"></div>
+            <div className="h-4 w-[5%] bg-slate-200 rounded"></div>
           </div>
+
           {[...Array(3)].map((_, j) => (
             <div key={j} className="flex gap-4 py-2">
-              <div className="h-6 w-24 bg-slate-100 rounded"></div>
-              <div className="h-6 w-32 bg-slate-100 rounded"></div>
-              <div className="h-6 w-48 bg-slate-100 rounded"></div>
-              <div className="h-6 w-40 bg-slate-100 rounded"></div>
-              <div className="h-6 w-20 bg-slate-100 rounded"></div>
+              <div className="h-4 w-[10%] bg-slate-100 rounded"></div>
+            <div className="h-4 w-[10%] bg-slate-100 rounded"></div>
+            <div className="h-4 w-[15%] bg-slate-100 rounded"></div>
+            <div className="h-4 w-[25%] bg-slate-100 rounded"></div>
+            <div className="h-4 w-[15%] bg-slate-100 rounded"></div>
+            <div className="h-4 w-[10%] bg-slate-100 rounded"></div>
+            <div className="h-4 w-[10%] bg-slate-100 rounded"></div>
+            <div className="h-4 w-[5%] bg-slate-100 rounded"></div>
             </div>
           ))}
         </div>
@@ -102,7 +114,7 @@ const NoDataMessage = () => (
       <div className="absolute inset-0 rounded-2xl ring-1 ring-[#08384F]/10"></div>
     </div>
 
-    <h3 className="text-xl font-bold text-[#08384F]">No Courses Found</h3>
+    <h3 className="text-xl font-bold text-[#08384F]">No Course data Found</h3>
 
     <p className="text-slate-500 text-sm mt-2">
       To continue, please request the administrator to complete the setup.
@@ -307,7 +319,6 @@ const MatrixSection = ({
                     {item.facultiesData?.length > 0 ? (
                       item.facultiesData.map((f, fi) => (
                         <div key={fi} className="flex items-start gap-1.5">
-                          
                           <span className="text-xs whitespace-normal break-words">
                             {formatFacultyName(f)}
                           </span>

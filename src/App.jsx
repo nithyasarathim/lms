@@ -8,6 +8,7 @@ import RoleRoute from "./routes/RoleRoute";
 import LoginPage from "./pages/auth/pages/LoginPage";
 import AdminDashboard from "./pages/admin/pages/AdminDashboard";
 import HodDashboard from "./pages/hod/pages/HodDashboard";
+import PrintTable from "./pages/hod/components/PrintTableComponent";
 
 const StudentDashboard = () => <h1>Student Dashboard</h1>;
 const FacultyDashboard = () => <h1>Faculty Dashboard</h1>;
@@ -47,6 +48,7 @@ const App = () => {
       />
 
       <Routes>
+        <Route path="/print" element={<PrintTable/>}/>
         <Route element={<GuestRoute />}>
           <Route path="/" element={<LoginPage />} />
         </Route>
