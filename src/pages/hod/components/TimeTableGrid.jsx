@@ -110,8 +110,8 @@ const TimeTableGrid = ({
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-[1.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 flex flex-col h-full relative">
-      <div className="flex-1 overflow-x-auto">
+    <div className="bg-white border border-slate-200 rounded-[1rem] overflow-hidden shadow-2xl shadow-slate-200/50 flex flex-col h-fit relative">
+      <div className="flex-1 overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-slate-50 sticky top-0 z-40 border-b border-slate-200">
