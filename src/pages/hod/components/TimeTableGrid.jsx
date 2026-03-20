@@ -65,7 +65,7 @@ const TimetableGridShimmer = () => {
   );
 };
 
-const TimetableGrid = ({
+const TimeTableGrid = ({
   isLoading,
   slots,
   timetableData,
@@ -265,4 +265,4 @@ const TimetableGrid = ({
   );
 };
 
-export default TimetableGrid;
+export default TimeTableGrid;

@@ -18,7 +18,7 @@ import {
 import AdjustSlotModal from "../modals/AdjustSlotModal";
 import AssignSubjectModal from "../modals/AssignSubjectModal";
 import AddAdditionalHourModal from "../modals/AddAdditionalHourModal";
-import TimetableGrid from "./TimetableGrid";
+import TimeTableGrid from "./TimeTableGrid";
 import CourseMatrix from "./CourseMatrix";
 
 const INITIAL_SLOTS = [
