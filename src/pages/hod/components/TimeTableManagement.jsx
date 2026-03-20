@@ -260,7 +260,7 @@ const NoSectionsOverlay = () => (
       </div>
     </div>
     <div className="opacity-30 pointer-events-none grayscale">
-      <TimetableGrid
+      <TimeTableGrid
         isLoading={true}
         slots={[]}
         timetableData={{}}
@@ -786,7 +786,7 @@ const TimeTableManagement = () => {
       <div className="flex-1 overflow-y-auto bg-[#FCFDFE]">
         <div className="h-full px-6 py-6">
           {isInitialLoading ? (
-            <TimetableGrid
+            <TimeTableGrid
               isLoading={true}
               slots={[]}
               timetableData={{}}
@@ -795,7 +795,7 @@ const TimeTableManagement = () => {
           ) : noSectionsFound ? (
             <NoSectionsOverlay />
           ) : activeTab === "timetable" ? (
-            <TimetableGrid
+            <TimeTableGrid
               isLoading={timeTableLoading}
               slots={slots}
               timetableData={timetableData}
