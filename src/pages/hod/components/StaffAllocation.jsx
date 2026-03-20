@@ -45,6 +45,7 @@ const StaffAllocation = ({ collapsed }) => {
   const [query, setQuery] = useState("");
   const [localAllocationMap, setLocalAllocationMap] = useState({});
   const dropdownRef = useRef(null);
+  const [isSectionChanging, setIsSectionChanging] = useState(false);
 
   const { data: academicStructure = [], isLoading: structureLoading } =
     useQuery({
@@ -58,7 +59,7 @@ const StaffAllocation = ({ collapsed }) => {
       staleTime: 1000 * 60 * 10,
     });
 
-  const { data: faculties = [] } = useQuery({
+  const { data: faculties = [], isLoading: facultiesLoading } = useQuery({
     queryKey: ["faculties"],
     queryFn: async () => {
       const res = await getAllFaculties();
@@ -81,6 +82,7 @@ const StaffAllocation = ({ collapsed }) => {
   const {
     data: deps = { sections: [], subjects: [] },
     isLoading: depsLoading,
+    refetch: refetchDeps,
   } = useQuery({
     queryKey: ["deps", current?.batchProgramId, current?.semester],
     queryFn: async () => {
@@ -97,9 +99,14 @@ const StaffAllocation = ({ collapsed }) => {
     enabled: !!current,
   });
 
-  const { isLoading: assignmentsLoading } = useQuery({
+  const {
+    isLoading: assignmentsLoading,
+    refetch: refetchAssignments,
+    data: assignmentsData,
+  } = useQuery({
     queryKey: ["assignments", selectedSection?._id, current?.semester],
     queryFn: async () => {
+      if (!selectedSection) return null;
       const res = await getAssignedFaculties(
         selectedSection._id,
         current.semester,
@@ -113,8 +120,24 @@ const StaffAllocation = ({ collapsed }) => {
       setLocalAllocationMap(mapping);
       return mapping;
     },
-    enabled: !!selectedSection && !!current,
+    enabled: false, // Disable auto-fetching
   });
+
+  // Effect to handle section change with shimmer
+  useEffect(() => {
+    if (selectedSection && current) {
+      const loadAssignments = async () => {
+        setIsSectionChanging(true);
+        setLocalAllocationMap({}); // Clear previous data immediately
+        try {
+          await refetchAssignments();
+        } finally {
+          setIsSectionChanging(false);
+        }
+      };
+      loadAssignments();
+    }
+  }, [selectedSection, current?.semester, refetchAssignments]);
 
   const mutation = useMutation({
     mutationFn: (payload) => assignFacultyToSection(payload),
@@ -124,6 +147,10 @@ const StaffAllocation = ({ collapsed }) => {
         selectedSection?._id,
         current?.semester,
       ]);
+      // Refetch assignments after successful mutation
+      if (selectedSection && current) {
+        refetchAssignments();
+      }
     },
     onError: (err) => toast.error(err.message || "Allocation failed"),
   });
@@ -205,6 +232,41 @@ const StaffAllocation = ({ collapsed }) => {
     );
   }, [deps.subjects, searchTerm]);
 
+  // Component for faculty loading shimmer
+  const FacultyLoadingShimmer = () => (
+    <div className="space-y-1.5">
+      {[1, 2].map((i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between border border-gray-100 px-3 py-2 rounded-xl"
+        >
+          <Shimmer className="h-4 w-40" />
+          <Shimmer className="h-4 w-4 rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+
+  // Component for subject card loading shimmer
+  const SubjectCardShimmer = () => (
+    <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
+        <Shimmer className="h-4 w-32" />
+      </div>
+      <div className="p-4 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Shimmer className="h-3 w-20" />
+              <Shimmer className="h-3 w-16" />
+            </div>
+            <FacultyLoadingShimmer />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div
       className={`transition-all duration-300 min-h-screen bg-gray-50 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
@@ -246,7 +308,8 @@ const StaffAllocation = ({ collapsed }) => {
             disabled={
               mutation.isLoading ||
               structureLoading ||
-              deps.sections.length === 0
+              deps.sections.length === 0 ||
+              isSectionChanging
             }
             className="flex items-center gap-2 bg-[#08384F] text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg disabled:opacity-50 transition-all active:scale-95"
           >
@@ -274,6 +337,7 @@ const StaffAllocation = ({ collapsed }) => {
                     onClick={() => {
                       setSelectedStructureIndex(index);
                       setSelectedSection(null);
+                      setLocalAllocationMap({}); // Clear allocation map
                     }}
                     className={`flex flex-col p-4 rounded-2xl text-left border border-gray-300 transition-all ${
                       selectedStructureIndex === index
@@ -299,7 +363,10 @@ const StaffAllocation = ({ collapsed }) => {
               deps.sections.map((sec) => (
                 <button
                   key={sec._id}
-                  onClick={() => setSelectedSection(sec)}
+                  onClick={() => {
+                    setSelectedSection(sec);
+                    setLocalAllocationMap({}); // Clear immediately when clicking new section
+                  }}
                   className={`flex items-center justify-between p-4 rounded-2xl border font-bold transition-all ${
                     selectedSection?._id === sec._id
                       ? "bg-[#08384F] text-white"
@@ -345,11 +412,14 @@ const StaffAllocation = ({ collapsed }) => {
                     <Shimmer className="h-20 w-full" />
                   </div>
                 ))
+              ) : isSectionChanging || assignmentsLoading ? (
+                // Show shimmer when section is changing or assignments are loading
+                [1, 2, 3].map((i) => <SubjectCardShimmer key={i} />)
               ) : filteredSubjects.length > 0 ? (
                 filteredSubjects.map((sub) => (
                   <div
                     key={sub._id}
-                    className="border border-gray-200 rounded-2xl overflow-h shadow-sm"
+                    className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
                   >
                     <div className="bg-[#08384F]/5 px-4 py-3 border-b border-gray-200 flex items-center gap-2">
                       <span className="font-black text-[#08384F] text-xs">
@@ -383,8 +453,14 @@ const StaffAllocation = ({ collapsed }) => {
                                   setQuery("");
                                 }}
                                 className="flex items-center gap-2 text-gray-500 text-xs font-bold hover:underline px-1 py-1"
+                                disabled={facultiesLoading || isSectionChanging}
                               >
-                                <Plus size={14} /> Add Faculty
+                                {facultiesLoading ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                  <Plus size={14} />
+                                )}
+                                Add Faculty
                               </button>
                               {activeDropdown === comp._id && (
                                 <div className="absolute right-0 z-50 mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
@@ -398,8 +474,14 @@ const StaffAllocation = ({ collapsed }) => {
                                     />
                                   </div>
                                   <div className="max-h-40 overflow-y-auto">
-                                    {getFilteredFaculties(comp._id).length >
-                                    0 ? (
+                                    {facultiesLoading ? (
+                                      <div className="p-4 space-y-2">
+                                        <Shimmer className="h-8 w-full" />
+                                        <Shimmer className="h-8 w-full" />
+                                        <Shimmer className="h-8 w-full" />
+                                      </div>
+                                    ) : getFilteredFaculties(comp._id).length >
+                                      0 ? (
                                       getFilteredFaculties(comp._id).map(
                                         (f) => (
                                           <div
@@ -434,30 +516,43 @@ const StaffAllocation = ({ collapsed }) => {
                             </div>
                           </div>
                           <div className="space-y-1.5">
-                            {(localAllocationMap[comp._id] || []).map((id) => {
-                              const f = faculties.find((fac) => fac._id === id);
-                              return (
-                                <div
-                                  key={id}
-                                  className="flex items-center justify-between border border-blue-100 px-3 py-2 rounded-xl bg-blue-50/30"
-                                >
-                                  <span className="text-xs text-[#08384F]">
-                                    <strong className="font-bold">
-                                      {f?.salutation} {f?.fullName}
-                                    </strong>
-                                    <span className="text-gray-500 font-normal">
-                                      , {f?.designation} /{" "}
-                                      {f?.departmentId?.code || "N/A"}
+                            {isSectionChanging || assignmentsLoading ? (
+                              <FacultyLoadingShimmer />
+                            ) : (localAllocationMap[comp._id] || []).length >
+                              0 ? (
+                              (localAllocationMap[comp._id] || []).map((id) => {
+                                const f = faculties.find(
+                                  (fac) => fac._id === id,
+                                );
+                                return (
+                                  <div
+                                    key={id}
+                                    className="flex items-center justify-between border border-blue-100 px-3 py-2 rounded-xl bg-blue-50/30"
+                                  >
+                                    <span className="text-xs text-[#08384F]">
+                                      <strong className="font-bold">
+                                        {f?.salutation} {f?.fullName}
+                                      </strong>
+                                      <span className="text-gray-500 font-normal">
+                                        , {f?.designation} /{" "}
+                                        {f?.departmentId?.code || "N/A"}
+                                      </span>
                                     </span>
-                                  </span>
-                                  <X
-                                    size={14}
-                                    className="text-red-400 cursor-pointer hover:text-red-600 ml-2"
-                                    onClick={() => toggleFaculty(comp._id, id)}
-                                  />
-                                </div>
-                              );
-                            })}
+                                    <X
+                                      size={14}
+                                      className="text-red-400 cursor-pointer hover:text-red-600 ml-2"
+                                      onClick={() =>
+                                        toggleFaculty(comp._id, id)
+                                      }
+                                    />
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div className="text-xs text-gray-400 italic pl-2">
+                                No faculty assigned yet
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}

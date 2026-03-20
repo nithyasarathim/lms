@@ -64,8 +64,18 @@ const TimeTableHeader = ({
   onTabChange,
   isTabChangeDisabled,
   onPrint,
+  isTimeTableLoading,
+  isSaveEnabled,
 }) => {
   const showEditTimeline = activeTab === "timetable";
+
+  // Check if all data is loaded for print functionality
+  const isPrintEnabled =
+    !structLoading &&
+    !depsLoading &&
+    !isTimeTableLoading &&
+    selectedSection &&
+    activeYear;
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between px-8 py-3 bg-white border-b border-slate-100 gap-4 shrink-0">
@@ -162,13 +172,13 @@ const TimeTableHeader = ({
             </button>
             <button
               onClick={onSave}
-              disabled={isSaving || !selectedSection}
+              disabled={!isSaveEnabled || isSaving || !selectedSection}
               className="flex items-center gap-2 px-5 py-2 
-  bg-[#08384F] text-white rounded-xl text-[11px] font-black uppercase tracking-widest 
-  shadow-lg transition-all duration-200
-  hover:bg-gradient-to-r hover:from-[#08384F] hover:to-[#0B56A4] hover:shadow-xl
-  active:scale-95
-  disabled:opacity-50 disabled:cursor-not-allowed"
+                bg-[#08384F] text-white rounded-xl text-[11px] font-black uppercase tracking-widest 
+                shadow-lg transition-all duration-200
+                hover:bg-gradient-to-r hover:from-[#08384F] hover:to-[#0B56A4] hover:shadow-xl
+                active:scale-95
+                disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -182,7 +192,7 @@ const TimeTableHeader = ({
           <>
             <button
               onClick={onSave}
-              disabled={isSaving || !selectedSection}
+              disabled={!isSaveEnabled || isSaving || !selectedSection}
               className="flex items-center gap-2 px-5 py-2 bg-[#08384F] text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50 hover:bg-[#0B56A4]"
             >
               {isSaving ? (
@@ -226,12 +236,23 @@ const TimeTableHeader = ({
             Course Matrix
           </button>
         </div>
-        <div
+        <button
           onClick={onPrint}
-          className="px-4 py-2 bg-green-100 font-semibold text-sm items-center flex gap-2 rounded-lg text-green-900 cursor-pointer hover:bg-green-200 transition-colors"
+          disabled={!isPrintEnabled}
+          className={`px-4 py-2 font-semibold text-sm items-center flex gap-2 rounded-lg transition-colors ${
+            isPrintEnabled
+              ? "bg-green-100 text-green-900 cursor-pointer hover:bg-green-200"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+          }`}
+          title={
+            !isPrintEnabled
+              ? "Please wait for all data to load completely"
+              : "Print timetable"
+          }
         >
-          <Printer size={15} /> Print
-        </div>
+          <Printer size={15} />
+          Print
+        </button>
       </div>
     </div>
   );
@@ -758,6 +779,9 @@ const TimeTableManagement = () => {
 
   const isTabChangeDisabled = isInitialLoading;
 
+  const isSaveEnabled =
+    !structLoading && !depsLoading && !timeTableLoading && !activeYearLoading;
+
   return (
     <div className="h-screen flex flex-col bg-white font-['Poppins']">
       <HeaderComponent title="Academic Management" />
@@ -781,6 +805,8 @@ const TimeTableManagement = () => {
         onTabChange={handleTabChange}
         isTabChangeDisabled={isTabChangeDisabled}
         onPrint={handlePrintClick}
+        isTimeTableLoading={timeTableLoading}
+        isSaveEnabled={isSaveEnabled}
       />
 
       <div className="flex-1 overflow-y-auto bg-[#FCFDFE]">
