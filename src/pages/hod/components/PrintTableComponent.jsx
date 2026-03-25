@@ -103,16 +103,16 @@ const PrintTable = React.forwardRef(({ data }, ref) => {
   const getShortDesignation = (designation) => {
     if (!designation) return "";
     const map = {
-      Professor: "Prof",
-      "Associate Professor": "AP",
-      "Assistant Professor": "AP",
-      HOD: "Prof",
+      Professor: "Professor",
+      "Associate Professor": "Associate Professor",
+      "Assistant Professor": "Assistant Professor",
+      HOD: "HOD",
       Dean: "Dean",
       Faculty: "Faculty",
-      "Professor of Practice": "PoP",
-      "Lab Technician": "LT",
-      "Senior Lab Technician": "SLT",
-      "Department Secretary": "DS",
+      "Professor of Practice": "Professor of Practice",
+      "Lab Technician": "Lab Technician",
+      "Senior Lab Technician": "Senior Lab Technician",
+      "Department Secretary": "Department Secretary",
     };
     return map[designation] || designation;
   };
@@ -126,7 +126,7 @@ const PrintTable = React.forwardRef(({ data }, ref) => {
 
     let suffix = "";
     if (shortDesig && deptCode) {
-      suffix = `, ${shortDesig}/${deptCode}`;
+      suffix = `, ${shortDesig} / ${deptCode}`;
     } else if (shortDesig) {
       suffix = `, ${shortDesig}`;
     } else if (deptCode) {
@@ -311,11 +311,17 @@ const PrintTable = React.forwardRef(({ data }, ref) => {
           Department of {department?.name || "Computer Science and Engineering"}
         </h3>
         <p style={{ margin: "2px 0", fontSize: "12px", fontWeight: "bold" }}>
-          Batch : {batch?.name || ""} :{" "}
+          Batch :
           {batch?.startYear && batch?.endYear
             ? `${batch.startYear} - ${batch.endYear}`
             : ""}{" "}
-          / Semester {semester} [Academic Year: {academicYear?.name || ""}]
+          / Year {" "}
+          {["I", "II", "III", "IV", "V"][Math.ceil(semester / 2) - 1] || ""}{" "} / 
+          Semester{" "}
+          {["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][
+            semester - 1
+          ] || semester}{" "}
+          [Academic Year: {academicYear?.name || ""}]
         </p>
         <p style={{ margin: "2px 0", fontSize: "12px", fontWeight: "bold" }}>
           Class Timetable - Academic Schedule
@@ -332,34 +338,30 @@ const PrintTable = React.forwardRef(({ data }, ref) => {
               <br />
               Classroom : [{sectionDetails?.venue || "N/A"}]
             </td>
-            <td style={{ ...tdStyle, width: "60%", textAlign: "left" }}>
+            <td style={{ ...boldTd, width: "60%", textAlign: "center" }}>
               <span style={headerLabel}>Class Advisor:</span>{" "}
-              {sectionDetails?.advisor
-                ? (() => {
-                    const advisor = facultyAssignments.find(
-                      (f) => f._id === sectionDetails.advisor,
-                    )?.facultyIds?.[0];
-                    return advisor ? formatFacultyDisplay(advisor) : "N/A";
-                  })()
+              {sectionDetails?.advisor?.firstName
+                ? formatFacultyDisplay(sectionDetails.advisor)
                 : "N/A"}
               <br />
               <span style={headerLabel}>Class Tutors:</span>{" "}
-              {sectionDetails?.tutors
-                ?.map((tId) => {
-                  const tutor = facultyAssignments.find((f) => f._id === tId)
-                    ?.facultyIds?.[0];
-                  return tutor ? formatFacultyDisplay(tutor) : "";
-                })
-                .filter(Boolean)
-                .join(", ") || "N/A"}
+              <div
+                style={{ textAlign: "center" }}
+                dangerouslySetInnerHTML={{
+                  __html:
+                    sectionDetails?.tutors && sectionDetails.tutors.length > 0
+                      ? sectionDetails.tutors
+                          .map((tutor) => formatFacultyDisplay(tutor))
+                          .join("<br/>")
+                      : "N/A",
+                }}
+              />
             </td>
-            <td style={{ ...tdStyle, width: "20%", textAlign: "center" }}>
+            <td style={{ ...boldTd, width: "20%", textAlign: "center" }}>
               <span style={headerLabel}>
                 Class Strength:
                 {sectionDetails?.studentCount || section?.studentCount || ""}
               </span>
-              <br />
-              Ver 1.0
               <br />
               {new Date().toLocaleDateString("en-GB")}
             </td>
