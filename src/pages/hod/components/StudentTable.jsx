@@ -46,6 +46,9 @@ const StudentTable = ({ academicYearId }) => {
   const [filterSemType, setFilterSemType] = useState("odd");
   const [filterStatus, setFilterStatus] = useState("");
 
+  const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
+  const deptId = user.departmentId;
+
   const [visibleColumns, setVisibleColumns] = useState({
     sNo: true,
     rollNumber: true,
@@ -80,7 +83,7 @@ const StudentTable = ({ academicYearId }) => {
     if (!academicYearId) return;
     try {
       if (!studentCache[academicYearId]) setLoading(true);
-      const res = await getAllStudents(academicYearId);
+      const res = await getAllStudents(academicYearId, deptId);
       let studentData = res?.data?.students || [];
       if (studentData.length > 0) {
         const sortedData = studentData.sort((a, b) => {

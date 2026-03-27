@@ -46,12 +46,14 @@ const StaffAllocation = ({ collapsed }) => {
   const [localAllocationMap, setLocalAllocationMap] = useState({});
   const dropdownRef = useRef(null);
   const [isSectionChanging, setIsSectionChanging] = useState(false);
+  const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
+  const deptId = user.departmentId;
 
   const { data: academicStructure = [], isLoading: structureLoading } =
     useQuery({
       queryKey: ["academicStructure"],
       queryFn: async () => {
-        const res = await getDeptAcademicStructure();
+        const res = await getDeptAcademicStructure(deptId);
         return (
           res.data?.academicStructure || res.data?.data?.academicStructure || []
         );
@@ -120,15 +122,14 @@ const StaffAllocation = ({ collapsed }) => {
       setLocalAllocationMap(mapping);
       return mapping;
     },
-    enabled: false, // Disable auto-fetching
+    enabled: false,
   });
 
-  // Effect to handle section change with shimmer
   useEffect(() => {
     if (selectedSection && current) {
       const loadAssignments = async () => {
         setIsSectionChanging(true);
-        setLocalAllocationMap({}); // Clear previous data immediately
+        setLocalAllocationMap({});
         try {
           await refetchAssignments();
         } finally {
@@ -147,7 +148,6 @@ const StaffAllocation = ({ collapsed }) => {
         selectedSection?._id,
         current?.semester,
       ]);
-      // Refetch assignments after successful mutation
       if (selectedSection && current) {
         refetchAssignments();
       }
@@ -185,12 +185,17 @@ const StaffAllocation = ({ collapsed }) => {
   const handleSave = () => {
     if (!selectedSection) return toast.error("Select a section first");
 
-    const allocationEntries = Object.entries(localAllocationMap)
-      .filter(([_, ids]) => ids.length > 0)
-      .map(([compId, ids]) => ({
-        subjectComponentId: compId,
-        facultyIds: ids,
-      }));
+    const allComponentIds = new Set();
+    deps.subjects.forEach((subject) => {
+      subject.components?.forEach((component) => {
+        allComponentIds.add(component._id);
+      });
+    });
+
+    const allocationEntries = Array.from(allComponentIds).map((compId) => ({
+      subjectComponentId: compId,
+      facultyIds: localAllocationMap[compId] || [],
+    }));
 
     const payload = {
       sectionId: selectedSection._id,
@@ -232,7 +237,6 @@ const StaffAllocation = ({ collapsed }) => {
     );
   }, [deps.subjects, searchTerm]);
 
-  // Component for faculty loading shimmer
   const FacultyLoadingShimmer = () => (
     <div className="space-y-1.5">
       {[1, 2].map((i) => (
@@ -247,7 +251,6 @@ const StaffAllocation = ({ collapsed }) => {
     </div>
   );
 
-  // Component for subject card loading shimmer
   const SubjectCardShimmer = () => (
     <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
       <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
@@ -337,7 +340,7 @@ const StaffAllocation = ({ collapsed }) => {
                     onClick={() => {
                       setSelectedStructureIndex(index);
                       setSelectedSection(null);
-                      setLocalAllocationMap({}); // Clear allocation map
+                      setLocalAllocationMap({});
                     }}
                     className={`flex flex-col p-4 rounded-2xl text-left border border-gray-300 transition-all ${
                       selectedStructureIndex === index
@@ -365,7 +368,7 @@ const StaffAllocation = ({ collapsed }) => {
                   key={sec._id}
                   onClick={() => {
                     setSelectedSection(sec);
-                    setLocalAllocationMap({}); // Clear immediately when clicking new section
+                    setLocalAllocationMap({});
                   }}
                   className={`flex items-center justify-between p-4 rounded-2xl border font-bold transition-all ${
                     selectedSection?._id === sec._id
@@ -413,13 +416,12 @@ const StaffAllocation = ({ collapsed }) => {
                   </div>
                 ))
               ) : isSectionChanging || assignmentsLoading ? (
-                // Show shimmer when section is changing or assignments are loading
                 [1, 2, 3].map((i) => <SubjectCardShimmer key={i} />)
               ) : filteredSubjects.length > 0 ? (
                 filteredSubjects.map((sub) => (
                   <div
                     key={sub._id}
-                    className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
+                    className="border border-gray-200 rounded-2xl shadow-sm"
                   >
                     <div className="bg-[#08384F]/5 px-4 py-3 border-b border-gray-200 flex items-center gap-2">
                       <span className="font-black text-[#08384F] text-xs">
@@ -463,7 +465,7 @@ const StaffAllocation = ({ collapsed }) => {
                                 Add Faculty
                               </button>
                               {activeDropdown === comp._id && (
-                                <div className="absolute right-0 z-50 mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
+                                <div className="absolute right-0 z-50 mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-md">
                                   <div className="p-2 bg-gray-50">
                                     <input
                                       autoFocus

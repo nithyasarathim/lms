@@ -9,9 +9,6 @@ const apiClient = axios.create({
   },
 });
 
-const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
-const deptId = user.departmentId;
-
 apiClient.interceptors.request.use((config) => {
   const userdata = JSON.parse(localStorage.getItem("lms-user"));
   const token = userdata?.token;
@@ -30,10 +27,10 @@ export const getActiveAcademicYear = async () => {
   }
 };
 
-export const getCurrentYearAndSections = async () => {
+export const getCurrentYearAndSections = async (departmentId) => {
   try {
     const response = await apiClient.get(
-      `/api/sections/current-year/${deptId}`,
+      `/api/sections/current-year/${departmentId}`,
     );
     return response.data;
   } catch (err) {
@@ -64,10 +61,10 @@ export const updateStudentSections = async (studentIds, targetSectionId) => {
   }
 };
 
-export const getDeptAcademicStructure = async () => {
+export const getDeptAcademicStructure = async (departmentId) => {
   try {
     const response = await apiClient.get(
-      `/api/assign-faculty/academic-structure/${deptId}`,
+      `/api/assign-faculty/academic-structure/${departmentId}`,
     );
     return response;
   } catch (err) {
@@ -168,10 +165,10 @@ export const getSubjectsForTimeTable = async (
   }
 };
 
-export const getStudentStats = async (academicYearId) => {
+export const getStudentStats = async (academicYearId, departmentId) => {
   try {
     const response = await apiClient.get(
-      `/api/students/stats/year-wise?academicYearId=${academicYearId}&departmentId=${deptId}`,
+      `/api/students/stats/year-wise?academicYearId=${academicYearId}&departmentId=${departmentId}`,
     );
     return response.data;
   } catch (err) {
@@ -179,10 +176,10 @@ export const getStudentStats = async (academicYearId) => {
   }
 };
 
-export const getStudentByDeptStats = async (academicYearId) => {
+export const getStudentByDeptStats = async (academicYearId, departmentId) => {
   try {
     const response = await apiClient.get(
-      `api/students/stats/department-wise?academicYearId=${academicYearId}&departmentId=${deptId}`,
+      `api/students/stats/department-wise?academicYearId=${academicYearId}&departmentId=${departmentId}`,
     );
     return response.data;
   } catch (error) {
@@ -190,10 +187,10 @@ export const getStudentByDeptStats = async (academicYearId) => {
   }
 };
 
-export const getAllStudents = async (academicYearId) => {
+export const getAllStudents = async (academicYearId, departmentId) => {
   try {
     const response = await apiClient.get(
-      `api/students?academicYearId=${academicYearId}&departmentId=${deptId}`,
+      `api/students?academicYearId=${academicYearId}&departmentId=${departmentId}`,
     );
     return response.data;
   } catch (error) {

@@ -19,12 +19,12 @@ const SectionManagement = ({ collapsed }) => {
   });
   const [yearsData, setYearsData] = useState(() => {
     const cached = sessionStorage.getItem("cache_yearsData");
-    return cached ? JSON.parse(cached) : [];
+    return cached && cached !== "undefined" ? JSON.parse(cached) : [];
   });
   const [selectedYearIndex, setSelectedYearIndex] = useState(0);
   const [selectedSection, setSelectedSection] = useState(() => {
     const cached = sessionStorage.getItem("cache_selectedSection");
-    return cached ? JSON.parse(cached) : null;
+    return cached && cached !== "undefined" ? JSON.parse(cached) : null;
   });
   const [students, setStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -32,6 +32,8 @@ const SectionManagement = ({ collapsed }) => {
   const [loading, setLoading] = useState(!yearsData.length);
   const [studentLoading, setStudentLoading] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState("");
+  const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
+  const deptId = user.departmentId;
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -39,7 +41,7 @@ const SectionManagement = ({ collapsed }) => {
       try {
         const [ayRes, sectionRes] = await Promise.all([
           getActiveAcademicYear(),
-          getCurrentYearAndSections(),
+          getCurrentYearAndSections(deptId),
         ]);
         if (ayRes.success && ayRes.data.academicYears.length > 0) {
           const ayName = ayRes.data.academicYears[0].name;
@@ -76,7 +78,7 @@ const SectionManagement = ({ collapsed }) => {
       const cacheKey = `students_${selectedSection._id}`;
       const cachedStudents = sessionStorage.getItem(cacheKey);
 
-      if (cachedStudents) {
+      if (cachedStudents && cachedStudents !== "undefined") {
         setStudents(JSON.parse(cachedStudents));
         setStudentLoading(false);
       } else {
@@ -133,7 +135,7 @@ const SectionManagement = ({ collapsed }) => {
 
         const [studentRes, sectionRes] = await Promise.all([
           getSectionStudentData(selectedSection._id),
-          getCurrentYearAndSections(),
+          getCurrentYearAndSections(deptId),
         ]);
 
         if (studentRes.success) {
@@ -173,7 +175,7 @@ const SectionManagement = ({ collapsed }) => {
       <div className="px-6 py-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
         <div className="flex items-center justify-between mt-2 mb-6">
           <div className="flex items-center gap-5">
-            <p className="flex items-center text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            <div className="flex items-center text-sm font-semibold text-gray-500 uppercase tracking-wider">
               Academic Year -
               <span className="text-[#08384F] px-2 font-bold text-lg">
                 {loading && !selectedAcademicYear ? (
@@ -182,7 +184,7 @@ const SectionManagement = ({ collapsed }) => {
                   selectedAcademicYear
                 )}
               </span>
-            </p>
+            </div>
           </div>
           <button
             onClick={handleUpdateSection}

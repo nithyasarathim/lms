@@ -18,6 +18,8 @@ const StudentStats = ({ academicYearId }) => {
       },
     },
   );
+  const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
+  const deptId = user.departmentId;
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -29,7 +31,7 @@ const StudentStats = ({ academicYearId }) => {
         setLoading(true);
       }
       try {
-        const res = await getStudentStats(academicYearId);
+        const res = await getStudentStats(academicYearId, deptId);
         if (res.success) {
           globalStudentCache[cacheKey] = res.data;
           setStats(res.data);

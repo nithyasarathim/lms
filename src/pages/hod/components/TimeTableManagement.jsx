@@ -309,6 +309,8 @@ const TimeTableManagement = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [editingAdditionalHour, setEditingAdditionalHour] = useState(null);
   const [printData, setPrintData] = useState(null);
+  const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
+  const deptId = user.departmentId;
 
   const { data: activeYear, isLoading: activeYearLoading } = useQuery({
     queryKey: ["activeYear"],
@@ -322,7 +324,7 @@ const TimeTableManagement = () => {
   const { data: academicStructure = [], isLoading: structLoading } = useQuery({
     queryKey: ["academicStructure"],
     queryFn: async () => {
-      const res = await getDeptAcademicStructure();
+      const res = await getDeptAcademicStructure(deptId);
       return (
         res.data?.academicStructure || res.data?.data?.academicStructure || []
       );

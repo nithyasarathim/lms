@@ -20,6 +20,8 @@ const StudentPieChart = ({ academicYearId }) => {
     pieStatsCache[cacheKey]?.chartData || [],
   );
   const [total, setTotal] = useState(pieStatsCache[cacheKey]?.total || 0);
+  const user = JSON.parse(localStorage.getItem("lms-user") || "{}");
+  const deptId = user.departmentId;
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -32,7 +34,7 @@ const StudentPieChart = ({ academicYearId }) => {
         setLoading(true);
       }
       try {
-        const res = await getStudentByDeptStats(academicYearId);
+        const res = await getStudentByDeptStats(academicYearId, deptId);
         if (res.success && res.data?.departments?.length > 0) {
           const deptData = res.data.departments[0];
           const formattedData = [
