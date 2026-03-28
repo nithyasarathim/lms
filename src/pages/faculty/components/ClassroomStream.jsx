@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   MoreVertical,
@@ -9,15 +9,19 @@ import {
   Link as LinkIcon,
   Trash2,
   Edit,
-} from "lucide-react";
-import CreateAnnouncementModal from "../modals/CreateAnnouncementModal";
-import Banner1 from "../../../assets/classroombanner1.svg";
+  MessageSquare,
+  ClipboardList
+} from 'lucide-react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import AnnouncementModal from '../modals/AnnouncementModal';
+import Banner1 from '../../../assets/classroombanner1.svg';
 import {
   getStream,
   addComment,
   deletePost,
-  deleteComment,
-} from "../api/faculty.api";
+  deleteComment
+} from '../api/faculty.api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -28,6 +32,7 @@ const ClassroomStream = ({ classroom }) => {
   const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState(null);
   const [commentText, setCommentText] = useState({});
+  const [expandedComments, setExpandedComments] = useState({});
 
   const fetchStream = async () => {
     try {
@@ -45,272 +50,323 @@ const ClassroomStream = ({ classroom }) => {
     if (classroom?._id) fetchStream();
   }, [classroom?._id]);
 
-  const handleDeletePost = async (postId) => {
-    if (window.confirm("Delete this announcement?")) {
-      try {
-        const res = await deletePost(classroom._id, "announcement", postId);
-        if (res.success) fetchStream();
-      } catch (err) {
-        alert("Failed to delete post");
-      }
-    }
-  };
-
-  const handleDeleteComment = async (commentId) => {
-    if (window.confirm("Delete this comment?")) {
-      try {
-        const res = await deleteComment(classroom._id, commentId);
-        if (res.success) fetchStream();
-      } catch (err) {
-        alert("Failed to delete comment");
-      }
-    }
+  const toggleComments = (postId) => {
+    setExpandedComments((prev) => ({ ...prev, [postId]: !prev[postId] }));
   };
 
   const handlePostComment = async (postId) => {
     const message = commentText[postId];
-    if (!message?.trim()) return;
+    if (!message?.replace(/<(.|\n)*?>/g, '').trim()) return;
+
     try {
       const res = await addComment(classroom._id, postId, message);
       if (res.success) {
         fetchStream();
-        setCommentText({ ...commentText, [postId]: "" });
+        setCommentText({ ...commentText, [postId]: '' });
       }
     } catch (err) {
-      alert("Error adding comment");
+      alert('Error adding comment');
     }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (window.confirm('Delete this comment?')) {
+      try {
+        const res = await deleteComment(classroom._id, commentId);
+        if (res.success) fetchStream();
+      } catch (err) {
+        alert('Failed to delete comment');
+      }
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (window.confirm('Delete this post?')) {
+      try {
+        const res = await deletePost(classroom._id, postId);
+        if (res.success) fetchStream();
+      } catch (err) {
+        alert('Failed to delete post');
+      }
+    }
+  };
+
+  const quillModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['clean']
+    ]
   };
 
   if (loading)
     return (
-      <div className="py-20 text-center text-gray-400">Loading stream...</div>
+      <div className="py-20 text-center text-gray-400 font-medium">
+        Loading stream...
+      </div>
     );
 
   return (
-    <div className="animate-in fade-in duration-500 space-y-6">
-      <div className="relative h-64 rounded-xl overflow-hidden shadow-lg">
+    <div className="w-full mx-auto space-y-6 pb-10 px-4 md:px-8">
+      <style>{`
+        .comment-quill .ql-editor { min-height: 40px; padding: 12px 16px !important; font-size: 0.875rem; color: #374151; }
+        .comment-quill .ql-container { border: none !important; }
+        .comment-quill .ql-toolbar { display: none; border: none !important; }
+        .comment-quill:focus-within .ql-toolbar { display: block; border-bottom: 1px solid #f3f4f6 !important; }
+        /* Link color in instructions */
+        .prose a { color: #08384F; text-decoration: underline; }
+      `}</style>
+
+      {/* Banner */}
+      <div className="relative h-48 rounded-xl overflow-hidden shadow-sm border border-gray-200">
         <img
           src={Banner1}
           className="w-full h-full object-cover"
           alt="banner"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08384F]/90 to-transparent p-8 flex flex-col justify-end text-white">
-          <h1 className="text-3xl font-bold">
+        <div className="absolute inset-0 bg-black/20 p-8 flex flex-col justify-end text-white">
+          <h1 className="text-3xl font-bold tracking-tight">
             {classroom?.subjectComponentId?.subjectId?.name}
           </h1>
-          <p className="opacity-80">
-            {classroom?.department?.code} - {classroom?.sectionId?.name}
+          <p className="text-lg font-medium opacity-90">
+            {classroom?.sectionId?.name}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Left Sidebar */}
+        <div className="hidden md:block col-span-1">
           <button
             onClick={() => {
               setEditData(null);
               setIsModalOpen(true);
             }}
-            className="w-full flex items-center justify-center gap-2 bg-[#08384F] text-white p-3 rounded-lg font-bold shadow hover:bg-[#0a4663] transition-all"
+            className="w-full flex items-center justify-center gap-2 bg-[#08384F] text-white py-3 px-4 rounded-lg font-bold shadow-sm hover:bg-[#0a4663] transition-all"
           >
             <Plus size={20} /> New Announcement
           </button>
         </div>
 
-        <div className="lg:col-span-3 space-y-6">
+        {/* Main Feed */}
+        <div className="col-span-1 md:col-span-3 space-y-4">
           {stream.length === 0 ? (
-            <div className="py-16 text-center bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-              <Megaphone size={24} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">Stream is empty</p>
+            <div className="py-16 text-center bg-white rounded-xl border border-gray-200">
+              <Megaphone size={32} className="mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500 font-medium">No posts yet</p>
             </div>
           ) : (
             stream.map((post) => {
-              const attachments = post.attachments
-                ? typeof post.attachments === "string"
-                  ? JSON.parse(post.attachments)
-                  : post.attachments
-                : [];
-
-              // Map createdBy to a local constant for easier access
               const author = post.createdBy;
+              const isAnnouncement = post.type === 'announcement';
+              const showAllComments =
+                expandedComments[post._id] || post.commentsCount <= 1;
 
               return (
                 <div
                   key={post._id}
-                  className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+                  className="bg-white border border-gray-200 rounded-lg shadow-sm hover:border-gray-300 transition-colors"
                 >
-                  {post.type === "announcement" && (
-                    <>
-                      <div className="p-4 flex justify-between relative">
-                        <div className="flex gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#08384F] text-white flex items-center justify-center font-bold uppercase shrink-0">
-                            {author?.firstName?.charAt(0)}
-                            {author?.lastName?.charAt(0)}
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-gray-900">
-                              {author?.firstName} {author?.lastName}
-                            </h4>
-                            <p className="text-[11px] text-gray-500">
-                              {new Date(post.createdAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}{" "}
-                              {new Date(post.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="relative">
-                          <MoreVertical
-                            size={18}
-                            className="text-gray-400 cursor-pointer p-1 hover:bg-gray-100 rounded-full"
-                            onClick={() =>
-                              setActiveMenu(
-                                activeMenu === post._id ? null : post._id,
-                              )
-                            }
-                          />
-                          {activeMenu === post._id && (
-                            <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-100 rounded-lg shadow-xl z-20 overflow-hidden">
-                              <button
-                                onClick={() => {
-                                  setEditData(post);
-                                  setIsModalOpen(true);
-                                  setActiveMenu(null);
-                                }}
-                                className="w-full text-left px-4 py-2 text-xs text-[#08384F] hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <Edit size={14} /> Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeletePost(post._id)}
-                                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
-                              >
-                                <Trash2 size={14} /> Delete
-                              </button>
-                            </div>
+                  <div className="p-5">
+                    <div className="flex justify-between items-start">
+                      <div className="flex gap-4 items-center">
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 bg-[#08384F]`}
+                        >
+                          {isAnnouncement ? (
+                            author?.firstName?.charAt(0)
+                          ) : (
+                            <ClipboardList size={20} />
                           )}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 leading-tight">
+                            {isAnnouncement
+                              ? `${author?.firstName} ${author?.lastName}`
+                              : `${author?.firstName} ${author?.lastName} posted a new assignment: ${post.title}`}
+                          </h4>
+                          <p className="text-[11px] text-gray-500 font-medium mt-0.5">
+                            {new Date(post.createdAt).toLocaleDateString(
+                              'en-US',
+                              { month: 'short', day: 'numeric' }
+                            )}
+                          </p>
                         </div>
                       </div>
 
-                      <div
-                        className="px-4 pb-4 prose prose-sm max-w-none text-[#08384F]"
-                        dangerouslySetInnerHTML={{ __html: post.instructions }}
-                      />
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setActiveMenu(
+                              activeMenu === post._id ? null : post._id
+                            )
+                          }
+                          className="p-2 hover:bg-gray-100 rounded-full"
+                        >
+                          <MoreVertical size={18} className="text-gray-400" />
+                        </button>
 
-                      {attachments.length > 0 && (
-                        <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {attachments.map((at, idx) => {
-                            const isFile =
-                              at.fileType === "application/pdf" ||
-                              at.fileType?.includes("file");
-                            const targetUrl = isFile
-                              ? `${API_BASE_URL}${at.fileUrl}`
-                              : at.fileUrl;
+                        {activeMenu === post._id && (
+                          <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-100 rounded-lg shadow-xl z-50 py-1">
+                            <button
+                              onClick={() => {
+                                setEditData(post);
+                                setIsModalOpen(true);
+                                setActiveMenu(null);
+                              }}
+                              className="w-full px-4 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Edit size={14} /> Edit
+                            </button>
 
-                            return (
+                            {isAnnouncement && (
+                              <button
+                                onClick={() => {
+                                  handleDeletePost(post._id);
+                                  setActiveMenu(null);
+                                }}
+                                className="w-full px-4 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2"
+                              >
+                                <Trash2 size={14} /> Delete
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {isAnnouncement && (
+                      <>
+                        {post.instructions && (
+                          <div
+                            className="text-sm text-gray-700 mt-4 prose prose-slate max-w-none"
+                            dangerouslySetInnerHTML={{
+                              __html: post.instructions
+                            }}
+                          />
+                        )}
+
+                        {post.attachments?.length > 0 && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                            {post.attachments.map((at, idx) => (
                               <a
                                 key={idx}
-                                href={targetUrl}
+                                href={
+                                  at.fileType?.includes('file')
+                                    ? `${API_BASE_URL}${at.fileUrl}`
+                                    : at.fileUrl
+                                }
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg text-xs hover:bg-gray-50 transition-colors"
+                                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all group"
                               >
-                                {at.fileType === "video" ? (
-                                  <Youtube
-                                    size={16}
-                                    className="text-red-500 shrink-0"
-                                  />
-                                ) : isFile ? (
-                                  <FileText
-                                    size={16}
-                                    className="text-orange-500 shrink-0"
-                                  />
+                                {at.fileType === 'video' ? (
+                                  <Youtube size={18} className="text-red-500" />
                                 ) : (
-                                  <LinkIcon
-                                    size={16}
-                                    className="text-blue-500 shrink-0"
+                                  <FileText
+                                    size={18}
+                                    className="text-[#08384F]"
                                   />
                                 )}
-                                <div className="flex flex-col min-w-0">
-                                  <span className="font-medium text-gray-700 truncate">
-                                    {at.fileName || "Attachment"}
-                                  </span>
-                                </div>
+                                <span className="text-xs font-bold text-gray-700 truncate group-hover:text-[#08384F]">
+                                  {at.fileName || 'Attachment'}
+                                </span>
                               </a>
-                            );
-                          })}
-                        </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Comments Section */}
+                  {isAnnouncement && (
+                    <div className="border-t border-gray-100 bg-gray-50/20 overflow-hidden rounded-b-lg">
+                      {post.commentsCount > 1 && (
+                        <button
+                          onClick={() => toggleComments(post._id)}
+                          className="px-5 py-3 text-xs font-bold text-gray-600 flex items-center gap-2 hover:text-[#08384F] border-b border-gray-100 w-full text-left bg-white/40"
+                        >
+                          <MessageSquare size={14} />
+                          {expandedComments[post._id]
+                            ? 'Hide class comments'
+                            : `${post.commentsCount} class comments`}
+                        </button>
                       )}
 
-                      {/* Comments Section */}
-                      <div className="bg-gray-50/50 border-t border-gray-100">
-                        {post.comments?.map((comment, idx) => (
+                      <div className="divide-y divide-gray-100">
+                        {(showAllComments
+                          ? post.comments
+                          : post.comments.slice(-1)
+                        ).map((comment, idx) => (
                           <div
-                            key={idx}
-                            className="px-4 py-3 flex gap-3 items-start group border-b border-gray-100 last:border-0"
+                            key={comment._id || idx}
+                            className="px-5 py-4 flex gap-3 group bg-white/50"
                           >
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-[10px] shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold shrink-0 text-[#08384F]">
                               {comment.user?.firstName?.charAt(0)}
                             </div>
-                            <div className="flex-1 text-[12px]">
+                            <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-gray-900">
-                                  {comment.user?.firstName}{" "}
+                                <span className="text-xs font-bold text-gray-900">
+                                  {comment.user?.firstName}{' '}
                                   {comment.user?.lastName}
                                 </span>
                                 <span className="text-[10px] text-gray-400">
                                   {new Date(
-                                    comment.createdAt,
-                                  ).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}{" "}
-                                  {new Date(
-                                    comment.createdAt,
+                                    comment.createdAt
                                   ).toLocaleDateString()}
                                 </span>
                               </div>
-                              <p className="text-gray-600 mt-0.5">
-                                {comment.message}
-                              </p>
+                              <div
+                                className="text-xs text-gray-600 mt-1 prose-sm font-medium"
+                                dangerouslySetInnerHTML={{
+                                  __html: comment.message
+                                }}
+                              />
                             </div>
-                            <Trash2
-                              size={14}
-                              className="text-red-300 opacity-0 group-hover:opacity-100 cursor-pointer hover:text-red-600 transition-all"
+                            <button
                               onClick={() => handleDeleteComment(comment._id)}
-                            />
+                              className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-1"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         ))}
                       </div>
 
-                      <div className="p-4 flex gap-3 items-center border-t border-gray-100">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-[#08384F] shrink-0">
+                      {/* Comment Input */}
+                      <div className="p-4 flex gap-3 items-start border-t border-gray-100 bg-white">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 text-[#08384F] flex items-center justify-center text-[10px] font-bold shrink-0 uppercase">
                           YOU
                         </div>
-                        <div className="flex-1 relative">
-                          <input
-                            className="w-full bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-xs outline-none focus:border-[#08384F] transition-all"
+                        <div className="flex-1 relative comment-quill border border-gray-200 rounded-2xl overflow-hidden focus-within:border-[#08384F] transition-all bg-gray-50">
+                          <ReactQuill
+                            theme="snow"
                             placeholder="Add class comment..."
-                            value={commentText[post._id] || ""}
-                            onChange={(e) =>
+                            value={commentText[post._id] || ''}
+                            onChange={(val) =>
                               setCommentText({
                                 ...commentText,
-                                [post._id]: e.target.value,
+                                [post._id]: val
                               })
                             }
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && handlePostComment(post._id)
-                            }
+                            modules={quillModules}
                           />
-                          <Send
-                            size={14}
-                            className="absolute right-3 top-2.5 text-gray-400 cursor-pointer hover:text-[#08384F]"
+                          <button
                             onClick={() => handlePostComment(post._id)}
-                          />
+                            className="absolute right-3 bottom-2 p-1.5 bg-[#08384F] text-white rounded-full hover:bg-[#0a4663] disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm"
+                            disabled={
+                              !commentText[post._id]
+                                ?.replace(/<(.|\n)*?>/g, '')
+                                .trim()
+                            }
+                          >
+                            <Send size={14} />
+                          </button>
                         </div>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               );
@@ -319,7 +375,7 @@ const ClassroomStream = ({ classroom }) => {
         </div>
       </div>
 
-      <CreateAnnouncementModal
+      <AnnouncementModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);

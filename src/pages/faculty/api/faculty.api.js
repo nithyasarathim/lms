@@ -1,16 +1,16 @@
-import axios from "axios";
+import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
-  },
+    'Content-Type': 'application/json'
+  }
 });
 
 apiClient.interceptors.request.use((config) => {
-  const userdata = JSON.parse(localStorage.getItem("lms-user"));
+  const userdata = JSON.parse(localStorage.getItem('lms-user'));
   const token = userdata?.token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -21,7 +21,7 @@ apiClient.interceptors.request.use((config) => {
 export const getClassrooms = async (facultyId) => {
   try {
     const response = await apiClient.get(
-      `/api/classroom?facultyId=${facultyId}`,
+      `/api/classroom?facultyId=${facultyId}`
     );
     return response.data;
   } catch (err) {
@@ -44,8 +44,8 @@ export const createPost = async (classroomId, formData) => {
       `/api/classroom/${classroomId}/posts`,
       formData,
       {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
     );
     return response.data;
   } catch (err) {
@@ -56,7 +56,7 @@ export const createPost = async (classroomId, formData) => {
 export const getStream = async (classroomId) => {
   try {
     const response = await apiClient.get(
-      `/api/classroom/${classroomId}/posts/stream`,
+      `/api/classroom/${classroomId}/posts/stream`
     );
     return response.data;
   } catch (err) {
@@ -67,7 +67,29 @@ export const getStream = async (classroomId) => {
 export const getClasswork = async (classroomId) => {
   try {
     const response = await apiClient.get(
-      `/api/classroom/${classroomId}/posts/`,
+      `/api/classroom/${classroomId}/posts/`
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getEligibleStudents = async (classroomId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/classroom/${classroomId}/eligible-students`
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getClassroomMembers = async (classroomId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/classroom/${classroomId}/members`
     );
     return response.data;
   } catch (err) {
@@ -78,7 +100,7 @@ export const getClasswork = async (classroomId) => {
 export const getTopics = async (classroomId) => {
   try {
     const response = await apiClient.get(
-      `/api/classroom/${classroomId}/posts/topic`,
+      `/api/classroom/${classroomId}/posts/topic`
     );
     return response.data;
   } catch (err) {
@@ -90,7 +112,7 @@ export const addComment = async (classroomId, postId, message) => {
   try {
     const response = await apiClient.post(
       `/api/classroom/${classroomId}/posts/${postId}/comments`,
-      { message },
+      { message }
     );
     return response.data;
   } catch (err) {
@@ -100,13 +122,13 @@ export const addComment = async (classroomId, postId, message) => {
 
 export const updatePost = async (classroomId, type, postId, formData) => {
   try {
-    console.log("FormData Contents:", Object.fromEntries(formData.entries()));
+    console.log('FormData Contents:', Object.fromEntries(formData.entries()));
     const res = await apiClient.patch(
       `/api/classroom/${classroomId}/posts/${type}/${postId}`,
       formData,
       {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
     );
     return res.data;
   } catch (err) {
@@ -117,7 +139,7 @@ export const updatePost = async (classroomId, type, postId, formData) => {
 export const deletePost = async (classroomId, type, postId) => {
   try {
     const res = await apiClient.delete(
-      `/api/classroom/${classroomId}/posts/${type}/${postId}`,
+      `/api/classroom/${classroomId}/posts/${type}/${postId}`
     );
     return res.data;
   } catch (err) {
@@ -128,7 +150,7 @@ export const deletePost = async (classroomId, type, postId) => {
 export const deleteComment = async (classroomId, commentId) => {
   try {
     const res = await apiClient.delete(
-      `/api/classroom/${classroomId}/posts/comments/${commentId}`,
+      `/api/classroom/${classroomId}/posts/comments/${commentId}`
     );
     return res.data;
   } catch (err) {
@@ -140,7 +162,7 @@ export const addTopic = async (classroomId, formData) => {
   try {
     const res = await apiClient.post(
       `/api/classroom/${classroomId}/posts/topic`,
-      formData,
+      formData
     );
     return res.data;
   } catch (err) {
@@ -152,7 +174,7 @@ export const updateTopic = async (classroomId, topicId, formData) => {
   try {
     const res = await apiClient.patch(
       `/api/classroom/${classroomId}/posts/topic/${topicId}`,
-      formData,
+      formData
     );
     return res.data;
   } catch (err) {
@@ -163,7 +185,7 @@ export const updateTopic = async (classroomId, topicId, formData) => {
 export const deleteTopic = async (classroomId, topicId) => {
   try {
     const res = await apiClient.delete(
-      `/api/classroom/${classroomId}/posts/topic/${topicId}`,
+      `/api/classroom/${classroomId}/posts/topic/${topicId}`
     );
     return res.data;
   } catch (err) {

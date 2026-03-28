@@ -1,23 +1,24 @@
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ChevronRight,
   Layout,
   BookOpen,
   Users,
   GraduationCap,
-  CalendarCheck,
-} from "lucide-react";
-import { getClassroomById } from "../api/faculty.api";
-import ClassroomStream from "./ClassroomStream";
-import ClassroomClasswork from "./ClassroomClasswork";
+  CalendarCheck
+} from 'lucide-react';
+import { getClassroomById } from '../api/faculty.api';
+import ClassroomStream from './ClassroomStream';
+import ClassroomClasswork from './ClassroomClasswork';
+import ClassroomPeople from './ClassroomPeople';
 
 const ClassroomDetails = ({ id, onBack }) => {
   const [classroom, setClassroom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = searchParams.get("view") || "stream";
+  const activeTab = searchParams.get('view') || 'stream';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,7 +29,7 @@ const ClassroomDetails = ({ id, onBack }) => {
           setClassroom(res.data.classroom);
         }
       } catch (error) {
-        console.error("Error fetching classroom:", error);
+        console.error('Error fetching classroom:', error);
       } finally {
         setLoading(false);
       }
@@ -38,7 +39,7 @@ const ClassroomDetails = ({ id, onBack }) => {
 
   const handleTabChange = (tabId) => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.set("view", tabId);
+    newParams.set('view', tabId);
     setSearchParams(newParams);
   };
 
@@ -50,14 +51,14 @@ const ClassroomDetails = ({ id, onBack }) => {
     );
 
   const subjectName =
-    classroom?.subjectComponentId?.subjectId?.name || "Unknown Subject";
+    classroom?.subjectComponentId?.subjectId?.name || 'Unknown Subject';
 
   const tabs = [
-    { id: "stream", label: "Stream", icon: Layout },
-    { id: "classwork", label: "Classwork", icon: BookOpen },
-    { id: "people", label: "People", icon: Users },
-    { id: "grade", label: "Grades", icon: GraduationCap },
-    { id: "attendance", label: "Attendance", icon: CalendarCheck },
+    { id: 'stream', label: 'Stream', icon: Layout },
+    { id: 'classwork', label: 'Classwork', icon: BookOpen },
+    { id: 'people', label: 'People', icon: Users },
+    { id: 'grade', label: 'Grades', icon: GraduationCap },
+    { id: 'attendance', label: 'Attendance', icon: CalendarCheck }
   ];
 
   return (
@@ -88,15 +89,15 @@ const ClassroomDetails = ({ id, onBack }) => {
               onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-3 px-4 py-2 text-sm transition-all relative whitespace-nowrap group ${
                 isActive
-                  ? "text-[#08384F] font-semibold"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? 'text-[#08384F] font-semibold'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <div
                 className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
                   isActive
-                    ? "bg-[#08384F] text-white"
-                    : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
+                    ? 'bg-[#08384F] text-white'
+                    : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
                 }`}
               >
                 <Icon size={16} />
@@ -110,21 +111,16 @@ const ClassroomDetails = ({ id, onBack }) => {
         })}
       </div>
 
-      <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm min-h-[400px]">
-        {activeTab === "stream" && <ClassroomStream classroom={classroom} />}
+      <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm min-h-100">
+        {activeTab === 'stream' && <ClassroomStream classroom={classroom} />}
 
-        {activeTab === "classwork" && <ClassroomClasswork />}
-
-        {activeTab === "people" && (
-          <div className="animate-in fade-in duration-300">
-            <h3 className="text-lg font-semibold text-gray-900">People</h3>
-            <p className="text-gray-500 text-sm">
-              Faculty and Student roster for this classroom.
-            </p>
-          </div>
+        {activeTab === 'classwork' && (
+          <ClassroomClasswork classroom={classroom} />
         )}
 
-        {activeTab === "grade" && (
+        {activeTab === 'people' && <ClassroomPeople classroom={classroom} />}
+
+        {activeTab === 'grade' && (
           <div className="animate-in fade-in duration-300">
             <h3 className="text-lg font-semibold text-gray-900">Grades</h3>
             <p className="text-gray-500 text-sm">
@@ -133,7 +129,7 @@ const ClassroomDetails = ({ id, onBack }) => {
           </div>
         )}
 
-        {activeTab === "attendance" && (
+        {activeTab === 'attendance' && (
           <div className="animate-in fade-in duration-300">
             <h3 className="text-lg font-semibold text-gray-900">Attendance</h3>
             <p className="text-gray-500 text-sm">
