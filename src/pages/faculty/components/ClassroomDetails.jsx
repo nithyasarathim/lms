@@ -50,8 +50,7 @@ const ClassroomDetails = ({ id, onBack }) => {
       </div>
     );
 
-  const subjectName =
-    classroom?.subjectComponentId?.subjectId?.name || 'Unknown Subject';
+  const subjectName = classroom?.subjectId?.name || 'Unknown Subject';
 
   const tabs = [
     { id: 'stream', label: 'Stream', icon: Layout },
@@ -73,7 +72,7 @@ const ClassroomDetails = ({ id, onBack }) => {
         <ChevronRight size={14} className="text-gray-400" />
         <div className="flex items-center gap-2 text-gray-900">
           <span className="truncate max-w-fit font-semibold text-sm">
-            {subjectName} ({classroom?.subjectComponentId?.componentType})
+            {subjectName}
           </span>
         </div>
       </nav>

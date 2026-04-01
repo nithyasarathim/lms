@@ -160,7 +160,7 @@ const AssignmentModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl overflow-hidden relative flex flex-col h-[90vh] animate-in zoom-in-95">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
@@ -355,7 +355,7 @@ const AssignmentModal = ({
 
         {/* Sub-modal for Links / YouTube */}
         {subModal && (
-          <div className="absolute inset-0 z-[110] bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="absolute inset-0 z-110 bg-black/20 backdrop-blur-[2px] flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95">
               <h3 className="text-sm font-bold text-gray-800 uppercase mb-4">
                 Add {subModal === 'link' ? 'Link' : 'YouTube Video'}

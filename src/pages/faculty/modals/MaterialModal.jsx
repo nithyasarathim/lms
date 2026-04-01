@@ -115,7 +115,7 @@ const MaterialModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
@@ -292,7 +292,7 @@ const MaterialModal = ({
 
         {/* Sub-modal for URL inputs */}
         {subModal && (
-          <div className="absolute inset-0 z-[110] bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="absolute inset-0 z-110 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95">
               <div className="flex items-center gap-3 mb-4">
                 <div

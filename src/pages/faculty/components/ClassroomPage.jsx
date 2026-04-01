@@ -1,30 +1,30 @@
-import React from "react";
-import { useSearchParams } from "react-router-dom";
-import Header from "./../../shared/components/HeaderComponent";
-import ClassroomList from "./ClassroomList";
-import ClassroomDetails from "./ClassroomDetails";
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
+import Header from './../../shared/components/HeaderComponent';
+import ClassroomList from './ClassroomList';
+import ClassroomDetails from './ClassroomDetails';
 
 const ClassroomPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const classroomId = searchParams.get("classroomId");
-
+  const classroomId = searchParams.get('classroomId');
+  // console.log(classroomId);
   const handleSelectClassroom = (id) => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.set("tab", "classrooms");
-    newParams.set("classroomId", id);
+    newParams.set('tab', 'classrooms');
+    newParams.set('classroomId', id);
     setSearchParams(newParams);
   };
 
   const handleBack = () => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.delete("classroomId");
+    newParams.delete('classroomId');
     setSearchParams(newParams);
   };
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <div className="w-full sticky top-0 pt-3 z-30 bg-white flex-none">
-        <Header title={classroomId ? "Classroom Details" : "Classrooms"} />
+        <Header title={classroomId ? 'Classroom Details' : 'Classrooms'} />
       </div>
 
       <div className="flex-1 overflow-y-auto ">

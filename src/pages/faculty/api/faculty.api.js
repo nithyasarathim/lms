@@ -18,10 +18,10 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-export const getClassrooms = async (facultyId) => {
+export const getClassrooms = async (facultyUserId) => {
   try {
     const response = await apiClient.get(
-      `/api/classroom?facultyId=${facultyId}`
+      `/api/classroom?userId=${facultyUserId}`
     );
     return response.data;
   } catch (err) {
@@ -68,28 +68,6 @@ export const getClasswork = async (classroomId) => {
   try {
     const response = await apiClient.get(
       `/api/classroom/${classroomId}/posts/`
-    );
-    return response.data;
-  } catch (err) {
-    throw err.response?.data || err.message;
-  }
-};
-
-export const getEligibleStudents = async (classroomId) => {
-  try {
-    const response = await apiClient.get(
-      `/api/classroom/${classroomId}/eligible-students`
-    );
-    return response.data;
-  } catch (err) {
-    throw err.response?.data || err.message;
-  }
-};
-
-export const getClassroomMembers = async (classroomId) => {
-  try {
-    const response = await apiClient.get(
-      `/api/classroom/${classroomId}/members`
     );
     return response.data;
   } catch (err) {
@@ -188,6 +166,40 @@ export const deleteTopic = async (classroomId, topicId) => {
       `/api/classroom/${classroomId}/posts/topic/${topicId}`
     );
     return res.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getEligiblePeople = async (classroomId, type) => {
+  try {
+    const response = await apiClient.get(
+      `/api/classroom/${classroomId}/members/eligible/${type}`
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getClassroomMembers = async (classroomId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/classroom/${classroomId}/members`
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const inviteMembers = async (classroomId, data) => {
+  try {
+    const response = await apiClient.post(
+      `/api/classroom/${classroomId}/members/invite`,
+      data
+    );
+    return response.data;
   } catch (err) {
     throw err.response?.data || err.message;
   }

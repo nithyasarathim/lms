@@ -7,7 +7,6 @@ import {
   ChevronUp,
   MoreVertical,
   ClipboardList,
-  HelpCircle,
   BookOpen,
   FileText,
   Layout,
@@ -22,7 +21,6 @@ import {
 // Modals
 import QuizModal from '../modals/QuizModal';
 import MaterialModal from '../modals/MaterialModal';
-import QuestionModal from '../modals/QuestionModal';
 import AssignmentModal from '../modals/AssignmentModal';
 import AddTopicModal from '../modals/AddTopicModal';
 
@@ -52,7 +50,6 @@ const ClassroomClasswork = () => {
       if (res.success) {
         const fetchedTopics = res.data.classwork || [];
         setTopics(fetchedTopics);
-        // Initialize all as expanded (false means not collapsed)
         const initialCollapseState = {};
         fetchedTopics.forEach((t) => {
           initialCollapseState[t._id] = false;
@@ -84,7 +81,6 @@ const ClassroomClasswork = () => {
     setCollapsedTopics((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Helper to expand or collapse all at once
   const toggleAll = (shouldCollapse) => {
     const newState = {};
     topics.forEach((t) => (newState[t._id] = shouldCollapse));
@@ -130,8 +126,6 @@ const ClassroomClasswork = () => {
         return <ClipboardList size={20} className={iconClass} />;
       case 'quiz':
         return <FileText size={20} className={iconClass} />;
-      case 'question':
-        return <HelpCircle size={20} className={iconClass} />;
       case 'material':
         return <BookOpen size={20} className={iconClass} />;
       default:
@@ -141,11 +135,7 @@ const ClassroomClasswork = () => {
 
   const renderDueDate = (post) => {
     if (post.type === 'material') return null;
-    const date =
-      post.dueDate ||
-      post.quiz?.dueDate ||
-      post.assignment?.dueDate ||
-      post.question?.dueDate;
+    const date = post.dueDate || post.quiz?.dueDate || post.assignment?.dueDate;
     if (!date)
       return <span className="text-[13px] text-gray-400">No due date</span>;
     return (
@@ -188,9 +178,9 @@ const ClassroomClasswork = () => {
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                className="absolute top-14 left-0 w-56 bg-white border border-gray-200 shadow-2xl rounded-xl z-[150] py-2 origin-top-left"
+                className="absolute top-14 left-0 w-56 bg-white border border-gray-200 shadow-2xl rounded-xl z-150 py-2 origin-top-left"
               >
-                {['assignment', 'quiz', 'question', 'material'].map((type) => (
+                {['assignment', 'quiz', 'material'].map((type) => (
                   <button
                     key={type}
                     onClick={() => handleCreateClick(type)}
@@ -217,7 +207,6 @@ const ClassroomClasswork = () => {
           </AnimatePresence>
         </div>
 
-        {/* Global Expand/Collapse Button */}
         {topics.length > 0 && (
           <button
             onClick={() => toggleAll(!areAllCollapsed)}
@@ -236,7 +225,6 @@ const ClassroomClasswork = () => {
         )}
       </div>
 
-      {/* Topics List */}
       <div className="space-y-12 pb-32">
         {topics.length === 0 ? (
           <div className="py-24 text-center">
@@ -250,7 +238,6 @@ const ClassroomClasswork = () => {
             .filter((t) => (t.isDefault ? t.posts?.length > 0 : true))
             .map((topic) => (
               <div key={topic._id} className="group">
-                {/* Topic Header */}
                 <div
                   className="flex justify-between items-center border-b-2 border-[#08384F] mb-2 pb-2 cursor-pointer group"
                   onClick={() => toggleTopic(topic._id)}
@@ -273,7 +260,7 @@ const ClassroomClasswork = () => {
                           <MoreVertical size={20} />
                         </button>
                         {activeTopicMenu === topic._id && (
-                          <div className="absolute right-0 mt-1 w-40 bg-white border shadow-xl rounded-lg z-[120] py-1">
+                          <div className="absolute right-0 mt-1 w-40 bg-white border shadow-xl rounded-lg z-120 py-1">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -310,7 +297,6 @@ const ClassroomClasswork = () => {
                   </div>
                 </div>
 
-                {/* Animated Post Container */}
                 <AnimatePresence initial={false}>
                   {!collapsedTopics[topic._id] && (
                     <motion.div
@@ -354,7 +340,7 @@ const ClassroomClasswork = () => {
                                   <MoreVertical size={18} />
                                 </button>
                                 {activePostMenu === post._id && (
-                                  <div className="absolute right-0 top-full mt-1 w-36 bg-white border shadow-2xl rounded-lg z-[130] py-1">
+                                  <div className="absolute right-0 top-full mt-1 w-36 bg-white border shadow-2xl rounded-lg z-130 py-1">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -394,7 +380,6 @@ const ClassroomClasswork = () => {
         )}
       </div>
 
-      {/* Modals remain the same */}
       <QuizModal
         isOpen={activeModal === 'quiz'}
         onClose={closeModal}
@@ -405,14 +390,6 @@ const ClassroomClasswork = () => {
       />
       <MaterialModal
         isOpen={activeModal === 'material'}
-        onClose={closeModal}
-        classroomId={classroomId}
-        topics={topics}
-        onPostCreated={fetchClasswork}
-        initialData={editPostData}
-      />
-      <QuestionModal
-        isOpen={activeModal === 'question'}
         onClose={closeModal}
         classroomId={classroomId}
         topics={topics}

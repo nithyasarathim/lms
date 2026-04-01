@@ -25,6 +25,12 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+const toRomanYear = (semester) => {
+  const year = Math.ceil((semester || 0) / 2);
+  const roman = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV' };
+  return roman[year] || 'N/A';
+};
+
 const ClassroomStream = ({ classroom }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -106,6 +112,11 @@ const ClassroomStream = ({ classroom }) => {
       </div>
     );
 
+  const subjectName = classroom?.subjectId?.name || 'Unknown Subject';
+  const sectionName = classroom?.sectionId?.name || 'N/A';
+  const deptCode = classroom?.department?.code || 'N/A';
+  const yearRoman = toRomanYear(classroom?.semesterNumber);
+
   return (
     <div className="w-full mx-auto space-y-6 pb-10 px-4 md:px-8">
       <style>{`
@@ -113,7 +124,6 @@ const ClassroomStream = ({ classroom }) => {
         .comment-quill .ql-container { border: none !important; }
         .comment-quill .ql-toolbar { display: none; border: none !important; }
         .comment-quill:focus-within .ql-toolbar { display: block; border-bottom: 1px solid #f3f4f6 !important; }
-        /* Link color in instructions */
         .prose a { color: #08384F; text-decoration: underline; }
       `}</style>
 
@@ -125,11 +135,9 @@ const ClassroomStream = ({ classroom }) => {
           alt="banner"
         />
         <div className="absolute inset-0 bg-black/20 p-8 flex flex-col justify-end text-white">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {classroom?.subjectComponentId?.subjectId?.name}
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">{subjectName}</h1>
           <p className="text-lg font-medium opacity-90">
-            {classroom?.sectionId?.name}
+            {yearRoman} {deptCode} - {sectionName}
           </p>
         </div>
       </div>

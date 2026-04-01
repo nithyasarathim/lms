@@ -45,7 +45,7 @@ const AddTopicModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 animate-in fade-in duration-200">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6">
           <h2 className="text-[20px] font-medium text-gray-800 mb-6">
@@ -62,7 +62,7 @@ const AddTopicModal = ({
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             />
             {/* Blue underline animation on focus */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-[#08384F] transition-all duration-300 group-focus-within:w-full"></div>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#08384F] transition-all duration-300 group-focus-within:w-full"></div>
           </div>
 
           <div className="flex justify-end mt-2">
