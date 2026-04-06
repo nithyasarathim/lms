@@ -182,6 +182,15 @@ export const getEligiblePeople = async (classroomId, type) => {
   }
 };
 
+export const getFacultyTimetable = async (facultyId) => {
+  try {
+    const response = await apiClient.get(`/api/timetable/faculty/${facultyId}`);
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
 export const getClassroomMembers = async (classroomId) => {
   try {
     const response = await apiClient.get(

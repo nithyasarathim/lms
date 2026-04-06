@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import SriEshwarLogo from "../../../assets/EshwarImg.png";
-import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import LoginBackground from "../../../assets/Background.svg";
-import { login } from "../api/auth.api";
+import React, { useState } from 'react';
+import SriEshwarLogo from '../../../assets/EshwarImg.png';
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import LoginBackground from '../../../assets/Background.svg';
+import { login } from '../api/auth.api';
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +16,7 @@ const LoginPage = () => {
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     }));
   };
 
@@ -28,21 +28,21 @@ const LoginPage = () => {
       const res = await login(formData);
 
       if (!res?.success) {
-        return toast.error(res?.message || "Invalid credentials");
+        return toast.error(res?.message || 'Invalid credentials');
       }
 
-      const { token, role, _id, email, departmentId } = res.data;
+      const { token, role, _id, email, departmentId, facultyId } = res.data;
 
       localStorage.setItem(
-        "lms-user",
-        JSON.stringify({ token, role, _id, email, departmentId }),
+        'lms-user',
+        JSON.stringify({ token, role, _id, email, departmentId, facultyId })
       );
 
-      toast.success("Welcome back!");
+      toast.success('Welcome back!');
       navigate(`/${role.toLowerCase()}/dashboard`, { replace: true });
     } catch (error) {
       const errorMsg =
-        error.message || "Something went wrong. Please try again.";
+        error.message || 'Something went wrong. Please try again.';
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -120,7 +120,7 @@ const LoginPage = () => {
                   <Lock size={18} />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   placeholder="••••••••"
                   value={formData.password}
@@ -149,7 +149,7 @@ const LoginPage = () => {
                   <span>Authenticating...</span>
                 </>
               ) : (
-                "Sign In to Dashboard"
+                'Sign In to Dashboard'
               )}
             </button>
           </form>

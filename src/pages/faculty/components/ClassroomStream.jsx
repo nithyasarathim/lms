@@ -10,7 +10,8 @@ import {
   Trash2,
   Edit,
   MessageSquare,
-  ClipboardList
+  ClipboardList,
+  Copy
 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -39,6 +40,7 @@ const ClassroomStream = ({ classroom }) => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [commentText, setCommentText] = useState({});
   const [expandedComments, setExpandedComments] = useState({});
+  const [copyFeedback, setCopyFeedback] = useState(false); // for class code copy
 
   const fetchStream = async () => {
     try {
@@ -97,6 +99,14 @@ const ClassroomStream = ({ classroom }) => {
     }
   };
 
+  const copyClassCode = () => {
+    if (classroom.joinCode) {
+      navigator.clipboard.writeText(classroom.joinCode);
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  };
+
   const quillModules = {
     toolbar: [
       ['bold', 'italic', 'underline'],
@@ -116,6 +126,7 @@ const ClassroomStream = ({ classroom }) => {
   const sectionName = classroom?.sectionId?.name || 'N/A';
   const deptCode = classroom?.department?.code || 'N/A';
   const yearRoman = toRomanYear(classroom?.semesterNumber);
+  const joinCode = classroom?.joinCode || '—';
 
   return (
     <div className="w-full mx-auto space-y-6 pb-10 px-4 md:px-8">
@@ -144,7 +155,7 @@ const ClassroomStream = ({ classroom }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Left Sidebar */}
-        <div className="hidden md:block col-span-1">
+        <div className="hidden md:block col-span-1 space-y-4">
           <button
             onClick={() => {
               setEditData(null);
@@ -154,6 +165,35 @@ const ClassroomStream = ({ classroom }) => {
           >
             <Plus size={20} /> New Announcement
           </button>
+
+          {/* Class code box */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Class code
+              </span>
+              <button
+                onClick={copyClassCode}
+                className="text-gray-400 hover:text-[#08384F] transition-colors"
+                title="Copy class code"
+              >
+                <Copy size={14} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <code className="font-mono text-lg font-bold tracking-wide text-gray-800">
+                {joinCode}
+              </code>
+              {copyFeedback && (
+                <span className="text-xs text-green-600 animate-pulse">
+                  Copied!
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Share this code with students to join the class.
+            </p>
+          </div>
         </div>
 
         {/* Main Feed */}

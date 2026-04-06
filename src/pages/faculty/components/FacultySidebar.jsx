@@ -19,7 +19,8 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, tab: 'dashboard' },
     { label: 'Classrooms', icon: School, tab: 'classrooms' },
-    { label: 'Calendar', icon: Calendar, tab: 'calendar' }
+    { label: 'Calendar', icon: Calendar, tab: 'calendar' },
+    { label: 'Time Table', icon: Calendar, tab: 'timetable' }
   ];
 
   const handleTabChange = (tab) => {
