@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SriEshwarLogo from "../../../assets/EshwarImg.png";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import LoginBackground from "../../../assets/Background.svg";
 import { login } from "../api/auth.api";
@@ -10,6 +10,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
 
@@ -39,7 +40,13 @@ const LoginPage = () => {
       );
 
       toast.success("Welcome back!");
-      navigate(`/${role.toLowerCase()}/dashboard`, { replace: true });
+
+      const redirectPath = searchParams.get("redirect");
+      const destination = redirectPath
+        ? decodeURIComponent(redirectPath)
+        : `/${role.toLowerCase()}/dashboard`;
+
+      navigate(destination, { replace: true });
     } catch (error) {
       const errorMsg =
         error.message || "Something went wrong. Please try again.";

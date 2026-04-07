@@ -17,14 +17,12 @@ import {
   ChevronsDown,
   ChevronsUp
 } from 'lucide-react';
-
-// Modals
+import toast from 'react-hot-toast';
 import QuizModal from '../modals/QuizModal';
 import MaterialModal from '../modals/MaterialModal';
 import AssignmentModal from '../modals/AssignmentModal';
 import AddTopicModal from '../modals/AddTopicModal';
 
-// API
 import { deleteTopic, getClasswork, deletePost } from '../api/faculty.api';
 
 const ClassroomClasswork = () => {
@@ -101,9 +99,12 @@ const ClassroomClasswork = () => {
     if (window.confirm("Delete topic? Posts will move to 'No Topic'.")) {
       try {
         const res = await deleteTopic(classroomId, topicId);
-        if (res.success) fetchClasswork();
+        if (res.success) {
+          toast.success('Topic deleted successfully');
+          fetchClasswork();
+        }
       } catch (err) {
-        alert('Failed to delete topic');
+        toast.error('Failed to delete topic');
       }
     }
   };
@@ -112,9 +113,12 @@ const ClassroomClasswork = () => {
     if (window.confirm(`Delete this ${type}?`)) {
       try {
         const res = await deletePost(classroomId, type, postId);
-        if (res.success) fetchClasswork();
+        if (res.success) {
+          toast.success(`${type} deleted successfully`);
+          fetchClasswork();
+        }
       } catch (err) {
-        alert('Failed to delete post');
+        toast.error('Failed to delete post');
       }
     }
   };

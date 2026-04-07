@@ -29,9 +29,9 @@ export const getClassrooms = async (facultyUserId) => {
   }
 };
 
-export const getClassroomById = async (facultyId) => {
+export const getClassroomById = async (classroomId) => {
   try {
-    const response = await apiClient.get(`/api/classroom/${facultyId}`);
+    const response = await apiClient.get(`/api/classroom/${classroomId}`);
     return response.data;
   } catch (err) {
     throw err.response?.data || err.message;

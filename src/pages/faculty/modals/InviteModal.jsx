@@ -1,24 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { X, Copy, Check, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-// Added inviteMembers to imports
-import { getEligiblePeople, inviteMembers } from '../api/faculty.api';
+import React, { useState, useEffect } from "react";
+import { X, Copy, Check, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { getEligiblePeople, inviteMembers } from "../api/faculty.api";
 
 const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
   const [loading, setLoading] = useState(false);
-  const [inviting, setInviting] = useState(false); // New state for the invite request
+  const [inviting, setInviting] = useState(false);
   const [people, setPeople] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [copied, setCopied] = useState(false);
 
   const inviteLink =
-    'https://classroom.google.com/c/NjYxMjM0NTY3ODla?cjc=abc1234';
+    "https://classroom.google.com/c/NjYxMjM0NTY3ODla?cjc=abc1234";
 
   useEffect(() => {
     if (isOpen) {
       fetchData();
-      setSearchQuery('');
+      setSearchQuery("");
       setSelectedIds([]);
     }
   }, [isOpen, type]);
@@ -33,10 +32,10 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
           const name =
             person.fullName || `${person.firstName} ${person.lastName}`;
           const initials = name
-            .split(' ')
+            .split(" ")
             .filter(Boolean)
             .map((n) => n[0])
-            .join('')
+            .join("")
             .slice(0, 2)
             .toUpperCase();
           return {
@@ -44,43 +43,40 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
             name: name,
             email: person.email,
             initials: initials,
-            subInfo: type === 'faculties' ? person.deptCode : person.rollNumber
+            subInfo: type === "faculties" ? person.deptCode : person.rollNumber,
           };
         });
         setPeople(formattedPeople);
       }
     } catch (err) {
-      console.error('Failed to fetch people:', err);
+      console.error("Failed to fetch people:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- NEW: Handle Invite Logic ---
   const handleInvite = async () => {
     if (selectedIds.length === 0) return;
 
     try {
       setInviting(true);
 
-      // Map 'faculties' -> 'FACULTY' and 'students' -> 'STUDENT'
-      const role = type === 'faculties' ? 'FACULTY' : 'STUDENT';
+      const role = type === "faculties" ? "FACULTY" : "STUDENT";
 
       const payload = {
         userIds: selectedIds,
-        role: role
+        role: role,
       };
 
       const res = await inviteMembers(classroomId, payload);
 
       if (res.success) {
-        // You might want to show a toast notification here
         alert(`${selectedIds.length} invite(s) sent successfully!`);
-        onClose(); // Close modal on success
+        onClose();
       }
     } catch (err) {
-      console.error('Invitation failed:', err);
-      alert('Failed to send invitations. Please try again.');
+      console.error("Invitation failed:", err);
+      alert("Failed to send invitations. Please try again.");
     } finally {
       setInviting(false);
     }
@@ -89,7 +85,7 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
   const filtered = people.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.email.toLowerCase().includes(searchQuery.toLowerCase())
+      p.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleCopyLink = () => {
@@ -100,7 +96,7 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     );
   };
 
@@ -121,10 +117,9 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white w-full max-w-lg h-[520px] rounded-xl shadow-2xl flex flex-col overflow-hidden"
       >
-        {/* HEADER */}
         <div className="px-6 py-4 border-b flex justify-between items-center">
           <h3 className="text-lg font-bold text-gray-800">
-            Invite {type === 'faculties' ? 'Faculties' : 'Students'}
+            Invite {type === "faculties" ? "Faculties" : "Students"}
           </h3>
           <button
             onClick={onClose}
@@ -134,7 +129,6 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
           </button>
         </div>
 
-        {/* INVITE LINK */}
         <div className="px-6 py-4 bg-gray-50 border-b">
           <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1.5 tracking-wider">
             Invite Link
@@ -156,7 +150,6 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
           </div>
         </div>
 
-        {/* SEARCH + SELECT ALL */}
         <div className="px-6 py-3 border-b flex items-center justify-between gap-4 bg-white">
           <input
             type="text"
@@ -170,12 +163,11 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
             className="text-xs font-bold text-[#08384f] uppercase tracking-tight"
           >
             {selectedIds.length === filtered.length && filtered.length !== 0
-              ? 'Deselect All'
-              : 'Select All'}
+              ? "Deselect All"
+              : "Select All"}
           </button>
         </div>
 
-        {/* LIST */}
         <div className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
@@ -200,15 +192,15 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
                     onClick={() => toggleSelect(p.id)}
                     className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${
                       isSelected
-                        ? 'bg-[#08384f]/5 border-[#08384f]/20'
-                        : 'bg-transparent border-transparent hover:bg-gray-50'
+                        ? "bg-[#08384f]/5 border-[#08384f]/20"
+                        : "bg-transparent border-transparent hover:bg-gray-50"
                     }`}
                   >
                     <div
                       className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                         isSelected
-                          ? 'bg-[#08384f] border-[#08384f]'
-                          : 'border-gray-300 bg-white'
+                          ? "bg-[#08384f] border-[#08384f]"
+                          : "border-gray-300 bg-white"
                       }`}
                     >
                       {isSelected && (
@@ -227,9 +219,9 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
                         {p.name}
                       </span>
                       <span className="text-[11px] text-gray-500 truncate">
-                        {p.email} •{' '}
+                        {p.email} •{" "}
                         <span className="font-medium text-[#08384f] uppercase">
-                          {p.subInfo || 'N/A'}
+                          {p.subInfo || "N/A"}
                         </span>
                       </span>
                     </div>
@@ -240,7 +232,6 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
           )}
         </div>
 
-        {/* FOOTER */}
         <div className="px-6 py-4 border-t flex justify-between items-center bg-gray-50/50">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
             {selectedIds.length} Selected
@@ -255,12 +246,12 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
               Cancel
             </button>
             <button
-              onClick={handleInvite} // Attached the invite function
+              onClick={handleInvite}
               disabled={selectedIds.length === 0 || inviting}
               className={`px-8 py-2 text-sm font-bold rounded-lg transition-all shadow-md flex items-center gap-2 ${
                 selectedIds.length > 0 && !inviting
-                  ? 'bg-[#08384f] text-white hover:bg-[#0a4a69] active:scale-95'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                  ? "bg-[#08384f] text-white hover:bg-[#0a4a69] active:scale-95"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
               }`}
             >
               {inviting ? (
@@ -269,7 +260,7 @@ const InviteModal = ({ isOpen, onClose, type, classroomId }) => {
                   Sending...
                 </>
               ) : (
-                'Send Invites'
+                "Send Invites"
               )}
             </button>
           </div>

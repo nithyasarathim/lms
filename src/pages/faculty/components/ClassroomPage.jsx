@@ -7,7 +7,6 @@ import ClassroomDetails from './ClassroomDetails';
 const ClassroomPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const classroomId = searchParams.get('classroomId');
-  // console.log(classroomId);
   const handleSelectClassroom = (id) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set('tab', 'classrooms');

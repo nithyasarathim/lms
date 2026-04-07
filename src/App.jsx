@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/admin/pages/AdminDashboard";
 import HodDashboard from "./pages/hod/pages/HodDashboard";
 import PrintTable from "./pages/hod/components/PrintTableComponent";
 import FacultyDashboard from "./pages/faculty/pages/FacultyPage";
+import InvitationPage from "./pages/auth/pages/InvitationPage";
 
 const StudentDashboard = () => <h1>Student Dashboard</h1>;
 
@@ -48,25 +49,30 @@ const App = () => {
       />
 
       <Routes>
-        <Route path="/print" element={<PrintTable/>}/>
+        <Route path="/print" element={<PrintTable />} />
+
         <Route element={<GuestRoute />}>
           <Route path="/" element={<LoginPage />} />
         </Route>
 
         <Route element={<RoleRoute allowedRole="ADMIN" />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/invitation" element={<InvitationPage />} />
         </Route>
 
         <Route element={<RoleRoute allowedRole="STUDENT" />}>
           <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/student/invitation" element={<InvitationPage />} />
         </Route>
 
         <Route element={<RoleRoute allowedRole="FACULTY" />}>
           <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+          <Route path="/faculty/invitation" element={<InvitationPage />} />
         </Route>
 
         <Route element={<RoleRoute allowedRole="HOD" />}>
           <Route path="/hod/dashboard" element={<HodDashboard />} />
+          <Route path="/hod/invitation" element={<InvitationPage />} />
         </Route>
       </Routes>
     </>

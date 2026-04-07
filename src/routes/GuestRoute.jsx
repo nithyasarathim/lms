@@ -1,7 +1,9 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 const GuestRoute = () => {
+  const location = useLocation();
   const storedUser = localStorage.getItem("lms-user");
+  const from = location.state?.from?.pathname;
 
   if (!storedUser) {
     return <Outlet />;
@@ -11,14 +13,15 @@ const GuestRoute = () => {
     const user = JSON.parse(storedUser);
 
     if (user?.token && user?.role) {
-      return <Navigate to={`/${user.role.toLowerCase()}/dashboard`} replace />;
+      const destination = from || `/${user.role.toLowerCase()}/dashboard`;
+      return <Navigate to={destination} replace />;
     }
 
     localStorage.removeItem("lms-user");
-    return <Navigate to="/" replace />;
+    return <Navigate to="/?message=session_expired" replace />;
   } catch {
     localStorage.removeItem("lms-user");
-    return <Navigate to="/" replace />;
+    return <Navigate to="/?message=invalid_session" replace />;
   }
 };
 
