@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import FacultySidebar from '../components/FacultySidebar';
 import ClassroomPage from '../components/ClassroomPage';
-import FacultyTimetable from '../components/FacultyTimetable';
 
 // Dummy components – replace with your actual imports
 const FacultyDashboardHome = () => (
@@ -11,6 +10,10 @@ const FacultyDashboardHome = () => (
 
 const FacultyCalendar = () => (
   <h1 className="p-6 text-xl font-semibold">Events Calendar</h1>
+);
+
+const FacultyTimetable = () => (
+  <h1 className="p-6 text-xl font-semibold">Time Table</h1>
 );
 
 const FacultyDashboard = () => {
