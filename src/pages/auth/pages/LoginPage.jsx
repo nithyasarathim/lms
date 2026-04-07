@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from "react";
 import SriEshwarLogo from "../../../assets/EshwarImg.png";
 import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
@@ -5,9 +6,18 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import LoginBackground from "../../../assets/Background.svg";
 import { login } from "../api/auth.api";
+=======
+import React, { useState } from 'react';
+import SriEshwarLogo from '../../../assets/EshwarImg.png';
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import LoginBackground from '../../../assets/Background.svg';
+import { login } from '../api/auth.api';
+>>>>>>> b40b944d7364dd0e59df65b3ebd4e824796d6151
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
@@ -17,7 +27,7 @@ const LoginPage = () => {
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     }));
   };
 
@@ -29,16 +39,17 @@ const LoginPage = () => {
       const res = await login(formData);
 
       if (!res?.success) {
-        return toast.error(res?.message || "Invalid credentials");
+        return toast.error(res?.message || 'Invalid credentials');
       }
 
-      const { token, role, _id, email, departmentId } = res.data;
+      const { token, role, _id, email, departmentId, facultyId } = res.data;
 
       localStorage.setItem(
-        "lms-user",
-        JSON.stringify({ token, role, _id, email, departmentId }),
+        'lms-user',
+        JSON.stringify({ token, role, _id, email, departmentId, facultyId })
       );
 
+<<<<<<< HEAD
       toast.success("Welcome back!");
 
       const redirectPath = searchParams.get("redirect");
@@ -47,9 +58,13 @@ const LoginPage = () => {
         : `/${role.toLowerCase()}/dashboard`;
 
       navigate(destination, { replace: true });
+=======
+      toast.success('Welcome back!');
+      navigate(`/${role.toLowerCase()}/dashboard`, { replace: true });
+>>>>>>> b40b944d7364dd0e59df65b3ebd4e824796d6151
     } catch (error) {
       const errorMsg =
-        error.message || "Something went wrong. Please try again.";
+        error.message || 'Something went wrong. Please try again.';
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -127,7 +142,7 @@ const LoginPage = () => {
                   <Lock size={18} />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   placeholder="••••••••"
                   value={formData.password}
@@ -156,7 +171,7 @@ const LoginPage = () => {
                   <span>Authenticating...</span>
                 </>
               ) : (
-                "Sign In to Dashboard"
+                'Sign In to Dashboard'
               )}
             </button>
           </form>
