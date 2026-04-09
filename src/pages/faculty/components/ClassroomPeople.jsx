@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   MoreVertical,
-  SortAsc,
   Mail,
   UserMinus,
   UserRoundPlus,
@@ -73,7 +72,7 @@ const ClassroomPeople = ({ classroom }) => {
     );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto py-8 animate-in fade-in duration-500">
       <InviteModal
         isOpen={inviteModal.isOpen}
         onClose={closeInviteModal}
@@ -83,7 +82,7 @@ const ClassroomPeople = ({ classroom }) => {
 
       <section className="mb-12">
         <div className="sticky top-0 bg-white z-20 flex justify-between items-center border-b border-[#08384F] pb-3 mb-4">
-          <h2 className="text-3xl font-normal text-[#08384F]">Faculties</h2>
+          <h2 className="text-2xl font-semibold text-[#08384F]">Faculties</h2>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500 font-medium">
               {members.faculty.length} faculties
@@ -125,7 +124,7 @@ const ClassroomPeople = ({ classroom }) => {
 
       <section>
         <div className="sticky top-0 bg-white z-20 flex justify-between items-center border-b border-[#08384F] pb-3 mb-6">
-          <h2 className="text-3xl font-normal text-[#08384F]">Students</h2>
+          <h2 className="text-2xl font-semibold text-[#08384F]">Students</h2>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500 font-medium">
               {members.students.length} students

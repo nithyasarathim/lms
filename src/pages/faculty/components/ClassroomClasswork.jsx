@@ -163,7 +163,7 @@ const ClassroomClasswork = () => {
     );
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl py-5 mx-auto">
       <div className="flex justify-between items-center mb-10">
         <div className="relative">
           <button

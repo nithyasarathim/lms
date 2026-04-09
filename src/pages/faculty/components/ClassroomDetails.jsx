@@ -7,12 +7,14 @@ import {
   Users,
   GraduationCap,
   CalendarCheck,
+  Map,
 } from "lucide-react";
 import { getClassroomById } from "../api/faculty.api";
 import ClassroomStream from "./ClassroomStream";
 import ClassroomClasswork from "./ClassroomClasswork";
 import ClassroomPeople from "./ClassroomPeople";
 import ClassroomAttendance from "./ClassroomAttendance";
+import CoursePlan from "./CoursePlan";
 
 const ClassroomDetails = ({ id, onBack }) => {
   const [classroom, setClassroom] = useState(null);
@@ -59,6 +61,7 @@ const ClassroomDetails = ({ id, onBack }) => {
     { id: "people", label: "People", icon: Users },
     { id: "grade", label: "Grades", icon: GraduationCap },
     { id: "attendance", label: "Attendance", icon: CalendarCheck },
+    { id: "courseplan", label: "Course Plan", icon: Map },
   ];
 
   return (
@@ -111,7 +114,7 @@ const ClassroomDetails = ({ id, onBack }) => {
         })}
       </div>
 
-      <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm min-h-100">
+      <div className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm min-h-100">
         {activeTab === "stream" && <ClassroomStream classroom={classroom} />}
 
         {activeTab === "classwork" && (
@@ -129,7 +132,11 @@ const ClassroomDetails = ({ id, onBack }) => {
           </div>
         )}
 
-        {activeTab === "attendance" && <ClassroomAttendance classroom={classroom}/>}
+        {activeTab === "attendance" && (
+          <ClassroomAttendance classroom={classroom} />
+        )}
+
+        {activeTab === "courseplan" && <CoursePlan classroom={classroom} />}
       </div>
     </div>
   );

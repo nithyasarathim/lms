@@ -129,7 +129,7 @@ const ClassroomStream = ({ classroom }) => {
   const joinCode = classroom?.joinCode || '—';
 
   return (
-    <div className="w-full mx-auto space-y-6 pb-10 px-4 md:px-8">
+    <div className="w-full mx-auto space-y-6 pb-10">
       <style>{`
         .comment-quill .ql-editor { min-height: 40px; padding: 12px 16px !important; font-size: 0.875rem; color: #374151; }
         .comment-quill .ql-container { border: none !important; }
@@ -138,7 +138,6 @@ const ClassroomStream = ({ classroom }) => {
         .prose a { color: #08384F; text-decoration: underline; }
       `}</style>
 
-      {/* Banner */}
       <div className="relative h-48 rounded-xl overflow-hidden shadow-sm border border-gray-200">
         <img
           src={Banner1}
@@ -154,7 +153,6 @@ const ClassroomStream = ({ classroom }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Left Sidebar */}
         <div className="hidden md:block col-span-1 space-y-4">
           <button
             onClick={() => {
@@ -166,7 +164,6 @@ const ClassroomStream = ({ classroom }) => {
             <Plus size={20} /> New Announcement
           </button>
 
-          {/* Class code box */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -195,8 +192,6 @@ const ClassroomStream = ({ classroom }) => {
             </p>
           </div>
         </div>
-
-        {/* Main Feed */}
         <div className="col-span-1 md:col-span-3 space-y-4">
           {stream.length === 0 ? (
             <div className="py-16 text-center bg-white rounded-xl border border-gray-200">
@@ -327,7 +322,6 @@ const ClassroomStream = ({ classroom }) => {
                     )}
                   </div>
 
-                  {/* Comments Section */}
                   {isAnnouncement && (
                     <div className="border-t border-gray-100 bg-gray-50/20 overflow-hidden rounded-b-lg">
                       {post.commentsCount > 1 && (
