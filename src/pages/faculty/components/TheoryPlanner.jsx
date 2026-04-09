@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
   X,
@@ -6,18 +6,13 @@ import {
   Trash2,
   BookOpen,
   Check,
-  AlertTriangle,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-
-const UNITS = [
-  { label: "Unit 1", key: "0" },
-  { label: "Unit 2", key: "1" },
-  { label: "Unit 3", key: "2" },
-  { label: "Unit 4", key: "3" },
-  { label: "Unit 5", key: "4" },
-];
+  Search,
+  ChevronDown,
+  AlertTriangle,
+  Save
+} from 'lucide-react';
 
 const TheoryPlanner = ({
   data,
@@ -25,214 +20,237 @@ const TheoryPlanner = ({
   onNext,
   onPrev,
   classroom,
-  saveCoursePlan,
+  saveCoursePlan
 }) => {
-  const [selectedUnitIdx, setSelectedUnitIdx] = useState(0);
+  // --- States ---
+  const [selectedCOIdx, setSelectedCOIdx] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTopicIndex, setEditTopicIndex] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
-  const [unitTitle, setUnitTitle] = useState("");
+  const [unitTitle, setUnitTitle] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Local state to manage theory data before final submission
-  const [localTheory, setLocalTheory] = useState([]);
+  // Reference Dropdown States
+  const [isRefDropdownOpen, setIsRefDropdownOpen] = useState(false);
+  const [refSearch, setRefSearch] = useState('');
 
+  const [localTheory, setLocalTheory] = useState([]);
   const [formData, setFormData] = useState({
-    topicName: "",
-    learningPedagogy: "",
-    plannedDate: "",
-    duration: "",
-    reference: "",
+    title: '',
+    learningStrategy: '',
+    plannedDate: '',
+    duration: '',
+    references: []
   });
 
-  // Sync initial data from props
-  useEffect(() => {
-    if (data?.coursePlan?.planners?.theory) {
-      setLocalTheory(data.coursePlan.planners.theory);
-    }
-  }, [data]);
+  // --- Memos ---
+  const courseOutcomes = useMemo(
+    () => data?.coursePlan?.courseDetails?.outcomes || [],
+    [data]
+  );
 
-  const references = useMemo(() => data?.coursePlan?.references || {}, [data]);
+  const isLastCO = selectedCOIdx === courseOutcomes.length - 1;
 
   const referenceOptions = useMemo(() => {
+    const refs = data?.coursePlan?.references;
     const options = [];
-    if (references?.textBooks) {
-      references.textBooks.forEach((book, idx) => {
-        if (book?.trim())
-          options.push({ label: `T${idx + 1}: ${book}`, value: `T${idx + 1}` });
-      });
-    }
-    if (references?.referenceBooks) {
-      references.referenceBooks.forEach((book, idx) => {
-        if (book?.trim())
-          options.push({ label: `R${idx + 1}: ${book}`, value: `R${idx + 1}` });
-      });
-    }
+    refs?.textBooks?.forEach((b) =>
+      options.push({ label: b.title, value: b.code, type: 'T' })
+    );
+    refs?.referenceBooks?.forEach((b) =>
+      options.push({ label: b.title, value: b.code, type: 'R' })
+    );
     return options;
-  }, [references]);
-
-  useEffect(() => {
-    setUnitTitle(localTheory[selectedUnitIdx]?.title || "");
-    setIsEditingTitle(false);
-  }, [selectedUnitIdx, localTheory]);
+  }, [data]);
 
   const currentTopics = useMemo(() => {
-    return Array.isArray(localTheory[selectedUnitIdx]?.topics)
-      ? localTheory[selectedUnitIdx].topics
-      : [];
-  }, [localTheory, selectedUnitIdx]);
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    const theoryBlock = localTheory.find((t) => t.coId === currentCOId);
+    return Array.isArray(theoryBlock?.topics) ? theoryBlock.topics : [];
+  }, [localTheory, selectedCOIdx, courseOutcomes]);
 
-  // Frontend local update for Title
+  // --- Effects ---
+  useEffect(() => {
+    if (data?.coursePlan?.theory) setLocalTheory(data.coursePlan.theory);
+  }, [data]);
+
+  useEffect(() => {
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    const existingTheory = localTheory.find((t) => t.coId === currentCOId);
+    setUnitTitle(existingTheory?.unitTitle || '');
+    setIsEditingTitle(false);
+  }, [selectedCOIdx, localTheory, courseOutcomes]);
+
+  // --- Handlers ---
+  const toggleReference = (code) => {
+    setFormData((prev) => ({
+      ...prev,
+      references: prev.references.includes(code)
+        ? prev.references.filter((r) => r !== code)
+        : [...prev.references, code]
+    }));
+  };
+
   const handleTitleSubmit = () => {
-    const updatedTheory = [...localTheory];
-    if (!updatedTheory[selectedUnitIdx]) {
-      updatedTheory[selectedUnitIdx] = {
-        unitNumber: selectedUnitIdx + 1,
-        title: "",
-        topics: [],
-      };
-    }
-    updatedTheory[selectedUnitIdx].title = unitTitle;
-    setLocalTheory(updatedTheory);
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    if (!currentCOId) return;
+    setLocalTheory((prev) => {
+      const updated = [...prev];
+      const idx = updated.findIndex((t) => t.coId === currentCOId);
+      if (idx > -1) updated[idx].unitTitle = unitTitle;
+      else updated.push({ coId: currentCOId, unitTitle, topics: [] });
+      return updated;
+    });
     setIsEditingTitle(false);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Frontend local update for Topics
   const handleSubmit = () => {
-    if (!formData.topicName || !formData.plannedDate || !formData.duration) {
-      alert("Please fill required fields.");
-      return;
-    }
-    const updatedTheory = [...localTheory];
-    if (!updatedTheory[selectedUnitIdx]) {
-      updatedTheory[selectedUnitIdx] = {
-        unitNumber: selectedUnitIdx + 1,
-        title: "",
-        topics: [],
+    if (!formData.title?.trim()) return alert('Topic Title is required.');
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    setLocalTheory((prev) => {
+      const updated = [...prev];
+      let idx = updated.findIndex((t) => t.coId === currentCOId);
+      if (idx === -1) {
+        updated.push({ coId: currentCOId, unitTitle: '', topics: [] });
+        idx = updated.length - 1;
+      }
+      const submission = {
+        ...formData,
+        duration: Number(formData.duration) || 0
       };
-    }
-
-    const unitTopics = [...(updatedTheory[selectedUnitIdx].topics || [])];
-    const submissionData = { ...formData, duration: Number(formData.duration) };
-
-    if (isEditing && editTopicIndex !== null) {
-      unitTopics[editTopicIndex] = submissionData;
-    } else {
-      unitTopics.push(submissionData);
-    }
-
-    updatedTheory[selectedUnitIdx].topics = unitTopics;
-    setLocalTheory(updatedTheory);
+      const topics = [...updated[idx].topics];
+      if (isEditing) topics[editTopicIndex] = submission;
+      else topics.push(submission);
+      updated[idx].topics = topics;
+      return updated;
+    });
     setIsModalOpen(false);
+    setIsRefDropdownOpen(false);
   };
 
-  // Frontend local update for Delete
   const confirmDelete = () => {
-    const updatedTheory = [...localTheory];
-    if (updatedTheory[selectedUnitIdx]?.topics) {
-      updatedTheory[selectedUnitIdx].topics = updatedTheory[
-        selectedUnitIdx
-      ].topics.filter((_, i) => i !== deleteIndex);
-      setLocalTheory(updatedTheory);
-      setIsDeleteModalOpen(false);
-    }
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    setLocalTheory((prev) => {
+      const updated = [...prev];
+      const idx = updated.findIndex((t) => t.coId === currentCOId);
+      if (idx > -1)
+        updated[idx].topics = updated[idx].topics.filter(
+          (_, i) => i !== deleteIndex
+        );
+      return updated;
+    });
+    setIsDeleteModalOpen(false);
   };
 
-  // Backend hit occurs only on "Next Step"
-  const handleFinalSubmit = async () => {
+  // Centralized Save Logic
+  const saveProgress = async () => {
     setLoading(true);
     try {
       const payload = {
         subjectId: classroom?.subjectId?._id,
         sectionId: classroom?.sectionId?._id,
         academicYearId: classroom?.academicYearId?._id,
-        planners: { ...data?.coursePlan?.planners, theory: localTheory },
-        status: data?.coursePlan?.status || "Draft",
+        theory: localTheory,
+        status: data?.coursePlan?.status || 'Draft'
       };
       const res = await saveCoursePlan(payload);
       if (res.success) {
         await refreshData();
-        if (onNext) onNext();
+        return true;
       }
-    } catch (error) {
-      console.error("Final Save Error:", error);
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const openAddModal = () => {
-    setIsEditing(false);
-    setEditTopicIndex(null);
-    setFormData({
-      topicName: "",
-      learningPedagogy: "",
-      plannedDate: "",
-      duration: "",
-      reference: "",
-    });
-    setIsModalOpen(true);
+  const handleSaveAndNextCO = async () => {
+    const success = await saveProgress();
+    if (success && !isLastCO) {
+      setSelectedCOIdx(selectedCOIdx + 1);
+    }
   };
 
-  const openEditModal = (item, index) => {
-    setIsEditing(true);
-    setEditTopicIndex(index);
-    setFormData({
-      topicName: item.topicName || "",
-      learningPedagogy: item.learningPedagogy || "",
-      plannedDate: item.plannedDate ? item.plannedDate.split("T")[0] : "",
-      duration: item.duration || "",
-      reference: item.reference || "",
-    });
-    setIsModalOpen(true);
+  const handleFinalSubmit = async () => {
+    const success = await saveProgress();
+    if (success && onNext) onNext();
   };
 
   return (
-    <div className="flex flex-col h-full space-y-4 bg-white overflow-hidden">
+    <div className="flex flex-col h-full space-y-4">
+      {/* Navigation Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 shrink-0">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {UNITS.map((unit) => (
+          {courseOutcomes.map((co, idx) => (
             <button
-              key={unit.key}
-              onClick={() => setSelectedUnitIdx(Number(unit.key))}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all whitespace-nowrap text-sm font-bold ${
-                selectedUnitIdx === Number(unit.key)
-                  ? "bg-[#08384f] text-white shadow-md border-[#08384f]"
-                  : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+              key={co._id}
+              onClick={() => setSelectedCOIdx(idx)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm font-bold ${
+                selectedCOIdx === idx
+                  ? 'bg-[#08384f] text-white shadow-md border-[#08384f]'
+                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
               }`}
             >
-              <BookOpen size={14} />
-              {unit.label}
+              <BookOpen size={14} /> {co.code}
             </button>
           ))}
         </div>
-        <button
-          onClick={openAddModal}
-          className="bg-[#08384F] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#062c3e] transition-all shadow-sm text-sm font-bold"
-        >
-          <Plus size={18} /> Add Topic
-        </button>
+
+        <div className="flex items-center gap-3">
+          {/* Internal Save & Next Button */}
+          {!isLastCO && courseOutcomes.length > 0 && (
+            <button
+              onClick={handleSaveAndNextCO}
+              disabled={loading}
+              className="flex items-center gap-2 text-[#08384f] bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-blue-100"
+            >
+              {loading ? (
+                'Saving...'
+              ) : (
+                <>
+                  <Save size={14} /> Save & Next
+                </>
+              )}
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              setIsEditing(false);
+              setFormData({
+                title: '',
+                learningStrategy: '',
+                plannedDate: '',
+                duration: '',
+                references: []
+              });
+              setIsModalOpen(true);
+            }}
+            className="bg-[#08384F] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#062c3e] shadow-sm text-sm font-bold"
+          >
+            <Plus size={18} /> Add Topic
+          </button>
+        </div>
       </div>
 
+      {/* Unit Title Editable Header */}
       <div className="flex justify-center shrink-0">
         <div className="w-full max-w-2xl text-center">
           {isEditingTitle ? (
             <div className="flex items-center gap-2 bg-blue-50 p-2 rounded-lg border border-blue-200">
               <input
                 autoFocus
-                type="text"
+                placeholder="Enter Unit Title/Objective..."
+                className="flex-1 outline-none text-sm font-medium bg-transparent px-2"
                 value={unitTitle}
                 onChange={(e) => setUnitTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleTitleSubmit()}
-                className="flex-1 outline-none text-sm font-medium bg-transparent px-2"
+                onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
               />
               <button
                 onClick={handleTitleSubmit}
@@ -253,9 +271,10 @@ const TheoryPlanner = ({
               className="group cursor-pointer inline-flex items-center gap-3 hover:bg-gray-50 p-2 rounded-md transition-all"
             >
               <h3
-                className={`text-sm font-semibold ${unitTitle ? "text-gray-700" : "text-gray-300 italic"}`}
+                className={`text-sm font-semibold ${unitTitle ? 'text-gray-700' : 'text-gray-300 italic'}`}
               >
-                {unitTitle || "Click to add unit objective..."}
+                {unitTitle ||
+                  `Click to add ${courseOutcomes[selectedCOIdx]?.code} objective/unit title...`}
               </h3>
               <Edit2
                 size={12}
@@ -266,27 +285,22 @@ const TheoryPlanner = ({
         </div>
       </div>
 
-      <div className="flex-1 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col">
-        <div className="overflow-auto flex-1">
+      {/* Main Table Container */}
+      <div className="flex-1 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col min-h-0">
+        <div className="overflow-auto flex-1 h-full">
           <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50 sticky top-0 z-10">
+            <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm outline outline-1 outline-gray-200">
               <tr>
-                <th className="w-12 px-4 py-4 text-center font-semibold text-gray-600">
-                  #
+                <th className="w-12 px-4 py-4 text-center font-semibold">#</th>
+                <th className="px-6 py-4 text-left font-semibold">
+                  Topic Title
                 </th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-600">
-                  Topic Name
+                <th className="w-40 px-6 py-4 text-left font-semibold">
+                  Strategy
                 </th>
-                <th className="w-32 px-4 py-4 text-left font-semibold text-gray-600">
-                  Pedagogy
-                </th>
-                <th className="w-32 px-4 py-4 text-left font-semibold text-gray-600">
-                  Planned Date
-                </th>
-                <th className="w-24 px-4 py-4 text-left font-semibold text-gray-600">
-                  Dur.
-                </th>
-                <th className="w-28 px-4 py-4 text-center font-semibold text-gray-600">
+                <th className="w-32 px-4 py-4 text-left font-semibold">Ref.</th>
+                <th className="w-24 px-4 py-4 text-left font-semibold">Dur.</th>
+                <th className="w-28 px-4 py-4 text-center font-semibold">
                   Actions
                 </th>
               </tr>
@@ -298,23 +312,44 @@ const TheoryPlanner = ({
                     key={idx}
                     className="hover:bg-gray-50/50 transition-colors"
                   >
-                    <td className="px-4 py-4 text-center font-medium">
+                    <td className="px-4 py-4 text-center text-gray-400">
                       {idx + 1}
                     </td>
                     <td className="px-6 py-4 font-medium break-words leading-relaxed">
-                      {item.topicName}
+                      {item.title}
                     </td>
-                    <td className="px-4 py-4">{item.learningPedagogy}</td>
+                    <td className="px-6 py-4 text-gray-500">
+                      {item.learningStrategy || '-'}
+                    </td>
                     <td className="px-4 py-4">
-                      {item.plannedDate
-                        ? new Date(item.plannedDate).toLocaleDateString()
-                        : "-"}
+                      <div className="flex flex-wrap gap-1">
+                        {item.references?.map((r) => (
+                          <span
+                            key={r}
+                            className="bg-blue-50 text-[#08384F] px-1.5 py-0.5 rounded text-[10px] font-bold border border-blue-100"
+                          >
+                            {r}
+                          </span>
+                        )) || '-'}
+                      </div>
                     </td>
-                    <td className="px-4 py-4">{item.duration} hr</td>
+                    <td className="px-4 py-4 text-gray-500">
+                      {item.duration ? `${item.duration} hr` : '-'}
+                    </td>
                     <td className="px-4 py-4">
                       <div className="flex justify-center gap-1">
                         <button
-                          onClick={() => openEditModal(item, idx)}
+                          onClick={() => {
+                            setIsEditing(true);
+                            setEditTopicIndex(idx);
+                            setFormData({
+                              ...item,
+                              plannedDate:
+                                item.plannedDate?.split('T')[0] || '',
+                              references: item.references || []
+                            });
+                            setIsModalOpen(true);
+                          }}
                           className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           <Edit2 size={16} />
@@ -324,7 +359,7 @@ const TheoryPlanner = ({
                             setDeleteIndex(idx);
                             setIsDeleteModalOpen(true);
                           }}
-                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -338,7 +373,7 @@ const TheoryPlanner = ({
                     colSpan={6}
                     className="py-16 text-center text-gray-400 italic"
                   >
-                    No topics added yet for this unit.
+                    No topics added for this CO.
                   </td>
                 </tr>
               )}
@@ -347,28 +382,37 @@ const TheoryPlanner = ({
         </div>
       </div>
 
-      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 bg-white shrink-0">
+      {/* Footer Nav */}
+      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 bg-white">
         <button
           onClick={onPrev}
-          className="flex items-center gap-2 text-gray-500 font-bold text-sm px-6 py-2 rounded-xl hover:bg-gray-100 transition-all border border-gray-200"
+          className="flex items-center gap-2 text-gray-500 font-bold text-sm px-6 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
         >
           <ChevronLeft size={18} /> Previous
         </button>
         <button
           onClick={handleFinalSubmit}
           disabled={loading}
-          className="flex items-center gap-2 bg-[#08384F] text-white font-bold text-sm px-8 py-2.5 rounded-xl shadow-lg hover:bg-[#0c4a68] active:scale-95 disabled:opacity-50 transition-all"
+          className="flex items-center gap-2 bg-[#08384F] text-white font-bold text-sm px-8 py-2.5 rounded-xl shadow-lg hover:bg-[#0c4a68] disabled:opacity-50 transition-all"
         >
-          {loading ? "Saving..." : "Next Step"} <ChevronRight size={18} />
+          {loading ? (
+            'Saving...'
+          ) : (
+            <>
+              {isLastCO ? 'Finalize & Next Step' : 'Save & Continue'}{' '}
+              <ChevronRight size={18} />
+            </>
+          )}
         </button>
       </div>
 
+      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center p-5 border-b">
               <h2 className="text-lg font-bold text-gray-800">
-                {isEditing ? "Update" : "New"} Topic
+                {isEditing ? 'Update' : 'New'} Topic
               </h2>
               <X
                 className="cursor-pointer text-gray-400 hover:text-red-500"
@@ -376,72 +420,155 @@ const TheoryPlanner = ({
                 onClick={() => setIsModalOpen(false)}
               />
             </div>
-            <div className="p-6 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
-              <div className="col-span-2">
-                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
-                  Topic Name
-                </label>
-                <input
-                  name="topicName"
-                  value={formData.topicName}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20 focus:border-[#08384F]"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
-                  Learning Pedagogy
-                </label>
-                <input
-                  name="learningPedagogy"
-                  value={formData.learningPedagogy}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20 focus:border-[#08384F]"
-                />
-              </div>
+
+            <div className="p-5 space-y-4">
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
-                  Planned Date
+                  Topic Title <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="date"
-                  name="plannedDate"
-                  value={formData.plannedDate}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none"
+                  name="title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
+                  placeholder="Enter topic name..."
                 />
               </div>
+
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
-                  Duration (Hrs)
+                  Learning Strategy
                 </label>
                 <input
-                  type="number"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none"
+                  name="learningStrategy"
+                  value={formData.learningStrategy}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      learningStrategy: e.target.value
+                    })
+                  }
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
+                  placeholder="e.g. Chalk & Talk, PPT"
                 />
               </div>
-              <div className="col-span-2">
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                    Planned Date
+                  </label>
+                  <input
+                    type="date"
+                    name="plannedDate"
+                    value={formData.plannedDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, plannedDate: e.target.value })
+                    }
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                    Duration (Hrs)
+                  </label>
+                  <input
+                    type="number"
+                    name="duration"
+                    value={formData.duration}
+                    onChange={(e) =>
+                      setFormData({ ...formData, duration: e.target.value })
+                    }
+                    className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
+              <div className="relative">
                 <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
-                  Reference
+                  References
                 </label>
-                <select
-                  name="reference"
-                  value={formData.reference}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none"
+                <div
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm flex flex-wrap gap-1.5 min-h-[40px] cursor-pointer items-center focus:ring-2 focus:ring-[#08384F]/20"
+                  onClick={() => setIsRefDropdownOpen(!isRefDropdownOpen)}
                 >
-                  <option value="">Select Reference</option>
-                  {referenceOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  {formData.references.length > 0 ? (
+                    formData.references.map((code) => (
+                      <span
+                        key={code}
+                        className="bg-[#08384F] text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1"
+                      >
+                        {code}
+                        <X
+                          size={10}
+                          className="cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleReference(code);
+                          }}
+                        />
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 italic">
+                      Select references...
+                    </span>
+                  )}
+                  <ChevronDown size={14} className="ml-auto text-gray-400" />
+                </div>
+
+                {isRefDropdownOpen && (
+                  <div className="absolute bottom-full left-0 w-full mb-2 bg-white border rounded-lg shadow-2xl z-50 overflow-hidden ring-1 ring-black/5 animate-in slide-in-from-bottom-2 duration-200">
+                    <div className="p-2 border-b bg-gray-50 flex items-center gap-2">
+                      <Search size={14} className="text-gray-400" />
+                      <input
+                        autoFocus
+                        placeholder="Search..."
+                        className="bg-transparent text-sm w-full outline-none py-1"
+                        value={refSearch}
+                        onChange={(e) => setRefSearch(e.target.value)}
+                      />
+                    </div>
+                    <div className="max-h-40 overflow-y-auto p-1">
+                      {referenceOptions
+                        .filter(
+                          (o) =>
+                            o.label
+                              .toLowerCase()
+                              .includes(refSearch.toLowerCase()) ||
+                            o.value
+                              .toLowerCase()
+                              .includes(refSearch.toLowerCase())
+                        )
+                        .map((o) => {
+                          const active = formData.references.includes(o.value);
+                          return (
+                            <div
+                              key={o.value}
+                              onClick={() => toggleReference(o.value)}
+                              className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${active ? 'bg-blue-50 text-[#08384F]' : 'hover:bg-gray-50'}`}
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-black opacity-50">
+                                  {o.value} ({o.type})
+                                </span>
+                                <span className="text-xs font-bold truncate max-w-[200px]">
+                                  {o.label}
+                                </span>
+                              </div>
+                              {active && <Check size={14} />}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+
             <div className="p-5 bg-gray-50 flex justify-end gap-3 rounded-b-xl border-t">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -451,7 +578,7 @@ const TheoryPlanner = ({
               </button>
               <button
                 onClick={handleSubmit}
-                className="bg-[#08384F] text-white px-6 py-2 rounded-lg font-bold shadow-lg text-sm"
+                className="bg-[#08384F] text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md"
               >
                 Save Locally
               </button>
@@ -460,32 +587,34 @@ const TheoryPlanner = ({
         </div>
       )}
 
+      {/* Delete Confirmation */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] z-[210] flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-[380px] overflow-hidden border border-slate-200">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-[380px] overflow-hidden">
             <div className="flex items-start gap-4 p-6">
               <div className="flex-shrink-0 w-10 h-10 bg-red-50 text-red-600 rounded-md flex items-center justify-center">
-                <AlertTriangle size={20} strokeWidth={2.5} />
+                <AlertTriangle size={20} />
               </div>
               <div className="flex-1">
-                <h2 className="text-slate-900 text-lg font-semibold leading-tight mb-1">
+                <h2 className="text-slate-900 text-lg font-semibold mb-1">
                   Delete Topic
                 </h2>
-                <p className="text-slate-500 text-sm leading-relaxed">
-                  Remove this topic from local session?
+                <p className="text-slate-500 text-sm">
+                  Are you sure you want to remove this topic from{' '}
+                  {courseOutcomes[selectedCOIdx]?.code}?
                 </p>
               </div>
             </div>
-            <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100">
+            <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-sm font-semibold text-slate-600 rounded"
+                className="px-4 py-2 text-sm font-semibold text-slate-600"
               >
                 Keep it
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded shadow-sm transition-all active:scale-[0.98]"
+                className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded shadow-sm"
               >
                 Confirm Delete
               </button>

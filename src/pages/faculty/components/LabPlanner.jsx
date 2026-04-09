@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
   X,
@@ -6,19 +6,12 @@ import {
   Trash2,
   FlaskConical,
   Check,
-  AlertTriangle,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-
-const UNITS = [
-  { label: "CO 1", key: "CO1" },
-  { label: "CO 2", key: "CO2" },
-  { label: "CO 3", key: "CO3" },
-  { label: "CO 4", key: "CO4" },
-  { label: "CO 5", key: "CO5" },
-  { label: "Others", key: "OTHERS" },
-];
+  AlertTriangle,
+  Save,
+  Beaker
+} from 'lucide-react';
 
 const LabPlanner = ({
   data,
@@ -26,202 +19,202 @@ const LabPlanner = ({
   onNext,
   onPrev,
   classroom,
-  saveCoursePlan,
+  saveCoursePlan
 }) => {
-  const [selectedUnit, setSelectedUnit] = useState("CO1");
+  // --- States ---
+  const [selectedCOIdx, setSelectedCOIdx] = useState(0);
+  const [localLabData, setLocalLabData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTopicIndex, setEditTopicIndex] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
-  const [unitTitle, setUnitTitle] = useState("");
+  const [unitTitle, setUnitTitle] = useState(''); // Maps to 'objective' or similar in Lab schema
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [localLabData, setLocalLabData] = useState({});
-
   const [formData, setFormData] = useState({
-    experimentNumber: "",
-    title: "",
-    plannedDate: "",
-    duration: "",
+    title: '',
+    plannedDate: '',
+    duration: ''
   });
 
+  // --- Memos ---
+  const courseOutcomes = useMemo(
+    () => data?.coursePlan?.courseDetails?.outcomes || [],
+    [data]
+  );
+
+  const isLastCO = selectedCOIdx === courseOutcomes.length - 1;
+
+  const currentExperiments = useMemo(() => {
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    const labBlock = localLabData.find((l) => l.coId === currentCOId);
+    return Array.isArray(labBlock?.experiments) ? labBlock.experiments : [];
+  }, [localLabData, selectedCOIdx, courseOutcomes]);
+
+  // --- Effects ---
   useEffect(() => {
-    if (data?.coursePlan?.planners?.lab) {
-      setLocalLabData(data.coursePlan.planners.lab);
-    }
+    if (data?.coursePlan?.lab) setLocalLabData(data.coursePlan.lab);
   }, [data]);
 
   useEffect(() => {
-    setUnitTitle(localLabData[selectedUnit]?.title || "");
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    const existingLab = localLabData.find((l) => l.coId === currentCOId);
+    // Lab schema typically uses 'objective' or 'unitTitle'
+    setUnitTitle(existingLab?.unitTitle || '');
     setIsEditingTitle(false);
-  }, [selectedUnit, localLabData]);
+  }, [selectedCOIdx, localLabData, courseOutcomes]);
 
-  const currentExperiments = useMemo(() => {
-    const exps = Array.isArray(localLabData[selectedUnit]?.experiments)
-      ? [...localLabData[selectedUnit].experiments]
-      : [];
-    return exps.sort(
-      (a, b) => Number(a.experimentNumber) - Number(b.experimentNumber),
-    );
-  }, [localLabData, selectedUnit]);
-
+  // --- Handlers ---
   const handleTitleSubmit = () => {
-    const updatedLab = { ...localLabData };
-    if (!updatedLab[selectedUnit])
-      updatedLab[selectedUnit] = { title: "", experiments: [] };
-    updatedLab[selectedUnit].title = unitTitle;
-    setLocalLabData(updatedLab);
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    if (!currentCOId) return;
+    setLocalLabData((prev) => {
+      const updated = [...prev];
+      const idx = updated.findIndex((l) => l.coId === currentCOId);
+      if (idx > -1) updated[idx].unitTitle = unitTitle;
+      else updated.push({ coId: currentCOId, unitTitle, experiments: [] });
+      return updated;
+    });
     setIsEditingTitle(false);
   };
 
   const handleSubmit = () => {
-    const { experimentNumber, title, plannedDate, duration } = formData;
-    if (!experimentNumber || !title || !plannedDate || !duration) {
-      alert("Please fill all required fields.");
-      return;
-    }
+    if (!formData.title?.trim()) return alert('Experiment Title is required.');
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
 
-    const updatedLab = { ...localLabData };
-    if (!updatedLab[selectedUnit])
-      updatedLab[selectedUnit] = { title: "", experiments: [] };
+    setLocalLabData((prev) => {
+      const updated = [...prev];
+      let idx = updated.findIndex((l) => l.coId === currentCOId);
 
-    let unitExperiments = [...(updatedLab[selectedUnit].experiments || [])];
+      if (idx === -1) {
+        updated.push({ coId: currentCOId, unitTitle: '', experiments: [] });
+        idx = updated.length - 1;
+      }
 
-    const submissionData = {
-      experimentNumber: Number(experimentNumber),
-      title,
-      plannedDate,
-      duration: Number(duration),
-    };
+      const submission = {
+        ...formData,
+        duration: Number(formData.duration) || 0,
+        plannedDate: formData.plannedDate || null
+      };
 
-    // Validation for duplicate experiment numbers (excluding the one being edited)
-    const isDuplicate = unitExperiments.some(
-      (exp, idx) =>
-        exp.experimentNumber === submissionData.experimentNumber &&
-        (!isEditing || idx !== editTopicIndex),
-    );
+      const experiments = [...updated[idx].experiments];
+      if (isEditing) experiments[editTopicIndex] = submission;
+      else experiments.push(submission);
 
-    if (isDuplicate) {
-      alert(`Experiment Number ${experimentNumber} already exists in this CO.`);
-      return;
-    }
-
-    if (isEditing && editTopicIndex !== null) {
-      unitExperiments[editTopicIndex] = submissionData;
-    } else {
-      unitExperiments.push(submissionData);
-    }
-
-    // Auto-reorder based on experiment number
-    unitExperiments.sort((a, b) => a.experimentNumber - b.experimentNumber);
-
-    updatedLab[selectedUnit].experiments = unitExperiments;
-    setLocalLabData(updatedLab);
+      updated[idx].experiments = experiments;
+      return updated;
+    });
     setIsModalOpen(false);
   };
 
   const confirmDelete = () => {
-    const updatedLab = { ...localLabData };
-    if (updatedLab[selectedUnit]?.experiments) {
-      updatedLab[selectedUnit].experiments = updatedLab[
-        selectedUnit
-      ].experiments.filter((_, i) => i !== deleteIndex);
-      setLocalLabData(updatedLab);
-      setIsDeleteModalOpen(false);
-    }
+    const currentCOId = courseOutcomes[selectedCOIdx]?._id;
+    setLocalLabData((prev) => {
+      const updated = [...prev];
+      const idx = updated.findIndex((l) => l.coId === currentCOId);
+      if (idx > -1)
+        updated[idx].experiments = updated[idx].experiments.filter(
+          (_, i) => i !== deleteIndex
+        );
+      return updated;
+    });
+    setIsDeleteModalOpen(false);
   };
 
-  const handleFinalSubmit = async () => {
+  const saveProgress = async () => {
     setLoading(true);
     try {
       const payload = {
         subjectId: classroom?.subjectId?._id,
         sectionId: classroom?.sectionId?._id,
         academicYearId: classroom?.academicYearId?._id,
-        planners: {
-          ...data?.coursePlan?.planners,
-          lab: localLabData,
-        },
-        status: data?.coursePlan?.status || "Draft",
+        lab: localLabData,
+        status: data?.coursePlan?.status || 'Draft'
       };
       const res = await saveCoursePlan(payload);
       if (res.success) {
         await refreshData();
-        if (onNext) onNext();
+        return true;
       }
-    } catch (error) {
-      console.error("Save Error:", error);
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const openAddModal = () => {
-    setIsEditing(false);
-    const nextNum =
-      currentExperiments.length > 0
-        ? Math.max(...currentExperiments.map((e) => e.experimentNumber)) + 1
-        : 1;
-    setFormData({
-      experimentNumber: nextNum,
-      title: "",
-      plannedDate: "",
-      duration: "",
-    });
-    setIsModalOpen(true);
+  const handleSaveAndNextCO = async () => {
+    const success = await saveProgress();
+    if (success && !isLastCO) {
+      setSelectedCOIdx(selectedCOIdx + 1);
+    }
   };
 
-  const openEditModal = (item, index) => {
-    setIsEditing(true);
-    setEditTopicIndex(index);
-    setFormData({
-      experimentNumber: item.experimentNumber,
-      title: item.title || "",
-      plannedDate: item.plannedDate ? item.plannedDate.split("T")[0] : "",
-      duration: item.duration || "",
-    });
-    setIsModalOpen(true);
+  const handleFinalSubmit = async () => {
+    const success = await saveProgress();
+    if (success && onNext) onNext();
   };
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 shrink-0">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {UNITS.map((unit) => (
+          {courseOutcomes.map((co, idx) => (
             <button
-              key={unit.key}
-              onClick={() => setSelectedUnit(unit.key)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm font-bold ${
-                selectedUnit === unit.key
-                  ? "bg-[#08384f] text-white shadow-md border-[#08384f]"
-                  : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+              key={co._id}
+              onClick={() => setSelectedCOIdx(idx)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm font-bold whitespace-nowrap ${
+                selectedCOIdx === idx
+                  ? 'bg-[#08384f] text-white shadow-md border-[#08384f]'
+                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
               }`}
             >
-              <FlaskConical size={14} /> {unit.label}
+              <FlaskConical size={14} /> {co.code}
             </button>
           ))}
         </div>
-        <button
-          onClick={openAddModal}
-          className="bg-[#08384F] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#062c3e] shadow-sm text-sm font-bold"
-        >
-          <Plus size={18} /> Add Experiment
-        </button>
+
+        <div className="flex items-center gap-3">
+          {!isLastCO && courseOutcomes.length > 0 && (
+            <button
+              onClick={handleSaveAndNextCO}
+              disabled={loading}
+              className="flex items-center gap-2 text-[#08384f] bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-bold transition-all border border-blue-100"
+            >
+              <Save size={14} /> {loading ? 'Saving...' : 'Save & Next'}
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              setIsEditing(false);
+              setFormData({ title: '', plannedDate: '', duration: '' });
+              setIsModalOpen(true);
+            }}
+            className="bg-[#08384F] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#062c3e] shadow-sm text-sm font-bold"
+          >
+            <Plus size={18} /> Add Experiment
+          </button>
+        </div>
       </div>
 
-      <div className="flex justify-center">
+      {/* Lab Objective/Title Editable Header */}
+      <div className="flex justify-center shrink-0">
         <div className="w-full max-w-2xl text-center">
           {isEditingTitle ? (
             <div className="flex items-center gap-2 bg-blue-50 p-2 rounded-lg border border-blue-200">
               <input
                 autoFocus
-                type="text"
+                placeholder="Enter Lab Objective/Unit Title for this CO..."
+                className="flex-1 outline-none text-sm font-medium bg-transparent px-2"
                 value={unitTitle}
                 onChange={(e) => setUnitTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleTitleSubmit()}
-                className="flex-1 outline-none text-sm font-medium bg-transparent px-2"
+                onKeyDown={(e) => e.key === 'Enter' && handleTitleSubmit()}
               />
               <button
                 onClick={handleTitleSubmit}
@@ -242,9 +235,10 @@ const LabPlanner = ({
               className="group cursor-pointer inline-flex items-center gap-3 hover:bg-gray-50 p-2 rounded-md transition-all"
             >
               <h3
-                className={`text-sm font-semibold ${unitTitle ? "text-gray-700" : "text-gray-300 italic"}`}
+                className={`text-sm font-semibold ${unitTitle ? 'text-gray-700' : 'text-gray-300 italic'}`}
               >
-                {unitTitle || "Click to add CO objective..."}
+                {unitTitle ||
+                  `Click to add ${courseOutcomes[selectedCOIdx]?.code} lab objective...`}
               </h3>
               <Edit2
                 size={12}
@@ -255,14 +249,13 @@ const LabPlanner = ({
         </div>
       </div>
 
-      <div className="flex-1 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
-        <div className="overflow-x-auto">
+      {/* Experiments Table Container */}
+      <div className="flex-1 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col min-h-0">
+        <div className="overflow-auto flex-1 h-full">
           <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm outline outline-1 outline-gray-200">
               <tr>
-                <th className="w-16 px-4 py-4 text-center font-semibold">
-                  Exp #
-                </th>
+                <th className="w-12 px-4 py-4 text-center font-semibold">#</th>
                 <th className="px-6 py-4 text-left font-semibold">
                   Experiment Title
                 </th>
@@ -282,23 +275,33 @@ const LabPlanner = ({
                     key={idx}
                     className="hover:bg-gray-50/50 transition-colors"
                   >
-                    <td className="px-4 py-4 text-center font-bold text-[#08384F]">
-                      {item.experimentNumber}
+                    <td className="px-4 py-4 text-center text-gray-400">
+                      {idx + 1}
                     </td>
                     <td className="px-6 py-4 font-medium break-words leading-relaxed">
                       {item.title}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-gray-500">
                       {item.plannedDate
                         ? new Date(item.plannedDate).toLocaleDateString()
-                        : "-"}
+                        : '-'}
                     </td>
-                    <td className="px-4 py-4">{item.duration} hr</td>
+                    <td className="px-4 py-4 text-gray-500">
+                      {item.duration ? `${item.duration} hr` : '-'}
+                    </td>
                     <td className="px-4 py-4">
                       <div className="flex justify-center gap-1">
                         <button
-                          onClick={() => openEditModal(item, idx)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                          onClick={() => {
+                            setIsEditing(true);
+                            setEditTopicIndex(idx);
+                            setFormData({
+                              ...item,
+                              plannedDate: item.plannedDate?.split('T')[0] || ''
+                            });
+                            setIsModalOpen(true);
+                          }}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           <Edit2 size={16} />
                         </button>
@@ -307,7 +310,7 @@ const LabPlanner = ({
                             setDeleteIndex(idx);
                             setIsDeleteModalOpen(true);
                           }}
-                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg"
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -330,10 +333,11 @@ const LabPlanner = ({
         </div>
       </div>
 
+      {/* Footer Nav */}
       <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 bg-white">
         <button
           onClick={onPrev}
-          className="flex items-center gap-2 text-gray-500 font-bold text-sm px-6 py-2 rounded-xl border border-gray-200"
+          className="flex items-center gap-2 text-gray-500 font-bold text-sm px-6 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
         >
           <ChevronLeft size={18} /> Previous
         </button>
@@ -342,16 +346,24 @@ const LabPlanner = ({
           disabled={loading}
           className="flex items-center gap-2 bg-[#08384F] text-white font-bold text-sm px-8 py-2.5 rounded-xl shadow-lg hover:bg-[#0c4a68] disabled:opacity-50 transition-all"
         >
-          {loading ? "Saving..." : "Next Step"} <ChevronRight size={18} />
+          {loading ? (
+            'Saving...'
+          ) : (
+            <>
+              {isLastCO ? 'Finalize & Next Step' : 'Save & Continue'}{' '}
+              <ChevronRight size={18} />
+            </>
+          )}
         </button>
       </div>
 
+      {/* Add/Edit Experiment Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b">
               <h2 className="text-lg font-bold text-gray-800">
-                {isEditing ? "Update" : "New"} Experiment
+                {isEditing ? 'Update' : 'New'} Experiment
               </h2>
               <X
                 className="cursor-pointer text-gray-400 hover:text-red-500"
@@ -359,38 +371,22 @@ const LabPlanner = ({
                 onClick={() => setIsModalOpen(false)}
               />
             </div>
+
             <div className="p-5 space-y-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
-                    Exp #
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.experimentNumber}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        experimentNumber: e.target.value,
-                      })
-                    }
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
-                  />
-                </div>
-                <div className="col-span-3">
-                  <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
-                    Title
-                  </label>
-                  <input
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
-                    placeholder="Experiment title..."
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
+                  Experiment Title *
+                </label>
+                <input
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
+                  placeholder="e.g. Verification of KVL and KCL"
+                />
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">
@@ -416,10 +412,12 @@ const LabPlanner = ({
                       setFormData({ ...formData, duration: e.target.value })
                     }
                     className="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#08384F]/20"
+                    placeholder="3"
                   />
                 </div>
               </div>
             </div>
+
             <div className="p-5 bg-gray-50 flex justify-end gap-3 rounded-b-xl border-t">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -438,6 +436,7 @@ const LabPlanner = ({
         </div>
       )}
 
+      {/* Delete Confirmation */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] z-[210] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-[380px] overflow-hidden">
@@ -450,8 +449,7 @@ const LabPlanner = ({
                   Delete Experiment
                 </h2>
                 <p className="text-slate-500 text-sm">
-                  Remove experiment{" "}
-                  {currentExperiments[deleteIndex]?.experimentNumber}?
+                  Are you sure you want to remove this experiment?
                 </p>
               </div>
             </div>
