@@ -8,7 +8,8 @@ import {
   LogOut,
   ChevronLeft,
   School,
-  Calendar
+  CalendarDays,
+  TableProperties
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -19,8 +20,8 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, tab: 'dashboard' },
     { label: 'Classrooms', icon: School, tab: 'classrooms' },
-    { label: 'Calendar', icon: Calendar, tab: 'calendar' },
-    { label: 'Time Table', icon: Calendar, tab: 'timetable' }
+    { label: 'Calendar', icon: CalendarDays, tab: 'calendar' },
+    { label: 'Time Table', icon: TableProperties, tab: 'timetable' }
   ];
 
   const handleTabChange = (tab) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Save, AlertTriangle } from 'lucide-react';
 
 const PO_LIST = [
   'PO1',
@@ -216,15 +216,14 @@ const COPOMapping = ({
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-gray-400">
             <AlertTriangle size={48} className="mb-2 opacity-20" />
-            <p className="text-sm italic">
+            <p className="text-sm">
               Please define Course Outcomes in the first step.
             </p>
           </div>
         )}
       </div>
 
-      {/* Main Navigation Footer */}
-      <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100 bg-white shrink-0">
+      <div className="flex justify-between items-center mt-4  bg-white shrink-0">
         <button
           onClick={onPrev}
           className="flex items-center gap-2 text-gray-500 font-bold text-sm px-6 py-2 rounded-xl hover:bg-gray-100 transition-all border border-gray-200"

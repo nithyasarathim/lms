@@ -77,7 +77,7 @@ const CoursePlanTab = ({
 }) => (
   <div className="flex flex-col h-full bg-white">
     <div className="p-4 border-b border-gray-100">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
         <h2 className="text-lg font-black text-[#08384F] tracking-tight">
           Course Plan
         </h2>
@@ -271,7 +271,7 @@ const CoursePlan = ({ classroom }) => {
   const CurrentStepComponent = filteredTabs[activeTab]?.component;
 
   return (
-    <div className="w-full flex gap-4 h-[70vh]">
+    <div className="w-full flex gap-4 h-[75vh]">
       <div className="w-1/4 bg-white rounded-3xl h-full border border-gray-200 flex flex-col overflow-hidden">
         <CoursePlanTab
           tabs={filteredTabs.map((t) => t.label)}

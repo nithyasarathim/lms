@@ -249,7 +249,6 @@ const LabPlanner = ({
         </div>
       </div>
 
-      {/* Experiments Table Container */}
       <div className="flex-1 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col min-h-0">
         <div className="overflow-auto flex-1 h-full">
           <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
@@ -333,8 +332,7 @@ const LabPlanner = ({
         </div>
       </div>
 
-      {/* Footer Nav */}
-      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 bg-white">
+      <div className="flex justify-between items-center pt-4 border-t border-gray-100 bg-white">
         <button
           onClick={onPrev}
           className="flex items-center gap-2 text-gray-500 font-bold text-sm px-6 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -436,7 +434,6 @@ const LabPlanner = ({
         </div>
       )}
 
-      {/* Delete Confirmation */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] z-[210] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-[380px] overflow-hidden">

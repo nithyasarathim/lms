@@ -128,8 +128,7 @@ const SubjectPlanner = ({
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header & Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 shrink-0">
         <div className="flex items-center gap-4">
           <h2 className="font-bold text-lg text-[#08384F]">Planner</h2>
           <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
@@ -157,7 +156,6 @@ const SubjectPlanner = ({
         </button>
       </div>
 
-      {/* Table Section */}
       <div className="flex-1 mt-4 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col">
         <div className="overflow-auto flex-1">
           <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
@@ -242,8 +240,7 @@ const SubjectPlanner = ({
         </div>
       </div>
 
-      {/* Footer Nav */}
-      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100 shrink-0">
+      <div className="flex justify-between items-center pt-4 border-t border-gray-100 shrink-0">
         <button
           onClick={onPrev}
           className="flex items-center gap-2 text-gray-500 font-bold text-sm px-6 py-2 rounded-xl border border-gray-200 hover:bg-gray-50"
@@ -254,12 +251,10 @@ const SubjectPlanner = ({
           onClick={onNext}
           className="flex items-center gap-2 bg-[#08384F] text-white font-bold text-sm px-8 py-2.5 rounded-xl shadow-lg hover:bg-[#0c4a68]"
         >
-          {/* Change text dynamically if it's the last step */}
           {onNext ? 'Finish & Review' : 'Next Step'} <ChevronRight size={18} />
         </button>
       </div>
 
-      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
