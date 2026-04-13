@@ -11,14 +11,17 @@ import {
   Briefcase,
   BookOpen,
   ChevronRight,
+  Pencil,
 } from "lucide-react";
 import { getDepartments } from "../api/admin.api";
+import EditDepartmentModal from "../modals/EditDepartmentModal";
 
 let departmentCache = null;
 
 const DepartmentList = ({ basePath, filter = "" }) => {
   const [departments, setDepartments] = useState(departmentCache || []);
   const [loading, setLoading] = useState(!departmentCache);
+  const [editDeptId, setEditDeptId] = useState(null);
 
   useEffect(() => {
     fetchDepts();
@@ -68,6 +71,12 @@ const DepartmentList = ({ basePath, filter = "" }) => {
       dept?.code?.toLowerCase().includes(filter.toLowerCase()),
   );
 
+  const handleEditClick = (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditDeptId(id);
+  };
+
   if (loading && !departmentCache) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6">
@@ -91,40 +100,60 @@ const DepartmentList = ({ basePath, filter = "" }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 overflow-y-auto hide-scroll">
-      {filteredDepartments.map((dept) => {
-        const separator = basePath.includes("?") ? "&" : "?";
-        const targetUrl = `${basePath}${separator}deptId=${dept._id}`;
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 overflow-y-auto hide-scroll pb-10">
+        {filteredDepartments.map((dept) => {
+          const separator = basePath.includes("?") ? "&" : "?";
+          const targetUrl = `${basePath}${separator}deptId=${dept._id}`;
 
-        return (
-          <Link
-            key={dept._id}
-            to={targetUrl}
-            className="flex items-center justify-between p-5 bg-[#F9F9F9] border border-[#CACACA] rounded-xl hover:shadow-lg hover:border-[#08384F] transition-all duration-300 group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-[#08384F] text-white rounded-full shadow-md group-hover:scale-110 transition-transform">
-                {getIcon(dept.code)}
-              </div>
-              <div>
-                <p className="font-medium text-sm text-[#0B56A4]">
-                  {dept.program} {dept.name} ({dept.code})
-                </p>
-              </div>
+          return (
+            <div key={dept._id} className="relative group">
+              <Link
+                to={targetUrl}
+                className="flex items-center justify-between p-5 bg-[#F9F9F9] border border-[#CACACA] rounded-xl hover:shadow-lg hover:border-[#08384F] transition-all duration-300 pr-14"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-[#08384F] text-white rounded-full shadow-md group-hover:scale-110 transition-transform">
+                    {getIcon(dept.code)}
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm text-[#0B56A4]">
+                      {dept.program} {dept.name} ({dept.code})
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight
+                  size={20}
+                  className="absolute right-4 text-[#08384F] opacity-70 group-hover:translate-x-1 transition-transform"
+                />
+              </Link>
+              <button
+                onClick={(e) => handleEditClick(e, dept._id)}
+                className="absolute right-12 top-1/2 -translate-y-1/2 p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all opacity-0 group-hover:opacity-100 z-10"
+                title="Edit Department"
+              >
+                <Pencil size={14} />
+              </button>
             </div>
-            <ChevronRight
-              size={20}
-              className="text-[#08384F] opacity-70 group-hover:translate-x-1 transition-transform"
-            />
-          </Link>
-        );
-      })}
-      {filteredDepartments.length === 0 && !loading && (
-        <div className="col-span-full py-10 text-center text-gray-400">
-          No departments found.
-        </div>
-      )}
-    </div>
+          );
+        })}
+        {filteredDepartments.length === 0 && !loading && (
+          <div className="col-span-full py-10 text-center text-gray-400">
+            No departments found.
+          </div>
+        )}
+      </div>
+
+      <EditDepartmentModal
+        isOpen={!!editDeptId}
+        onClose={() => setEditDeptId(null)}
+        deptId={editDeptId}
+        onSuccess={() => {
+          departmentCache = null;
+          fetchDepts();
+        }}
+      />
+    </>
   );
 };
 
