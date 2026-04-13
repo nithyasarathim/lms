@@ -100,6 +100,7 @@ export const editDepartment = async (id, deptData) => {
 
 export const createRegulation = async (regulationData) => {
   try {
+    console.log(regulationData);
     const response = await apiClient.post("api/regulations", regulationData);
     return response.data;
   } catch (error) {

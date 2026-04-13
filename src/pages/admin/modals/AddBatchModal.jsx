@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Calendar,
@@ -8,8 +8,9 @@ import {
   CheckCircle2,
   ArrowLeft,
   Layers,
+  BookOpen,
 } from "lucide-react";
-import { createBatch } from "../api/admin.api";
+import { createBatch, fetchRegulation } from "../api/admin.api";
 import toast from "react-hot-toast";
 
 const AddBatchModal = ({ isOpen, onClose, onSuccess }) => {
@@ -18,19 +19,35 @@ const AddBatchModal = ({ isOpen, onClose, onSuccess }) => {
     startYear: new Date().getFullYear(),
     endYear: new Date().getFullYear() + 4,
     programDuration: 4,
+    regulation: "",
   });
+  const [regulations, setRegulations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const getRegulations = async () => {
+        try {
+          const data = await fetchRegulation();
+          setRegulations(data || []);
+        } catch (err) {
+          toast.error("Failed to fetch regulations");
+        }
+      };
+      getRegulations();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const val = name === "name" ? value : Number(value);
+    const val =
+      name === "name" || name === "regulation" ? value : Number(value);
 
     setFormData((prev) => {
       const updated = { ...prev, [name]: val };
-      // Auto-calculate endYear if startYear or duration changes
       if (name === "startYear" || name === "programDuration") {
         updated.endYear = updated.startYear + updated.programDuration;
         updated.name = `${updated.startYear}-${updated.endYear}`;
@@ -59,6 +76,7 @@ const AddBatchModal = ({ isOpen, onClose, onSuccess }) => {
         startYear: new Date().getFullYear(),
         endYear: new Date().getFullYear() + 4,
         programDuration: 4,
+        regulation: "",
       });
       if (onSuccess) onSuccess();
       handleClose();
@@ -169,6 +187,32 @@ const AddBatchModal = ({ isOpen, onClose, onSuccess }) => {
                     placeholder="e.g. 2023-2027"
                     className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-[#08384F] outline-none transition-all font-bold text-[#08384F]"
                   />
+                </div>
+              </div>
+
+              <div className="relative">
+                <label className="text-[13px] font-semibold text-gray-500 uppercase tracking-wider block mb-1.5 ml-1">
+                  Regulation
+                </label>
+                <div className="relative">
+                  <BookOpen
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
+                  <select
+                    required
+                    name="regulation"
+                    value={formData.regulation}
+                    onChange={handleInputChange}
+                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:border-[#08384F] outline-none transition-all font-bold text-[#08384F] appearance-none"
+                  >
+                    <option value="">Select Regulation</option>
+                    {regulations.map((reg) => (
+                      <option key={reg._id} value={reg._id}>
+                        {reg.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
