@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
-  ChevronDown,
   ChevronUp,
   MoreVertical,
   ClipboardList,
@@ -15,19 +14,20 @@ import {
   Megaphone,
   Edit,
   ChevronsDown,
-  ChevronsUp
-} from 'lucide-react';
-import toast from 'react-hot-toast';
-import QuizModal from '../modals/QuizModal';
-import MaterialModal from '../modals/MaterialModal';
-import AssignmentModal from '../modals/AssignmentModal';
-import AddTopicModal from '../modals/AddTopicModal';
+  ChevronsUp,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import QuizModal from "../modals/QuizModal";
+import MaterialModal from "../modals/MaterialModal";
+import AssignmentModal from "../modals/AssignmentModal";
+import AddTopicModal from "../modals/AddTopicModal";
 
-import { deleteTopic, getClasswork, deletePost } from '../api/faculty.api';
+import { deleteTopic, getClasswork, deletePost } from "../api/faculty.api";
 
 const ClassroomClasswork = () => {
   const [searchParams] = useSearchParams();
-  const classroomId = searchParams.get('classroomId');
+  const navigate = useNavigate();
+  const classroomId = searchParams.get("classroomId");
 
   const [activeModal, setActiveModal] = useState(null);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
@@ -55,7 +55,7 @@ const ClassroomClasswork = () => {
         setCollapsedTopics(initialCollapseState);
       }
     } catch (err) {
-      console.error('Error fetching classwork:', err);
+      console.error("Error fetching classwork:", err);
     } finally {
       setLoading(false);
     }
@@ -71,8 +71,8 @@ const ClassroomClasswork = () => {
       setActivePostMenu(null);
       setShowCreateMenu(false);
     };
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
   const toggleTopic = (id) => {
@@ -100,11 +100,11 @@ const ClassroomClasswork = () => {
       try {
         const res = await deleteTopic(classroomId, topicId);
         if (res.success) {
-          toast.success('Topic deleted successfully');
+          toast.success("Topic deleted successfully");
           fetchClasswork();
         }
       } catch (err) {
-        toast.error('Failed to delete topic');
+        toast.error("Failed to delete topic");
       }
     }
   };
@@ -118,19 +118,19 @@ const ClassroomClasswork = () => {
           fetchClasswork();
         }
       } catch (err) {
-        toast.error('Failed to delete post');
+        toast.error("Failed to delete post");
       }
     }
   };
 
   const getIcon = (type) => {
-    const iconClass = 'text-white';
+    const iconClass = "text-white";
     switch (type) {
-      case 'assignment':
+      case "assignment":
         return <ClipboardList size={20} className={iconClass} />;
-      case 'quiz':
+      case "quiz":
         return <FileText size={20} className={iconClass} />;
-      case 'material':
+      case "material":
         return <BookOpen size={20} className={iconClass} />;
       default:
         return <ClipboardList size={20} className={iconClass} />;
@@ -138,7 +138,7 @@ const ClassroomClasswork = () => {
   };
 
   const renderDueDate = (post) => {
-    if (post.type === 'material') return null;
+    if (post.type === "material") return null;
     const date = post.dueDate || post.quiz?.dueDate || post.assignment?.dueDate;
     if (!date)
       return <span className="text-[13px] text-gray-400">No due date</span>;
@@ -164,14 +164,14 @@ const ClassroomClasswork = () => {
 
   return (
     <div className="max-w-5xl py-5 mx-auto">
-      <div className="flex justify-between items-center mb-10">
+      <div className="flex justify-end items-center gap-4 mb-10">
         <div className="relative">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowCreateMenu(!showCreateMenu);
             }}
-            className="bg-[#08384F] hover:bg-[#0a4663] text-white px-6 py-2.5 rounded-full font-medium flex items-center gap-2 shadow-md transition-all active:scale-95"
+            className="bg-[#08384F] font-bold text-sm hover:bg-[#0a4663] text-white pr-3 pl-2 py-2.5 rounded-lg flex items-center gap-1 shadow-md transition-all active:scale-95"
           >
             <Plus size={20} /> Create
           </button>
@@ -182,9 +182,9 @@ const ClassroomClasswork = () => {
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                className="absolute top-14 left-0 w-56 bg-white border border-gray-200 shadow-2xl rounded-xl z-150 py-2 origin-top-left"
+                className="absolute top-14 right-0 w-56 bg-white border border-gray-200 shadow-2xl rounded-xl z-[150] py-2 origin-top-right"
               >
-                {['assignment', 'quiz', 'material'].map((type) => (
+                {["assignment", "quiz", "material"].map((type) => (
                   <button
                     key={type}
                     onClick={() => handleCreateClick(type)}
@@ -198,7 +198,7 @@ const ClassroomClasswork = () => {
                 ))}
                 <div className="my-1 border-t border-gray-100" />
                 <button
-                  onClick={() => handleCreateClick('topic')}
+                  onClick={() => handleCreateClick("topic")}
                   className="w-full text-left px-5 py-3 text-[14px] hover:bg-gray-50 flex items-center gap-4 text-gray-700 transition-colors"
                 >
                   <span className="p-1.5 bg-gray-100 rounded-lg text-gray-600">
@@ -256,7 +256,7 @@ const ClassroomClasswork = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveTopicMenu(
-                              activeTopicMenu === topic._id ? null : topic._id
+                              activeTopicMenu === topic._id ? null : topic._id,
                             );
                           }}
                           className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
@@ -264,12 +264,12 @@ const ClassroomClasswork = () => {
                           <MoreVertical size={20} />
                         </button>
                         {activeTopicMenu === topic._id && (
-                          <div className="absolute right-0 mt-1 w-40 bg-white border shadow-xl rounded-lg z-120 py-1">
+                          <div className="absolute right-0 mt-1 w-40 bg-white border shadow-xl rounded-lg z-[120] py-1">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setEditTopicData(topic);
-                                setActiveModal('topic');
+                                setActiveModal("topic");
                               }}
                               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
                             >
@@ -291,7 +291,7 @@ const ClassroomClasswork = () => {
                     <div className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
                       <motion.div
                         animate={{
-                          rotate: collapsedTopics[topic._id] ? -180 : 0
+                          rotate: collapsedTopics[topic._id] ? -180 : 0,
                         }}
                         transition={{ duration: 0.3 }}
                       >
@@ -305,15 +305,22 @@ const ClassroomClasswork = () => {
                   {!collapsedTopics[topic._id] && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
+                      animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
                       <div className="space-y-1 mt-2">
                         {topic.posts?.map((post) => (
                           <div
                             key={post._id}
+                            onClick={() => {
+                              if (classroomId) {
+                                navigate(
+                                  `/faculty/dashboard/classroom/${classroomId}/post/${post._id}?type=${post.type}`,
+                                );
+                              }
+                            }}
                             className="flex items-center justify-between py-4 px-4 hover:bg-gray-50 border-b border-gray-100 rounded-lg cursor-pointer group/post"
                           >
                             <div className="flex items-center gap-5 flex-1 min-w-0">
@@ -336,7 +343,7 @@ const ClassroomClasswork = () => {
                                     setActivePostMenu(
                                       activePostMenu === post._id
                                         ? null
-                                        : post._id
+                                        : post._id,
                                     );
                                   }}
                                   className="p-2 opacity-0 group-hover/post:opacity-100 hover:bg-gray-200 rounded-full text-gray-500 transition-all"
@@ -344,7 +351,7 @@ const ClassroomClasswork = () => {
                                   <MoreVertical size={18} />
                                 </button>
                                 {activePostMenu === post._id && (
-                                  <div className="absolute right-0 top-full mt-1 w-36 bg-white border shadow-2xl rounded-lg z-130 py-1">
+                                  <div className="absolute right-0 top-full mt-1 w-36 bg-white border shadow-2xl rounded-lg z-[130] py-1">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -385,7 +392,7 @@ const ClassroomClasswork = () => {
       </div>
 
       <QuizModal
-        isOpen={activeModal === 'quiz'}
+        isOpen={activeModal === "quiz"}
         onClose={closeModal}
         classroomId={classroomId}
         topics={topics}
@@ -393,7 +400,7 @@ const ClassroomClasswork = () => {
         initialData={editPostData}
       />
       <MaterialModal
-        isOpen={activeModal === 'material'}
+        isOpen={activeModal === "material"}
         onClose={closeModal}
         classroomId={classroomId}
         topics={topics}
@@ -401,7 +408,7 @@ const ClassroomClasswork = () => {
         initialData={editPostData}
       />
       <AssignmentModal
-        isOpen={activeModal === 'assignment'}
+        isOpen={activeModal === "assignment"}
         onClose={closeModal}
         classroomId={classroomId}
         topics={topics}
@@ -409,7 +416,7 @@ const ClassroomClasswork = () => {
         initialData={editPostData}
       />
       <AddTopicModal
-        isOpen={activeModal === 'topic'}
+        isOpen={activeModal === "topic"}
         onClose={closeModal}
         classroomId={classroomId}
         onTopicAction={fetchClasswork}

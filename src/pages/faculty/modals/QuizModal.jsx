@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   X,
   Plus,
@@ -7,13 +7,14 @@ import {
   Calendar,
   Circle,
   Square,
+  Check,
   Type,
   HelpCircle,
-  GripVertical
-} from 'lucide-react';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
-import { createPost, updatePost } from '../api/faculty.api';
+  GripVertical,
+} from "lucide-react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+import { createPost, updatePost } from "../api/faculty.api";
 
 const QuizModal = ({
   isOpen,
@@ -21,13 +22,13 @@ const QuizModal = ({
   classroomId,
   topics,
   onPostCreated,
-  initialData = null
+  initialData = null,
 }) => {
-  const [title, setTitle] = useState('');
-  const [instructions, setInstructions] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [title, setTitle] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [hasDueDate, setHasDueDate] = useState(false);
-  const [selectedTopicId, setSelectedTopicId] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState("");
   const [isAutoGraded, setIsAutoGraded] = useState(true);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,19 +36,19 @@ const QuizModal = ({
   useEffect(() => {
     if (initialData && isOpen) {
       const quiz = initialData.quiz || {};
-      setTitle(initialData.title || '');
-      setInstructions(initialData.instructions || '');
-      setSelectedTopicId(initialData.topicId || '');
+      setTitle(initialData.title || "");
+      setInstructions(initialData.instructions || "");
+      setSelectedTopicId(initialData.topicId || "");
       setIsAutoGraded(quiz.isAutoGraded ?? true);
       setQuestions(quiz.questions || []);
 
       if (quiz.dueDate) {
         const date = new Date(quiz.dueDate);
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
         setDueDate(`${year}-${month}-${day}T${hours}:${minutes}`);
         setHasDueDate(true);
       }
@@ -57,24 +58,24 @@ const QuizModal = ({
   }, [initialData, isOpen]);
 
   const resetForm = () => {
-    setTitle('');
-    setInstructions('');
-    setDueDate('');
+    setTitle("");
+    setInstructions("");
+    setDueDate("");
     setHasDueDate(false);
-    setSelectedTopicId('');
+    setSelectedTopicId("");
     setQuestions([
       {
-        questionText: '',
-        questionType: 'single_choice',
-        options: ['Option 1', 'Option 2'],
+        questionText: "",
+        questionType: "single_choice",
+        options: ["Option 1", "Option 2"],
         correctAnswers: [],
-        points: 1
-      }
+        points: 1,
+      },
     ]);
   };
 
   const hasDuplicateOptions = (options) => {
-    const filtered = options.filter((opt) => opt.trim() !== '');
+    const filtered = options.filter((opt) => opt.trim() !== "");
     return new Set(filtered).size !== filtered.length;
   };
 
@@ -85,9 +86,9 @@ const QuizModal = ({
       questions.some(
         (q) =>
           !q.questionText.trim() ||
-          (q.questionType !== 'short_answer' &&
+          (q.questionType !== "short_answer" &&
             hasDuplicateOptions(q.options)) ||
-          q.correctAnswers.length === 0
+          q.correctAnswers.length === 0,
       )
     );
   };
@@ -95,12 +96,12 @@ const QuizModal = ({
   const updateQuestion = (index, field, value) => {
     const newQuestions = [...questions];
     newQuestions[index][field] = value;
-    if (field === 'questionType') {
-      if (value === 'short_answer') {
+    if (field === "questionType") {
+      if (value === "short_answer") {
         newQuestions[index].options = [];
-        newQuestions[index].correctAnswers = [''];
+        newQuestions[index].correctAnswers = [""];
       } else {
-        newQuestions[index].options = ['Option 1', 'Option 2'];
+        newQuestions[index].options = ["Option 1", "Option 2"];
         newQuestions[index].correctAnswers = [];
       }
     }
@@ -112,7 +113,7 @@ const QuizModal = ({
     const oldVal = newQuestions[qIdx].options[optIdx];
     newQuestions[qIdx].options[optIdx] = val;
     newQuestions[qIdx].correctAnswers = newQuestions[qIdx].correctAnswers.map(
-      (ans) => (ans === oldVal ? val : ans)
+      (ans) => (ans === oldVal ? val : ans),
     );
     setQuestions(newQuestions);
   };
@@ -121,7 +122,7 @@ const QuizModal = ({
     if (!optionText.trim()) return;
     const newQuestions = [...questions];
     const q = newQuestions[qIdx];
-    if (q.questionType === 'single_choice') {
+    if (q.questionType === "single_choice") {
       q.correctAnswers = [optionText];
     } else {
       if (q.correctAnswers.includes(optionText)) {
@@ -137,20 +138,20 @@ const QuizModal = ({
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('type', 'quiz');
-      formData.append('title', title.trim());
-      formData.append('instructions', instructions);
-      formData.append('topicId', selectedTopicId || 'No Topic');
-      formData.append('quizData', JSON.stringify({ isAutoGraded, questions }));
+      formData.append("type", "quiz");
+      formData.append("title", title.trim());
+      formData.append("instructions", instructions);
+      formData.append("topicId", selectedTopicId || "No Topic");
+      formData.append("quizData", JSON.stringify({ isAutoGraded, questions }));
 
       if (hasDueDate && dueDate) {
-        formData.append('dueDate', new Date(dueDate).toISOString());
+        formData.append("dueDate", new Date(dueDate).toISOString());
       } else {
-        formData.append('dueDate', '');
+        formData.append("dueDate", "");
       }
 
       const res = initialData
-        ? await updatePost(classroomId, 'quiz', initialData._id, formData)
+        ? await updatePost(classroomId, "quiz", initialData._id, formData)
         : await createPost(classroomId, formData);
 
       if (res.success) {
@@ -158,7 +159,7 @@ const QuizModal = ({
         onClose();
       }
     } catch (err) {
-      alert(err.message || 'Failed to save quiz');
+      alert(err.message || "Failed to save quiz");
     } finally {
       setLoading(false);
     }
@@ -169,7 +170,6 @@ const QuizModal = ({
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl overflow-hidden relative flex flex-col h-[90vh] animate-in zoom-in-95">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white shrink-0">
           <div className="flex items-center gap-3">
             <button
@@ -179,7 +179,7 @@ const QuizModal = ({
               <X size={20} />
             </button>
             <h2 className="text-lg font-semibold text-gray-800">
-              {initialData ? 'Edit Quiz' : 'New Quiz'}
+              {initialData ? "Edit Quiz" : "New Quiz"}
             </h2>
           </div>
           <button
@@ -188,7 +188,7 @@ const QuizModal = ({
             className="bg-[#08384F] text-white px-10 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#0a4663] transition-all disabled:opacity-30 flex items-center gap-2"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
-            {initialData ? 'Update' : 'Assign'}
+            {initialData ? "Update" : "Assign"}
           </button>
         </div>
 
@@ -216,7 +216,6 @@ const QuizModal = ({
               </div>
             </div>
 
-            {/* Questions Section */}
             <div className="space-y-6">
               <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                 <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest">
@@ -251,14 +250,14 @@ const QuizModal = ({
                         placeholder={`Question ${qIdx + 1}`}
                         value={q.questionText}
                         onChange={(e) =>
-                          updateQuestion(qIdx, 'questionText', e.target.value)
+                          updateQuestion(qIdx, "questionText", e.target.value)
                         }
                       />
                       <select
                         className="text-xs font-bold p-2 bg-gray-50 border border-gray-200 rounded-xl outline-none"
                         value={q.questionType}
                         onChange={(e) =>
-                          updateQuestion(qIdx, 'questionType', e.target.value)
+                          updateQuestion(qIdx, "questionType", e.target.value)
                         }
                       >
                         <option value="single_choice">Single Choice</option>
@@ -274,18 +273,28 @@ const QuizModal = ({
                           className="w-12 p-1 text-sm font-bold outline-none text-[#08384F]"
                           value={q.points}
                           onChange={(e) =>
-                            updateQuestion(qIdx, 'points', e.target.value)
+                            updateQuestion(qIdx, "points", e.target.value)
                           }
                         />
                       </div>
+                      {/* Delete Question Button at Top Right of Card */}
+                      <button
+                        onClick={() =>
+                          setQuestions(questions.filter((_, i) => i !== qIdx))
+                        }
+                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors group-hover:opacity-100 opacity-0"
+                        title="Delete Question"
+                      >
+                        <Trash2 size={20} />
+                      </button>
                     </div>
 
-                    {q.questionType !== 'short_answer' ? (
+                    {q.questionType !== "short_answer" ? (
                       <div className="space-y-2">
                         {q.options.map((opt, optIdx) => {
                           const isDuplicate =
                             q.options.filter(
-                              (o) => o === opt && o.trim() !== ''
+                              (o) => o === opt && o.trim() !== "",
                             ).length > 1;
                           const isCorrect = q.correctAnswers.includes(opt);
                           return (
@@ -295,35 +304,24 @@ const QuizModal = ({
                             >
                               <button
                                 onClick={() => toggleCorrectAnswer(qIdx, opt)}
+                                className={`w-6 h-6 flex items-center justify-center transition-all ${
+                                  isCorrect
+                                    ? "bg-[#08384F]"
+                                    : "border-2 border-gray-200 hover:border-gray-300"
+                                } ${q.questionType === "single_choice" ? "rounded-full" : "rounded-md"}`}
                               >
-                                {q.questionType === 'single_choice' ? (
-                                  <Circle
-                                    size={18}
-                                    className={
-                                      isCorrect
-                                        ? 'fill-[#08384F] text-[#08384F]'
-                                        : 'text-gray-300'
-                                    }
-                                  />
-                                ) : (
-                                  <Square
-                                    size={18}
-                                    className={
-                                      isCorrect
-                                        ? 'fill-[#08384F] text-[#08384F]'
-                                        : 'text-gray-300'
-                                    }
-                                  />
+                                {isCorrect && (
+                                  <Check size={14} className="text-white" />
                                 )}
                               </button>
                               <input
-                                className={`flex-1 text-sm py-1 border-b outline-none ${isDuplicate ? 'border-red-400 text-red-500' : 'border-transparent focus:border-gray-200'}`}
+                                className={`flex-1 text-sm py-1 border-b outline-none ${isDuplicate ? "border-red-400 text-red-500" : "border-transparent focus:border-gray-200"}`}
                                 value={opt}
                                 onChange={(e) =>
                                   handleOptionChange(
                                     qIdx,
                                     optIdx,
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -331,11 +329,11 @@ const QuizModal = ({
                                 onClick={() =>
                                   updateQuestion(
                                     qIdx,
-                                    'options',
-                                    q.options.filter((_, i) => i !== optIdx)
+                                    "options",
+                                    q.options.filter((_, i) => i !== optIdx),
                                   )
                                 }
-                                className="opacity-0 group-hover/opt:opacity-100 text-gray-300 hover:text-red-500"
+                                className="opacity-0 group-hover/opt:opacity-100 text-gray-300 hover:text-red-500 transition-opacity"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -344,33 +342,25 @@ const QuizModal = ({
                         })}
                         <button
                           onClick={() =>
-                            updateQuestion(qIdx, 'options', [...q.options, ''])
+                            updateQuestion(qIdx, "options", [...q.options, ""])
                           }
-                          className="text-xs font-bold text-[#08384F] mt-2"
+                          className="text-xs font-bold text-[#08384F] mt-2 flex items-center gap-1 hover:underline"
                         >
-                          + Add Option
+                          <Plus size={14} /> Add Option
                         </button>
                       </div>
                     ) : (
                       <input
                         className="w-full bg-[#08384F]/5 p-3 rounded-xl border border-dashed border-[#08384F]/20 text-sm outline-none"
                         placeholder="Type the correct answer here..."
-                        value={q.correctAnswers[0] || ''}
+                        value={q.correctAnswers[0] || ""}
                         onChange={(e) =>
-                          updateQuestion(qIdx, 'correctAnswers', [
-                            e.target.value
+                          updateQuestion(qIdx, "correctAnswers", [
+                            e.target.value,
                           ])
                         }
                       />
                     )}
-                    <button
-                      onClick={() =>
-                        setQuestions(questions.filter((_, i) => i !== qIdx))
-                      }
-                      className="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 size={18} />
-                    </button>
                   </div>
                 ))}
                 <button
@@ -378,23 +368,22 @@ const QuizModal = ({
                     setQuestions([
                       ...questions,
                       {
-                        questionText: '',
-                        questionType: 'single_choice',
-                        options: ['Option 1', 'Option 2'],
+                        questionText: "",
+                        questionType: "single_choice",
+                        options: ["Option 1", "Option 2"],
                         correctAnswers: [],
-                        points: 1
-                      }
+                        points: 1,
+                      },
                     ])
                   }
-                  className="w-full py-4 border-2 border-dashed border-gray-100 rounded-2xl text-gray-400 text-sm font-bold hover:border-[#08384F] hover:text-[#08384F] transition-all"
+                  className="w-full py-4 border-2 border-dashed border-gray-100 rounded-2xl text-gray-400 text-sm font-bold hover:border-[#08384F] hover:text-[#08384F] transition-all flex items-center justify-center gap-2"
                 >
-                  + Add Question
+                  <Plus size={18} /> Add Question
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Right Sidebar */}
           <div className="w-full lg:w-[320px] bg-gray-50 border-l border-gray-100 p-8 space-y-8 overflow-y-auto shrink-0">
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block">
@@ -413,7 +402,7 @@ const QuizModal = ({
                     className="bg-transparent outline-none w-full text-xs font-bold"
                   />
                 ) : (
-                  'No due date'
+                  "No due date"
                 )}
                 <Calendar size={16} className="text-gray-400" />
               </div>
@@ -426,8 +415,9 @@ const QuizModal = ({
               <select
                 value={selectedTopicId}
                 onChange={(e) => setSelectedTopicId(e.target.value)}
-                className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none cursor-pointer"
+                className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none cursor-pointer focus:border-[#08384F]"
               >
+                <option value="">No Topic</option>
                 {topics?.map((t) => (
                   <option key={t._id} value={t._id}>
                     {t.name}
@@ -443,10 +433,10 @@ const QuizModal = ({
                 </label>
                 <button
                   onClick={() => setIsAutoGraded(!isAutoGraded)}
-                  className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${isAutoGraded ? 'bg-[#08384F]' : 'bg-gray-300'}`}
+                  className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${isAutoGraded ? "bg-[#08384F]" : "bg-gray-300"}`}
                 >
                   <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isAutoGraded ? 'translate-x-6' : 'translate-x-1'}`}
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isAutoGraded ? "translate-x-6" : "translate-x-1"}`}
                   />
                 </button>
               </div>
@@ -464,7 +454,7 @@ const QuizModal = ({
                 <span className="text-[#08384F] font-bold">
                   {questions.reduce(
                     (acc, curr) => acc + (Number(curr.points) || 0),
-                    0
+                    0,
                   )}
                 </span>
               </div>

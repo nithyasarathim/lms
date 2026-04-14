@@ -2,18 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import FacultySidebar from '../components/FacultySidebar';
 import ClassroomPage from '../components/ClassroomPage';
+import CalendarComponent from '../components/CalendarComponent';
+import TimetableComponent from '../components/TimetableComponent';
 
-// Dummy components – replace with your actual imports
+
 const FacultyDashboardHome = () => (
   <h1 className="p-6 text-xl font-semibold">Dashboard Home</h1>
-);
-
-const FacultyCalendar = () => (
-  <h1 className="p-6 text-xl font-semibold">Events Calendar</h1>
-);
-
-const FacultyTimetable = () => (
-  <h1 className="p-6 text-xl font-semibold">Time Table</h1>
 );
 
 const FacultyDashboard = () => {
@@ -48,13 +42,13 @@ const FacultyDashboard = () => {
       case 'calendar':
         return (
           <div className={contentClass}>
-            <FacultyCalendar />
+            <CalendarComponent />
           </div>
         );
       case 'timetable':
         return (
           <div className={contentClass}>
-            <FacultyTimetable />
+            <TimetableComponent />
           </div>
         );
       default:
