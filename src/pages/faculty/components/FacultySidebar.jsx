@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import EshwarLogo from '../../../assets/EshwarLogo.png';
-import EshwarIcon from '../../../assets/EshwarIcon.png';
+import React from "react";
+import { motion } from "framer-motion";
+import EshwarLogo from "../../../assets/EshwarLogo.png";
+import EshwarIcon from "../../../assets/EshwarIcon.png";
 import {
   Menu,
   LayoutDashboard,
@@ -9,28 +9,34 @@ import {
   ChevronLeft,
   School,
   CalendarDays,
-  TableProperties
-} from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+  Calendar,
+} from "lucide-react";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 
 const FacultySidebar = ({ collapsed, setCollapsed }) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'dashboard';
+  const location = useLocation();
+  const navigate = useNavigate();
+  const activeTab = searchParams.get("tab") || "dashboard";
 
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, tab: 'dashboard' },
-    { label: 'Classrooms', icon: School, tab: 'classrooms' },
-    { label: 'Calendar', icon: CalendarDays, tab: 'calendar' },
-    { label: 'Time Table', icon: TableProperties, tab: 'timetable' }
+    { label: "Dashboard", icon: LayoutDashboard, tab: "dashboard" },
+    { label: "Classrooms", icon: School, tab: "classrooms" },
+    { label: "Calendar", icon: Calendar, tab: "calendar" },
+    { label: "Time Table", icon: CalendarDays, tab: "timetable" },
   ];
 
   const handleTabChange = (tab) => {
+    if (location.pathname !== "/faculty/dashboard") {
+      navigate(`/faculty/dashboard?tab=${tab}`);
+      return;
+    }
     setSearchParams({ tab });
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('lms-user');
-    window.location.href = '/';
+    localStorage.removeItem("lms-user");
+    window.location.href = "/";
   };
 
   return (
@@ -66,7 +72,7 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
 
       <div
         className={`fixed top-0 left-0 h-screen bg-[#08384F] z-50 transition-all duration-300 flex flex-col ${
-          collapsed ? 'w-20' : 'w-75'
+          collapsed ? "w-20" : "w-75"
         }`}
       >
         <div className="relative flex justify-center items-center p-6 min-h-25">
@@ -98,7 +104,7 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
                 key={item.tab}
                 onClick={() => handleTabChange(item.tab)}
                 className={`flex items-center w-full h-13.5 px-3 rounded-l-[25px] transition-colors duration-200 relative group outline-none ${
-                  active ? 'text-[#08384F]' : 'text-white hover:bg-white/5'
+                  active ? "text-[#08384F]" : "text-white hover:bg-white/5"
                 }`}
               >
                 {active && (
@@ -106,21 +112,21 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
                     layoutId="activeTabFaculty"
                     className="absolute inset-0 bg-white rounded-l-[25px] curve-before curve-after"
                     transition={{
-                      type: 'spring',
+                      type: "spring",
                       stiffness: 350,
-                      damping: 30
+                      damping: 30,
                     }}
                   />
                 )}
 
                 <span
                   className={`relative z-10 flex items-center justify-center rounded-full h-10 w-10 shrink-0 transition-colors duration-300 ${
-                    active ? 'bg-[#08384F]' : 'bg-transparent'
+                    active ? "bg-[#08384F]" : "bg-transparent"
                   }`}
                 >
                   <Icon
                     size={18}
-                    className={`${active ? 'text-white' : 'inherit'}`}
+                    className={`${active ? "text-white" : "inherit"}`}
                   />
                 </span>
 
@@ -138,7 +144,7 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
           <button
             onClick={handleLogout}
             className={`flex items-center gap-3 text-white font-medium px-4 py-2 w-full rounded-lg cursor-pointer hover:bg-white/10 transition-all duration-200 ${
-              collapsed ? 'justify-center px-0 ' : ' w-fit'
+              collapsed ? "justify-center px-0 " : " w-fit"
             }`}
           >
             <LogOut size={18} />

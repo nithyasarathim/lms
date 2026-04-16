@@ -18,7 +18,11 @@ import AddSubjectModal from "../modals/AddSubjectModal";
 import EditSubjectModal from "../modals/EditSubjectModal";
 import DeleteConfirmModal from "../modals/DeleteConfirmModal";
 
-const SubjectTable = () => {
+const SubjectTable = ({
+  isGlobalView = false,
+  searchQuery: externalSearch = "",
+  regulationId = "",
+}) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
@@ -33,18 +37,33 @@ const SubjectTable = () => {
   const deptId = searchParams.get("deptId");
 
   useEffect(() => {
-    if (deptId) fetchSubjects();
-  }, [deptId]);
+    fetchSubjects();
+  }, [deptId, isGlobalView, regulationId]);
 
   const fetchSubjects = async () => {
     setLoading(true);
     try {
-      const data = await getSubjects();
-      const filteredByDept = data.filter(
-        (sub) =>
-          sub.departmentId?._id === deptId || sub.departmentId === deptId,
-      );
-      setSubjects(filteredByDept);
+      const response = await getSubjects();
+      const data = response?.data?.subjects || response || [];
+
+      let filtered = data;
+
+      if (!isGlobalView && deptId) {
+        filtered = filtered.filter(
+          (sub) =>
+            sub.departmentId?._id === deptId || sub.departmentId === deptId,
+        );
+      }
+
+      if (regulationId) {
+        filtered = filtered.filter(
+          (sub) =>
+            sub.regulationId?._id === regulationId ||
+            sub.regulationId === regulationId,
+        );
+      }
+
+      setSubjects(filtered);
     } catch (error) {
       console.error(error);
     } finally {
@@ -52,7 +71,8 @@ const SubjectTable = () => {
     }
   };
 
-  const handleBack = () => navigate("/admin/dashboard?tab=subject-management");
+  const handleBack = () =>
+    navigate("/admin/dashboard?tab=curriculum-management");
 
   const getDeliveryTypeLabel = (type) => {
     return (
@@ -62,62 +82,70 @@ const SubjectTable = () => {
     );
   };
 
+  const currentSearch = isGlobalView ? externalSearch : search;
+
   const filteredSubjects = subjects.filter(
     (item) =>
-      item.name?.toLowerCase().includes(search.toLowerCase()) ||
-      item.code?.toLowerCase().includes(search.toLowerCase()) ||
-      item.shortName?.toLowerCase().includes(search.toLowerCase()),
+      item.name?.toLowerCase().includes(currentSearch.toLowerCase()) ||
+      item.code?.toLowerCase().includes(currentSearch.toLowerCase()) ||
+      item.shortName?.toLowerCase().includes(currentSearch.toLowerCase()),
   );
 
   return (
-    <div className="px-4 animate-in fade-in slide-in-from-bottom-2 duration-300  max-w-[1600px] mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-[#08384F] font-bold hover:text-[#0a4a69] transition-colors text-sm"
-        >
-          <ArrowLeft size={16} />
-          Back
-        </button>
-        <button
-          onClick={() => setIsEditDeptOpen(true)}
-          className="flex items-center gap-2 text-gray-500 hover:text-[#08384F] transition-colors text-sm font-bold bg-white border border-gray-200 px-3 py-1.5 rounded-lg "
-        >
-          <Settings size={14} />
-          Edit Department
-        </button>
-      </div>
-      <div className="bg-white rounded-2xl border border-gray-300 overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-50">
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 w-full mx-auto">
+      {!isGlobalView && (
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 text-[#08384F] font-bold hover:text-[#0a4a69] transition-colors text-sm"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+          <button
+            onClick={() => setIsEditDeptOpen(true)}
+            className="flex items-center gap-2 text-gray-500 hover:text-[#08384F] transition-colors text-sm font-bold bg-white border border-gray-200 px-3 py-1.5 rounded-lg "
+          >
+            <Settings size={14} />
+            Edit Department
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl border border-gray-300 overflow-hidden shadow-sm">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <h2 className="text-lg font-bold text-gray-800">
-            Subject Details
+            {isGlobalView ? "Subject List" : "Department Subjects"}
             <span className="ml-2 text-sm font-medium text-gray-400">
               ({filteredSubjects.length})
             </span>
           </h2>
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Search code or name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#08384F]/5 focus:border-[#08384F] w-64 transition-all"
-              />
-            </div>
+            {!isGlobalView && (
+              <div className="relative">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="Search Pool..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#08384F]/5 focus:border-[#08384F] w-64 transition-all"
+                />
+              </div>
+            )}
             <button
               onClick={() => setIsAddSubjectOpen(true)}
               className="flex items-center gap-2 bg-[#08384F] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#0b3a53] transition-all active:scale-95"
             >
               <Plus size={16} />
-              Add Subject
+              Add New Subject
             </button>
           </div>
         </div>
+
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px]">
             <thead>
@@ -152,9 +180,7 @@ const SubjectTable = () => {
                       className="animate-spin mx-auto text-[#08384F] mb-2"
                       size={24}
                     />
-                    <p className="text-xs text-gray-400">
-                      Fetching subjects...
-                    </p>
+                    <p className="text-xs text-gray-400">Loading Pool...</p>
                   </td>
                 </tr>
               ) : filteredSubjects.length > 0 ? (
@@ -218,7 +244,7 @@ const SubjectTable = () => {
                     <div className="flex flex-col items-center text-gray-300">
                       <BookX size={40} strokeWidth={1} />
                       <p className="text-md font-semibold mt-2 text-gray-400">
-                        No subjects found
+                        No subjects found in pool
                       </p>
                     </div>
                   </td>
@@ -233,22 +259,19 @@ const SubjectTable = () => {
         isOpen={isEditDeptOpen}
         onClose={() => setIsEditDeptOpen(false)}
         deptId={deptId}
-        onSuccess={() => fetchSubjects()}
+        onSuccess={fetchSubjects}
       />
-
       <AddSubjectModal
         isOpen={isAddSubjectOpen}
         onClose={() => setIsAddSubjectOpen(false)}
         fetchSubjects={fetchSubjects}
       />
-
       <EditSubjectModal
         isOpen={!!editSubjectData}
         subject={editSubjectData}
         onClose={() => setEditSubjectData(null)}
         onSuccess={fetchSubjects}
       />
-
       <DeleteConfirmModal
         isOpen={!!deleteSubjectData}
         subjectId={deleteSubjectData?._id}

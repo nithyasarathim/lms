@@ -184,7 +184,9 @@ export const getEligiblePeople = async (classroomId, type) => {
 
 export const getFacultyTimetable = async (facultyId) => {
   try {
-    const response = await apiClient.get(`/api/timetable/faculty/${facultyId}`);
+    const response = await apiClient.get(
+      `/api/timetable/faculty?facultyId=${facultyId}`,
+    );
     return response.data;
   } catch (err) {
     throw err.response?.data || err.message;
@@ -228,6 +230,15 @@ export const getCoursePlan = async (subjectId, sectionId, academicYearId) => {
     const response = await apiClient.get(
       `/api/coursePlan?subjectId=${subjectId}&sectionId=${sectionId}&academicYearId=${academicYearId}`,
     );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getCalendar = async () => {
+  try {
+    const response = await apiClient.get(`/api/calendar`);
     return response.data;
   } catch (err) {
     throw err.response?.data || err.message;

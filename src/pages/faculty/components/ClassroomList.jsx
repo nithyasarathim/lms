@@ -58,7 +58,6 @@ const ClassroomList = () => {
   }, []);
 
   const filteredClassrooms = classrooms.filter((item) => {
-    // Access subject data directly from subjectId
     const subjectName = item?.subjectId?.name?.toLowerCase() || '';
     const subjectCode = item?.subjectId?.code?.toLowerCase() || '';
     return (
