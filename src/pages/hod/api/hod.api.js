@@ -203,6 +203,34 @@ export const getAllAcademicYears = async () => {
     const response = await apiClient.get(`/api/academic-years`);
     return response.data;
   } catch (error) {
-    throw err.response?.data || err.data;
+    throw error.response?.data || error.data;
+  }
+};
+
+export const getAttendanceRequests = async (status = "Pending") => {
+  try {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    const response = await apiClient.get(`/api/attendance/requests?${params}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const resolveAttendanceRequest = async ({
+  requestId,
+  status,
+  reviewRemarks,
+}) => {
+  try {
+    const response = await apiClient.patch(`/api/attendance/resolve-request`, {
+      requestId,
+      status,
+      reviewRemarks,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
   }
 };

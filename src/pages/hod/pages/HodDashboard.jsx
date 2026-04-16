@@ -5,6 +5,7 @@ import SectionManagement from "../components/SectionManagement";
 import StaffAllocation from "../components/StaffAllocation";
 import StudentManagement from "../components/StudentManagement";
 import TimeTableManagement from "../components/TimeTableManagement";
+import AttendanceRequests from "../components/AttendanceRequests";
 
 const HodDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,6 +18,7 @@ const HodDashboard = () => {
     "timetable-management",
     "student-management",
     "section-management",
+    "attendance-requests",
   ];
 
   useEffect(() => {
@@ -53,6 +55,14 @@ const HodDashboard = () => {
             className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
           >
             <StudentManagement />
+          </div>
+        );
+      case "attendance-requests":
+        return (
+          <div
+            className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
+          >
+            <AttendanceRequests />
           </div>
         );
       default:

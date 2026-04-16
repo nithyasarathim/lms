@@ -1,43 +1,47 @@
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import AdminSidebar from "../components/AdminSidebar";
-import DashboardOverview from "../components/DashboardOverview";
-import SubjectManagement from "../components/SubjectManagement";
-import FacultyManagement from "../components/FacultyManagement";
-import StudentManagement from "../components/StudentManagement";
-import BatchManagement from "../components/BatchManagement";
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import AdminSidebar from '../components/AdminSidebar';
+import DashboardOverview from '../components/DashboardOverview';
+import SubjectManagement from '../components/SubjectManagement';
+import FacultyManagement from '../components/FacultyManagement';
+import StudentManagement from '../components/StudentManagement';
+import BatchManagement from '../components/BatchManagement';
+import AcademicCalendar from '../components/AcademicCalendar';
 
 const AdminDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [collapsed, setCollapsed] = useState(false);
-  const activeTab = searchParams.get("tab") || "dashboard";
+  const activeTab = searchParams.get('tab') || 'dashboard';
 
   const validTabs = [
-    "dashboard",
-    "subject-management",
-    "faculty-management",
-    "student-management",
-    "batch-management",
+    'dashboard',
+    'subject-management',
+    'faculty-management',
+    'student-management',
+    'batch-management',
+    'academic-calendar'
   ];
 
   useEffect(() => {
     if (!validTabs.includes(activeTab)) {
-      setSearchParams({ tab: "dashboard" }, { replace: true });
+      setSearchParams({ tab: 'dashboard' }, { replace: true });
     }
   }, [activeTab, setSearchParams]);
 
   const renderComponent = () => {
     switch (activeTab) {
-      case "dashboard":
+      case 'dashboard':
         return <DashboardOverview />;
-      case "subject-management":
+      case 'subject-management':
         return <SubjectManagement />;
-      case "faculty-management":
+      case 'faculty-management':
         return <FacultyManagement />;
-      case "student-management":
+      case 'student-management':
         return <StudentManagement />;
-      case "batch-management":
+      case 'batch-management':
         return <BatchManagement />;
+      case 'academic-calendar':
+        return <AcademicCalendar />;
       default:
         return <DashboardOverview />;
     }
@@ -48,7 +52,7 @@ const AdminDashboard = () => {
       <AdminSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div
         className={`flex-1 transition-all duration-300 ${
-          collapsed ? "md:ml-[80px]" : "md:ml-[300px]"
+          collapsed ? 'md:ml-[80px]' : 'md:ml-[300px]'
         }`}
       >
         <main className="p-0">{renderComponent()}</main>

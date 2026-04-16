@@ -1,16 +1,16 @@
-import axios from "axios";
+import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
-  },
+    'Content-Type': 'application/json'
+  }
 });
 
 apiClient.interceptors.request.use((config) => {
-  const userdata = JSON.parse(localStorage.getItem("lms-user"));
+  const userdata = JSON.parse(localStorage.getItem('lms-user'));
   const token = userdata?.token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -20,7 +20,7 @@ apiClient.interceptors.request.use((config) => {
 
 export const getDepartments = async () => {
   try {
-    const response = await apiClient.get("api/departments");
+    const response = await apiClient.get('api/departments');
     return response.data.data.departments;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -61,9 +61,9 @@ export const bulkUploadSubjects = async (deptId, formData, regId) => {
       formData,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      },
+          'Content-Type': 'multipart/form-data'
+        }
+      }
     );
     return response.data;
   } catch (error) {
@@ -73,7 +73,7 @@ export const bulkUploadSubjects = async (deptId, formData, regId) => {
 
 export const addSubject = async (subjectData) => {
   try {
-    const response = await apiClient.post("api/subjects", subjectData);
+    const response = await apiClient.post('api/subjects', subjectData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -82,7 +82,7 @@ export const addSubject = async (subjectData) => {
 
 export const createDepartment = async (deptData) => {
   try {
-    const response = await apiClient.post("api/departments", deptData);
+    const response = await apiClient.post('api/departments', deptData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -100,8 +100,7 @@ export const editDepartment = async (id, deptData) => {
 
 export const createRegulation = async (regulationData) => {
   try {
-    console.log(regulationData);
-    const response = await apiClient.post("api/regulations", regulationData);
+    const response = await apiClient.post('api/regulations', regulationData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -110,7 +109,7 @@ export const createRegulation = async (regulationData) => {
 
 export const fetchRegulation = async () => {
   try {
-    const response = await apiClient.get("api/regulations");
+    const response = await apiClient.get('api/regulations');
     return response.data.data.regulations;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -119,8 +118,8 @@ export const fetchRegulation = async () => {
 
 export const getCurriculum = async (deptId, regId) => {
   try {
-    const response = await apiClient.get("api/curriculums", {
-      params: { departmentId: deptId, regulationId: regId },
+    const response = await apiClient.get('api/curriculums', {
+      params: { departmentId: deptId, regulationId: regId }
     });
     return response.data;
   } catch (error) {
@@ -130,7 +129,7 @@ export const getCurriculum = async (deptId, regId) => {
 
 export const createCurriculum = async (curriculumData) => {
   try {
-    const response = await apiClient.post("api/curriculums", curriculumData);
+    const response = await apiClient.post('api/curriculums', curriculumData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -141,7 +140,7 @@ export const updateCurriculum = async (id, curriculumData) => {
   try {
     const response = await apiClient.put(
       `api/curriculums/${id}`,
-      curriculumData,
+      curriculumData
     );
     return response.data;
   } catch (error) {
@@ -178,7 +177,7 @@ export const fetchBatch = async () => {
 
 export const createBatch = async (batchData) => {
   try {
-    const response = await apiClient.post("api/batches", batchData);
+    const response = await apiClient.post('api/batches', batchData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -188,7 +187,7 @@ export const createBatch = async (batchData) => {
 export const getBatchProgram = async (batchId, deptId) => {
   try {
     const response = await apiClient.get(
-      `api/batch-programs/${batchId}/${deptId}`,
+      `api/batch-programs/${batchId}/${deptId}`
     );
     return response.data;
   } catch (error) {
@@ -200,7 +199,7 @@ export const getBatchProgram = async (batchId, deptId) => {
 };
 export const createBatchProgram = async (data) => {
   try {
-    const response = await apiClient.post("api/batch-programs", data);
+    const response = await apiClient.post('api/batch-programs', data);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
@@ -210,7 +209,7 @@ export const createBatchProgram = async (data) => {
 export const getSections = async (batchProgramId) => {
   try {
     const response = await apiClient.get(`api/sections`, {
-      params: { batchProgramId },
+      params: { batchProgramId }
     });
     return response.data;
   } catch (error) {
@@ -239,7 +238,7 @@ export const getFacultyDashboardStats = async () => {
 export const getDeptWiseStats = async (deptId) => {
   try {
     const response = await apiClient.get(
-      `api/faculty/department-wise/${deptId}`,
+      `api/faculty/department-wise/${deptId}`
     );
     console.log(response.data);
     return response.data;
@@ -279,7 +278,7 @@ export const updateSection = async (sectionId, updatedData) => {
   try {
     const response = await apiClient.put(
       `/api/sections/${sectionId}`,
-      updatedData,
+      updatedData
     );
     return response.data;
   } catch (error) {
@@ -291,8 +290,8 @@ export const BulkUploadFaculty = async (formData) => {
   try {
     const response = await apiClient.post(`/api/faculty/upload`, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
-      },
+        'Content-Type': 'multipart/form-data'
+      }
     });
     return response.data;
   } catch (error) {
@@ -312,7 +311,7 @@ export const deleteFaculty = async (facultyId) => {
 export const getStudentStats = async (academicYearId) => {
   try {
     const response = await apiClient.get(
-      `/api/students/stats/year-wise?academicYearId=${academicYearId}`,
+      `/api/students/stats/year-wise?academicYearId=${academicYearId}`
     );
     return response.data;
   } catch (err) {
@@ -341,7 +340,7 @@ export const AddAcademicYear = async (formData) => {
 export const getAcademicYear = async (academicYearId) => {
   try {
     const response = await apiClient.get(
-      `/api/academic-years/${academicYearId}`,
+      `/api/academic-years/${academicYearId}`
     );
     return response.data;
   } catch (err) {
@@ -353,7 +352,7 @@ export const updateAcademicYear = async (academicCalendarId, formdata) => {
   try {
     const response = await apiClient.put(
       `/api/academic-years/${academicCalendarId}`,
-      formdata,
+      formdata
     );
     return response.data;
   } catch (err) {
@@ -382,7 +381,7 @@ export const updateStudent = async (studentId, formData) => {
 export const getStudentByDeptStats = async (departmentId, academicYearId) => {
   try {
     const response = await apiClient.get(
-      `api/students/stats/department-wise?academicYearId=${academicYearId}&departmentId=${departmentId}`,
+      `api/students/stats/department-wise?academicYearId=${academicYearId}&departmentId=${departmentId}`
     );
     return response.data;
   } catch (error) {
@@ -393,7 +392,7 @@ export const getStudentByDeptStats = async (departmentId, academicYearId) => {
 export const getAllStudents = async (academicYearId) => {
   try {
     const response = await apiClient.get(
-      `api/students?academicYearId=${academicYearId}`,
+      `api/students?academicYearId=${academicYearId}`
     );
     return response.data;
   } catch (error) {
@@ -405,8 +404,8 @@ export const bulkUploadStudents = async (formData) => {
   try {
     const response = await apiClient.post(`/api/students/upload`, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
-      },
+        'Content-Type': 'multipart/form-data'
+      }
     });
     return response.data;
   } catch (err) {
@@ -417,7 +416,7 @@ export const bulkUploadStudents = async (formData) => {
 export const getSemesterShiftInfo = async (batchId, deptId) => {
   try {
     const response = await apiClient.get(
-      `/api/students/semester-shift-info?batchId=${batchId}&departmentId=${deptId}`,
+      `/api/students/semester-shift-info?batchId=${batchId}&departmentId=${deptId}`
     );
     return response.data;
   } catch (err) {
@@ -429,7 +428,7 @@ export const shiftSemester = async (payload) => {
   try {
     const response = await apiClient.post(
       `/api/students/semester-shift`,
-      payload,
+      payload
     );
     return response.data;
   } catch (err) {
@@ -449,10 +448,69 @@ export const getActiveAcademicYear = async () => {
 export const getDeptAcademicStructure = async () => {
   try {
     const response = await apiClient.get(
-      `/api/assign-faculty/academic-structure`,
+      `/api/assign-faculty/academic-structure`
     );
     return response;
   } catch (err) {
     throw err.response?.data || err.message;
+  }
+};
+
+export const getAcademicCalendarEntries = async (params) => {
+  try {
+    const response = await apiClient.get('/api/academic-calendar', { params });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const getAcademicCalendarEntryByDate = async (dateString) => {
+  try {
+    const response = await apiClient.get(
+      `/api/academic-calendar/date/${dateString}`
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const createAcademicCalendarEntry = async (data) => {
+  try {
+    const response = await apiClient.post('/api/academic-calendar', data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const bulkCreateAcademicCalendarEntries = async (data) => {
+  try {
+    const response = await apiClient.post('/api/academic-calendar/bulk', data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const updateAcademicCalendarEntry = async (id, data) => {
+  try {
+    const response = await apiClient.patch(
+      `/api/academic-calendar/${id}`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const deleteAcademicCalendarEntry = async (id) => {
+  try {
+    const response = await apiClient.delete(`/api/academic-calendar/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
   }
 };

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ChevronRight,
   Layout,
@@ -7,21 +7,21 @@ import {
   Users,
   GraduationCap,
   CalendarCheck,
-  Map,
-} from "lucide-react";
-import { getClassroomById } from "../api/faculty.api";
-import ClassroomStream from "./ClassroomStream";
-import ClassroomClasswork from "./ClassroomClasswork";
-import ClassroomPeople from "./ClassroomPeople";
-import ClassroomAttendance from "./ClassroomAttendance";
-import CoursePlan from "./CoursePlan";
+  Map
+} from 'lucide-react';
+import { getClassroomById } from '../api/faculty.api';
+import ClassroomStream from './ClassroomStream';
+import ClassroomClasswork from './ClassroomClasswork';
+import ClassroomPeople from './ClassroomPeople';
+import ClassroomAttendance from './ClassroomAttendance';
+import CoursePlan from './CoursePlan';
 
 const ClassroomDetails = ({ id, onBack }) => {
   const [classroom, setClassroom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = searchParams.get("view") || "stream";
+  const activeTab = searchParams.get('view') || 'stream';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,7 +32,7 @@ const ClassroomDetails = ({ id, onBack }) => {
           setClassroom(res.data.classroom);
         }
       } catch (error) {
-        console.error("Error fetching classroom:", error);
+        console.error('Error fetching classroom:', error);
       } finally {
         setLoading(false);
       }
@@ -42,7 +42,7 @@ const ClassroomDetails = ({ id, onBack }) => {
 
   const handleTabChange = (tabId) => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.set("view", tabId);
+    newParams.set('view', tabId);
     setSearchParams(newParams);
   };
 
@@ -53,16 +53,18 @@ const ClassroomDetails = ({ id, onBack }) => {
       </div>
     );
 
-  const subjectName = classroom?.subjectId?.name || "Unknown Subject";
+  const subjectName = classroom?.subjectId?.name || 'Unknown Subject';
 
   const tabs = [
-    { id: "stream", label: "Stream", icon: Layout },
-    { id: "classwork", label: "Classwork", icon: BookOpen },
-    { id: "people", label: "People", icon: Users },
-    { id: "grade", label: "Grades", icon: GraduationCap },
-    { id: "attendance", label: "Attendance", icon: CalendarCheck },
-    { id: "courseplan", label: "Course Plan", icon: Map },
+    { id: 'stream', label: 'Stream', icon: Layout },
+    { id: 'classwork', label: 'Classwork', icon: BookOpen },
+    { id: 'people', label: 'People', icon: Users },
+    { id: 'grade', label: 'Grades', icon: GraduationCap },
+    { id: 'attendance', label: 'Attendance', icon: CalendarCheck },
+    { id: 'courseplan', label: 'Course Plan', icon: Map }
   ];
+
+  const { facultyId } = JSON.parse(localStorage.getItem('lms-user'));
 
   return (
     <div className="px-6 max-w-7xl mx-auto">
@@ -92,15 +94,15 @@ const ClassroomDetails = ({ id, onBack }) => {
               onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-3 px-4 py-2 text-sm transition-all relative whitespace-nowrap group ${
                 isActive
-                  ? "text-[#08384F] font-semibold"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? 'text-[#08384F] font-semibold'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               <div
                 className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
                   isActive
-                    ? "bg-[#08384F] text-white"
-                    : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
+                    ? 'bg-[#08384F] text-white'
+                    : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
                 }`}
               >
                 <Icon size={16} />
@@ -115,15 +117,15 @@ const ClassroomDetails = ({ id, onBack }) => {
       </div>
 
       <div className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm min-h-100">
-        {activeTab === "stream" && <ClassroomStream classroom={classroom} />}
+        {activeTab === 'stream' && <ClassroomStream classroom={classroom} />}
 
-        {activeTab === "classwork" && (
+        {activeTab === 'classwork' && (
           <ClassroomClasswork classroom={classroom} />
         )}
 
-        {activeTab === "people" && <ClassroomPeople classroom={classroom} />}
+        {activeTab === 'people' && <ClassroomPeople classroom={classroom} />}
 
-        {activeTab === "grade" && (
+        {activeTab === 'grade' && (
           <div className="animate-in fade-in duration-300">
             <h3 className="text-lg font-semibold text-gray-900">Grades</h3>
             <p className="text-gray-500 text-sm">
@@ -132,11 +134,11 @@ const ClassroomDetails = ({ id, onBack }) => {
           </div>
         )}
 
-        {activeTab === "attendance" && (
-          <ClassroomAttendance classroom={classroom} />
+        {activeTab === 'attendance' && (
+          <ClassroomAttendance classroom={classroom} facultyId={facultyId} />
         )}
 
-        {activeTab === "courseplan" && <CoursePlan classroom={classroom} />}
+        {activeTab === 'courseplan' && <CoursePlan classroom={classroom} />}
       </div>
     </div>
   );
