@@ -11,8 +11,7 @@ import HodDashboard from "./pages/hod/pages/HodDashboard";
 import PrintTable from "./pages/hod/components/PrintTableComponent";
 import FacultyDashboard from "./pages/faculty/pages/FacultyPage";
 import InvitationPage from "./pages/auth/pages/InvitationPage";
-
-const StudentDashboard = () => <h1>Student Dashboard</h1>;
+import StudentDashboard from "./pages/student/pages/StudentDashboard";
 
 const App = () => {
   return (
