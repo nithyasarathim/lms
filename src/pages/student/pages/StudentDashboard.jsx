@@ -10,7 +10,6 @@ const StudentDashboard = () => {
   const activeTab = searchParams.get('tab') || 'classrooms';
 
   useEffect(() => {
-    // Only 'classrooms' is valid now
     if (activeTab !== 'classrooms') {
       setSearchParams({ tab: 'classrooms' }, { replace: true });
     }
