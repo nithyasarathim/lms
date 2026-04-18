@@ -116,7 +116,7 @@ const BatchManagement = () => {
           <div className="w-full mx-auto py-4">
             {!selectedDeptId ? (
               <>
-                <div className="px-6 mb-6 flex justify-between sticky top-0 items-center bg-[#FBFBFB]/80 backdrop-blur-md py-3 gap-4 z-10 border-b border-gray-100/50">
+                <div className="px-6 mb-6 flex flex-wrap justify-between sticky top-0 items-center bg-[#FBFBFB]/80 backdrop-blur-md py-3 gap-4 z-10 border-b border-gray-100/50">
                   <div className="relative flex-1 max-w-md group">
                     <Search
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#08384F] transition-colors"
@@ -131,19 +131,8 @@ const BatchManagement = () => {
                     />
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={openYearModal}
-                      className="flex items-center gap-2 bg-white border border-[#CACACA] text-[#08384F] px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-[#08384F]/40 transition-all shadow-sm active:scale-95 group"
-                    >
-                      <CalendarPlus
-                        size={18}
-                        className="text-[#08384F] group-hover:scale-110 transition-transform"
-                      />
-                      Manage Academic Years
-                    </button>
-
-                    <div className="relative group">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative group min-w-[180px]">
                       <Layers
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-focus-within:text-[#08384F] transition-colors"
                         size={16}
@@ -190,6 +179,17 @@ const BatchManagement = () => {
                     >
                       <Plus size={18} strokeWidth={3} />
                       Add Batch
+                    </button>
+
+                    <button
+                      onClick={openYearModal}
+                      className="flex items-center gap-2 bg-white border border-[#CACACA] text-[#08384F] px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-[#08384F]/40 transition-all shadow-sm active:scale-95 group"
+                    >
+                      <CalendarPlus
+                        size={18}
+                        className="text-[#08384F] group-hover:scale-110 transition-transform"
+                      />
+                      Manage Academic Years
                     </button>
                   </div>
                 </div>
