@@ -10,9 +10,8 @@ import AdminDashboard from "./pages/admin/pages/AdminDashboard";
 import HodDashboard from "./pages/hod/pages/HodDashboard";
 import PrintTable from "./pages/hod/components/PrintTableComponent";
 import FacultyDashboard from "./pages/faculty/pages/FacultyPage";
+import StudentPage from "./pages/student/pages/StudentPage";
 import InvitationPage from "./pages/auth/pages/InvitationPage";
-
-const StudentDashboard = () => <h1>Student Dashboard</h1>;
 
 const App = () => {
   return (
@@ -61,12 +60,12 @@ const App = () => {
         </Route>
 
         <Route element={<RoleRoute allowedRole="STUDENT" />}>
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/student/dashboard/*" element={<StudentPage />} />
           <Route path="/student/invitation" element={<InvitationPage />} />
         </Route>
 
         <Route element={<RoleRoute allowedRole="FACULTY" />}>
-          <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+          <Route path="/faculty/dashboard/*" element={<FacultyDashboard />} />
           <Route path="/faculty/invitation" element={<InvitationPage />} />
         </Route>
 

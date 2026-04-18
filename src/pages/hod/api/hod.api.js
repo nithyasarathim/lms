@@ -117,9 +117,9 @@ export const getSubjectsBySemester = async (batchProgramId, semesterNumber) => {
   }
 };
 
-export const getAllFaculties = async () => {
+export const getAllFaculties = async (params = {}) => {
   try {
-    const response = await apiClient.get(`api/faculty`);
+    const response = await apiClient.get(`api/faculty`, { params });
     return response.data;
   } catch (error) {
     throw error.response?.data || error.data;

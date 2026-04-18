@@ -18,17 +18,25 @@ import {
   addSubject,
   bulkUploadSubjects,
   fetchRegulation,
+  getDepartments,
 } from "../api/admin.api";
 
-const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
+const AddSubjectModal = ({
+  isOpen,
+  onClose,
+  fetchSubjects,
+  deptId: deptIdProp = "",
+}) => {
   const [searchParams] = useSearchParams();
-  const deptId = searchParams.get("deptId");
+  const deptIdFromQuery = searchParams.get("deptId");
+  const resolvedDeptId = deptIdProp || deptIdFromQuery || "";
 
   const [activeTab, setActiveTab] = useState("single");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [regulations, setRegulations] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
   const initialState = {
     code: "",
@@ -41,23 +49,35 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
     lectureHours: 0,
     practicalHours: 0,
     projectHours: 0,
+    departmentId: "",
   };
 
   const [formData, setFormData] = useState(initialState);
 
   useEffect(() => {
     if (isOpen) {
-      const loadRegulations = async () => {
+      const loadModalData = async () => {
         try {
-          const res = await fetchRegulation();
-          setRegulations(res?.data?.regulations || res || []);
+          const [regulationRes, departmentRes] = await Promise.all([
+            fetchRegulation(),
+            getDepartments(),
+          ]);
+
+          setRegulations(regulationRes?.data?.regulations || regulationRes || []);
+          setDepartments(
+            departmentRes?.data?.departments || departmentRes?.data || departmentRes || [],
+          );
         } catch (err) {
           console.error(err);
         }
       };
-      loadRegulations();
+      setFormData((prev) => ({
+        ...prev,
+        departmentId: resolvedDeptId || prev.departmentId || "",
+      }));
+      loadModalData();
     }
-  }, [isOpen]);
+  }, [isOpen, resolvedDeptId]);
 
   if (!isOpen) return null;
 
@@ -90,6 +110,12 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
     setError("");
 
     try {
+      const selectedDepartmentId = resolvedDeptId || formData.departmentId;
+
+      if (!selectedDepartmentId) {
+        throw new Error("Please select a Department");
+      }
+
       if (!formData.regulationId) {
         throw new Error("Please select a Regulation");
       }
@@ -101,7 +127,7 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
           lectureHours: Number(formData.lectureHours),
           practicalHours: Number(formData.practicalHours),
           projectHours: Number(formData.projectHours),
-          departmentId: deptId,
+          departmentId: selectedDepartmentId,
           isActive: true,
         };
         await addSubject(payload);
@@ -110,14 +136,18 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
         const formDataBulk = new FormData();
         formDataBulk.append("file", file);
         formDataBulk.append("regulationId", formData.regulationId);
-        await bulkUploadSubjects(deptId, formDataBulk);
+        await bulkUploadSubjects(
+          selectedDepartmentId,
+          formDataBulk,
+          formData.regulationId,
+        );
       }
       setFormData(initialState);
       setFile(null);
       fetchSubjects();
       onClose();
     } catch (err) {
-      setError(err.message || "Operation failed");
+      setError(err?.message || err?.error || "Operation failed");
     } finally {
       setLoading(false);
     }
@@ -186,6 +216,38 @@ const AddSubjectModal = ({ isOpen, onClose, fetchSubjects }) => {
             )}
 
             <div className="grid grid-cols-2 gap-4">
+              {!resolvedDeptId && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+                    Department
+                  </label>
+                  <div className="relative">
+                    <BookOpen
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700"
+                      size={14}
+                    />
+                    <select
+                      required
+                      name="departmentId"
+                      value={formData.departmentId}
+                      onChange={handleInputChange}
+                      className="w-full pl-9 pr-8 py-2 bg-gray-50 rounded-lg outline-none text-sm appearance-none border border-transparent focus:border-[#08384F]/20"
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept._id} value={dept._id}>
+                          {dept.program} {dept.name} ({dept.code})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 pointer-events-none"
+                      size={14}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
                   Regulation

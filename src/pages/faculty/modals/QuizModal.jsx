@@ -38,7 +38,7 @@ const QuizModal = ({
       const quiz = initialData.quiz || {};
       setTitle(initialData.title || "");
       setInstructions(initialData.instructions || "");
-      setSelectedTopicId(initialData.topicId || "");
+      setSelectedTopicId(initialData.topicId?._id || "");
       setIsAutoGraded(quiz.isAutoGraded ?? true);
       setQuestions(quiz.questions || []);
 

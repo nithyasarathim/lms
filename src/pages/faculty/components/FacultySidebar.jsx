@@ -17,7 +17,9 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const activeTab = searchParams.get("tab") || "dashboard";
+  const activeTab = location.pathname.includes("/faculty/dashboard/classroom/")
+    ? "classrooms"
+    : searchParams.get("tab") || "dashboard";
 
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, tab: "dashboard" },

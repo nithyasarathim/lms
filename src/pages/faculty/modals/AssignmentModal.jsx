@@ -42,7 +42,7 @@ const AssignmentModal = ({
       const data = initialData.assignment || {};
       setTitle(initialData.title || '');
       setInstructions(initialData.instructions || '');
-      setSelectedTopicId(initialData.topicId || '');
+      setSelectedTopicId(initialData.topicId?._id || '');
       setAttachments(initialData.attachments || []);
       setPoints(
         data.isUngraded ? 'Ungraded' : data.points?.toString() || '100'
@@ -84,9 +84,9 @@ const AssignmentModal = ({
     if (selectedFile) {
       setFile(selectedFile);
       const newAttachment = {
-        type: 'file',
-        name: selectedFile.name,
-        url: URL.createObjectURL(selectedFile)
+        fileType: 'file',
+        fileName: selectedFile.name,
+        fileUrl: URL.createObjectURL(selectedFile)
       };
       setAttachments([...attachments, newAttachment]);
     }
@@ -95,9 +95,9 @@ const AssignmentModal = ({
   const addAttachment = () => {
     if (!subInputValue.trim()) return;
     const newAttachment = {
-      type: subModal,
-      url: subInputValue,
-      name: subInputValue
+      fileType: subModal,
+      fileUrl: subInputValue,
+      fileName: subInputValue
     };
     setAttachments([...attachments, newAttachment]);
     setSubInputValue('');
@@ -107,7 +107,7 @@ const AssignmentModal = ({
   const removeAttachment = (index) => {
     const updated = attachments.filter((_, i) => i !== index);
     setAttachments(updated);
-    if (attachments[index].type === 'file') setFile(null);
+    if (attachments[index].fileType === 'file') setFile(null);
   };
 
   const handleSubmit = async () => {
@@ -139,7 +139,7 @@ const AssignmentModal = ({
 
       if (file) formData.append('file', file);
 
-      const existingAttachments = attachments.filter((a) => a.type !== 'file');
+      const existingAttachments = attachments.filter((a) => a.fileType !== 'file');
       formData.append('attachments', JSON.stringify(existingAttachments));
 
       const res = initialData
@@ -251,16 +251,16 @@ const AssignmentModal = ({
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
                       <div className="p-2 bg-white rounded-lg border border-gray-100 text-[#08384F]">
-                        {att.type === 'link' ? (
+                        {att.fileType === 'link' ? (
                           <LinkIcon size={16} />
-                        ) : att.type === 'youtube' ? (
+                        ) : att.fileType === 'youtube' ? (
                           <Youtube size={16} />
                         ) : (
                           <Paperclip size={16} />
                         )}
                       </div>
                       <span className="text-xs font-medium text-gray-600 truncate">
-                        {att.name || att.url}
+                        {att.fileName || att.fileUrl}
                       </span>
                     </div>
                     <button

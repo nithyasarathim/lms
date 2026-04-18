@@ -27,11 +27,6 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
       icon: ClipboardList,
       tab: 'subject-management'
     },
-    {
-      label: 'Curriculum Management',
-      icon: BookOpen,
-      tab: 'curriculum-management'
-    },
     { label: 'Batch Management', icon: Layers, tab: 'batch-management' },
     { label: 'Faculty Management', icon: Users, tab: 'faculty-management' },
     {

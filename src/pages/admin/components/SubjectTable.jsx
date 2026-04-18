@@ -265,6 +265,7 @@ const SubjectTable = ({
         isOpen={isAddSubjectOpen}
         onClose={() => setIsAddSubjectOpen(false)}
         fetchSubjects={fetchSubjects}
+        deptId={deptId}
       />
       <EditSubjectModal
         isOpen={!!editSubjectData}

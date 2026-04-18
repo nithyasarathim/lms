@@ -18,10 +18,18 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-export const getClassrooms = async (facultyUserId) => {
+export const getClassrooms = async (params = {}) => {
   try {
+    const query = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, value);
+      }
+    });
+
     const response = await apiClient.get(
-      `/api/classroom?userId=${facultyUserId}`
+      `/api/classroom${query.toString() ? `?${query.toString()}` : ''}`
     );
     return response.data;
   } catch (err) {
@@ -254,6 +262,32 @@ export const markAttendance = async (attendanceData) => {
     return response.data;
   } catch (error) {
     throw error.response?.data || error.data;
+  }
+};
+
+export const getPostDetail = async (classroomId, postId) => {
+  try {
+    const response = await apiClient.get(
+      `/api/classroom/${classroomId}/posts/item/${postId}`
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const submitPostSubmission = async (classroomId, postId, formData) => {
+  try {
+    const response = await apiClient.post(
+      `/api/classroom/${classroomId}/posts/item/${postId}/submission`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }
+    );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
   }
 };
 

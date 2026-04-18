@@ -247,9 +247,9 @@ export const getDeptWiseStats = async (deptId) => {
   }
 };
 
-export const getAllFaculties = async () => {
+export const getAllFaculties = async (params = {}) => {
   try {
-    const response = await apiClient.get(`api/faculty`);
+    const response = await apiClient.get(`api/faculty`, { params });
     return response.data;
   } catch (error) {
     throw error.response?.data || error.data;
