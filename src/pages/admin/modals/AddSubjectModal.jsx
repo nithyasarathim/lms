@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   X,
   BookOpen,
@@ -11,45 +11,45 @@ import {
   Scale,
   Clock,
   Tag,
-  ChevronDown,
-} from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+  ChevronDown
+} from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import {
   addSubject,
   bulkUploadSubjects,
   fetchRegulation,
-  getDepartments,
-} from "../api/admin.api";
+  getDepartments
+} from '../api/admin.api';
 
 const AddSubjectModal = ({
   isOpen,
   onClose,
   fetchSubjects,
-  deptId: deptIdProp = "",
+  deptId: deptIdProp = ''
 }) => {
   const [searchParams] = useSearchParams();
-  const deptIdFromQuery = searchParams.get("deptId");
-  const resolvedDeptId = deptIdProp || deptIdFromQuery || "";
+  const deptIdFromQuery = searchParams.get('deptId');
+  const resolvedDeptId = deptIdProp || deptIdFromQuery || '';
 
-  const [activeTab, setActiveTab] = useState("single");
+  const [activeTab, setActiveTab] = useState('single');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [regulations, setRegulations] = useState([]);
   const [departments, setDepartments] = useState([]);
 
   const initialState = {
-    code: "",
-    name: "",
-    shortName: "",
-    courseCategory: "Professional Core",
-    deliveryType: "T",
-    credits: "",
-    regulationId: "",
+    code: '',
+    name: '',
+    shortName: '',
+    courseCategory: 'Professional Core',
+    deliveryType: 'T',
+    credits: '',
+    regulationId: '',
     lectureHours: 0,
     practicalHours: 0,
     projectHours: 0,
-    departmentId: "",
+    departmentId: ''
   };
 
   const [formData, setFormData] = useState(initialState);
@@ -60,12 +60,17 @@ const AddSubjectModal = ({
         try {
           const [regulationRes, departmentRes] = await Promise.all([
             fetchRegulation(),
-            getDepartments(),
+            getDepartments()
           ]);
 
-          setRegulations(regulationRes?.data?.regulations || regulationRes || []);
+          setRegulations(
+            regulationRes?.data?.regulations || regulationRes || []
+          );
           setDepartments(
-            departmentRes?.data?.departments || departmentRes?.data || departmentRes || [],
+            departmentRes?.data?.departments ||
+              departmentRes?.data ||
+              departmentRes ||
+              []
           );
         } catch (err) {
           console.error(err);
@@ -73,7 +78,7 @@ const AddSubjectModal = ({
       };
       setFormData((prev) => ({
         ...prev,
-        departmentId: resolvedDeptId || prev.departmentId || "",
+        departmentId: resolvedDeptId || prev.departmentId || ''
       }));
       loadModalData();
     }
@@ -88,39 +93,39 @@ const AddSubjectModal = ({
       const data = {
         ...prev,
         [name]:
-          name === "code" || name === "shortName" ? value.toUpperCase() : value,
+          name === 'code' || name === 'shortName' ? value.toUpperCase() : value
       };
 
-      if (name === "deliveryType") {
-        data.lectureHours = value.includes("T") ? prev.lectureHours : 0;
-        data.practicalHours = value.includes("P") ? prev.practicalHours : 0;
+      if (name === 'deliveryType') {
+        data.lectureHours = value.includes('T') ? prev.lectureHours : 0;
+        data.practicalHours = value.includes('P') ? prev.practicalHours : 0;
         data.projectHours =
-          value.includes("J") || value === "I" ? prev.projectHours : 0;
+          value.includes('J') || value === 'I' ? prev.projectHours : 0;
       }
 
       return data;
     });
 
-    if (error) setError("");
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
-      const selectedDepartmentId = resolvedDeptId || formData.departmentId;
-
-      if (!selectedDepartmentId) {
-        throw new Error("Please select a Department");
-      }
-
       if (!formData.regulationId) {
-        throw new Error("Please select a Regulation");
+        throw new Error('Please select a Regulation');
       }
 
-      if (activeTab === "single") {
+      if (activeTab === 'single') {
+        const selectedDepartmentId = resolvedDeptId || formData.departmentId;
+
+        if (!selectedDepartmentId) {
+          throw new Error('Please select a Department');
+        }
+
         const payload = {
           ...formData,
           credits: Number(formData.credits),
@@ -128,35 +133,31 @@ const AddSubjectModal = ({
           practicalHours: Number(formData.practicalHours),
           projectHours: Number(formData.projectHours),
           departmentId: selectedDepartmentId,
-          isActive: true,
+          isActive: true
         };
         await addSubject(payload);
       } else {
-        if (!file) throw new Error("Please select an Excel file");
+        if (!file) throw new Error('Please select an Excel file');
         const formDataBulk = new FormData();
-        formDataBulk.append("file", file);
-        formDataBulk.append("regulationId", formData.regulationId);
-        await bulkUploadSubjects(
-          selectedDepartmentId,
-          formDataBulk,
-          formData.regulationId,
-        );
+        formDataBulk.append('file', file);
+        formDataBulk.append('regulationId', formData.regulationId);
+        await bulkUploadSubjects(formData.regulationId, formDataBulk);
       }
       setFormData(initialState);
       setFile(null);
       fetchSubjects();
       onClose();
     } catch (err) {
-      setError(err?.message || err?.error || "Operation failed");
+      setError(err?.message || err?.error || 'Operation failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const showLecture = formData.deliveryType.includes("T");
-  const showPractical = formData.deliveryType.includes("P");
+  const showLecture = formData.deliveryType.includes('T');
+  const showPractical = formData.deliveryType.includes('P');
   const showProject =
-    formData.deliveryType.includes("J") || formData.deliveryType === "I";
+    formData.deliveryType.includes('J') || formData.deliveryType === 'I';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 font-['Poppins']">
@@ -186,22 +187,22 @@ const AddSubjectModal = ({
           <div className="flex p-1 bg-gray-50 rounded-xl mb-4 border border-gray-100">
             <button
               type="button"
-              onClick={() => setActiveTab("single")}
+              onClick={() => setActiveTab('single')}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${
-                activeTab === "single"
-                  ? "bg-white text-[#08384F] shadow-sm"
-                  : "text-gray-700"
+                activeTab === 'single'
+                  ? 'bg-white text-[#08384F] shadow-sm'
+                  : 'text-gray-700'
               }`}
             >
               Single Entry
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab("bulk")}
+              onClick={() => setActiveTab('bulk')}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${
-                activeTab === "bulk"
-                  ? "bg-white text-[#08384F] shadow-sm"
-                  : "text-gray-700"
+                activeTab === 'bulk'
+                  ? 'bg-white text-[#08384F] shadow-sm'
+                  : 'text-gray-700'
               }`}
             >
               Bulk Upload
@@ -215,28 +216,60 @@ const AddSubjectModal = ({
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              {!resolvedDeptId && (
+            {activeTab === 'single' && (
+              <div className="grid grid-cols-2 gap-4">
+                {!resolvedDeptId && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+                      Department
+                    </label>
+                    <div className="relative">
+                      <BookOpen
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700"
+                        size={14}
+                      />
+                      <select
+                        required
+                        name="departmentId"
+                        value={formData.departmentId}
+                        onChange={handleInputChange}
+                        className="w-full pl-9 pr-8 py-2 bg-gray-50 rounded-lg outline-none text-sm appearance-none border border-transparent focus:border-[#08384F]/20"
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map((dept) => (
+                          <option key={dept._id} value={dept._id}>
+                            {dept.program} {dept.name} ({dept.code})
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 pointer-events-none"
+                        size={14}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
-                    Department
+                    Regulation
                   </label>
                   <div className="relative">
-                    <BookOpen
+                    <Scale
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700"
                       size={14}
                     />
                     <select
                       required
-                      name="departmentId"
-                      value={formData.departmentId}
+                      name="regulationId"
+                      value={formData.regulationId}
                       onChange={handleInputChange}
                       className="w-full pl-9 pr-8 py-2 bg-gray-50 rounded-lg outline-none text-sm appearance-none border border-transparent focus:border-[#08384F]/20"
                     >
-                      <option value="">Select Department</option>
-                      {departments.map((dept) => (
-                        <option key={dept._id} value={dept._id}>
-                          {dept.program} {dept.name} ({dept.code})
+                      <option value="">Select Regulation</option>
+                      {regulations.map((reg) => (
+                        <option key={reg._id} value={reg._id}>
+                          {reg.name}
                         </option>
                       ))}
                     </select>
@@ -246,8 +279,50 @@ const AddSubjectModal = ({
                     />
                   </div>
                 </div>
-              )}
 
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+                    Category
+                  </label>
+                  <div className="relative">
+                    <Tag
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700"
+                      size={14}
+                    />
+                    <select
+                      name="courseCategory"
+                      value={formData.courseCategory}
+                      onChange={handleInputChange}
+                      className="w-full pl-9 pr-8 py-2 bg-gray-50 rounded-lg outline-none text-sm appearance-none border border-transparent focus:border-[#08384F]/20"
+                    >
+                      {[
+                        'Foundation',
+                        'Basic Science',
+                        'Engineering Science',
+                        'Professional Core',
+                        'Professional Elective',
+                        'Open Elective',
+                        'Mandatory',
+                        'Skill Enhancement',
+                        'Value Added',
+                        'Project',
+                        'Internship'
+                      ].map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 pointer-events-none"
+                      size={14}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'bulk' && (
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
                   Regulation
@@ -277,49 +352,9 @@ const AddSubjectModal = ({
                   />
                 </div>
               </div>
+            )}
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
-                  Category
-                </label>
-                <div className="relative">
-                  <Tag
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-700"
-                    size={14}
-                  />
-                  <select
-                    name="courseCategory"
-                    value={formData.courseCategory}
-                    onChange={handleInputChange}
-                    className="w-full pl-9 pr-8 py-2 bg-gray-50 rounded-lg outline-none text-sm appearance-none border border-transparent focus:border-[#08384F]/20"
-                  >
-                    {[
-                      "Foundation",
-                      "Basic Science",
-                      "Engineering Science",
-                      "Professional Core",
-                      "Professional Elective",
-                      "Open Elective",
-                      "Mandatory",
-                      "Skill Enhancement",
-                      "Value Added",
-                      "Project",
-                      "Internship",
-                    ].map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 pointer-events-none"
-                    size={14}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {activeTab === "single" ? (
+            {activeTab === 'single' ? (
               <>
                 <div className="grid grid-cols-4 gap-4">
                   <div className="space-y-1">
@@ -519,15 +554,15 @@ const AddSubjectModal = ({
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        "name",
-                        "shortName",
-                        "code",
-                        "deliveryType",
-                        "courseCategory",
-                        "credits",
-                        "lectureHours",
-                        "practicalHours",
-                        "projectHours",
+                        'name',
+                        'shortName',
+                        'code',
+                        'deliveryType',
+                        'courseCategory',
+                        'credits',
+                        'lectureHours',
+                        'practicalHours',
+                        'projectHours'
                       ].map((field) => (
                         <span
                           key={field}
@@ -552,7 +587,7 @@ const AddSubjectModal = ({
                     size={24}
                   />
                   <p className="text-[11px] font-semibold text-[#08384F]">
-                    {file ? file.name : "Click or drag Excel template here"}
+                    {file ? file.name : 'Click or drag Excel template here'}
                   </p>
                 </div>
               </div>
@@ -574,10 +609,10 @@ const AddSubjectModal = ({
               >
                 {loading ? (
                   <Loader2 className="animate-spin" size={16} />
-                ) : activeTab === "single" ? (
+                ) : activeTab === 'single' ? (
                   <>Save Subject</>
                 ) : (
-                  "Start Bulk Upload"
+                  'Start Bulk Upload'
                 )}
               </button>
             </div>
