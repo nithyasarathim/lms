@@ -1,38 +1,44 @@
-import React from "react";
-import { motion } from "framer-motion";
-import EshwarLogo from "../../../assets/EshwarLogo.png";
-import EshwarIcon from "../../../assets/EshwarIcon.png";
+import React from 'react';
+import { motion } from 'framer-motion';
+import EshwarLogo from '../../../assets/EshwarLogo.png';
+import EshwarIcon from '../../../assets/EshwarIcon.png';
 import {
   Menu,
   LayoutDashboard,
   Users,
   GraduationCap,
   Layers,
+  Calendar,
   LogOut,
   ChevronLeft,
   BookOpen,
-  ClipboardList,
-} from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+  ClipboardList
+} from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 const AdminSidebar = ({ collapsed, setCollapsed }) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") || "dashboard";
+  const activeTab = searchParams.get('tab') || 'dashboard';
 
   const navItems = [
-    { label: "Dashboard", icon: LayoutDashboard, tab: "dashboard" },
+    { label: 'Dashboard', icon: LayoutDashboard, tab: 'dashboard' },
     {
-      label: "Subject Management",
+      label: 'Subject Management',
       icon: ClipboardList,
-      tab: "subject-management",
+      tab: 'subject-management'
     },
-    { label: "Batch Management", icon: Layers, tab: "batch-management" },
-    { label: "Faculty Management", icon: Users, tab: "faculty-management" },
+    { label: 'Batch Management', icon: Layers, tab: 'batch-management' },
+    { label: 'Faculty Management', icon: Users, tab: 'faculty-management' },
     {
-      label: "Student Management",
+      label: 'Student Management',
       icon: GraduationCap,
-      tab: "student-management",
+      tab: 'student-management'
     },
+    {
+      label: 'Academic Calendar',
+      icon: Calendar,
+      tab: 'academic-calendar'
+    }
   ];
 
   const handleTabChange = (tab) => {
@@ -40,8 +46,8 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("lms-user");
-    window.location.href = "/";
+    localStorage.removeItem('lms-user');
+    window.location.href = '/';
   };
 
   return (
@@ -77,7 +83,7 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
 
       <div
         className={`fixed top-0 left-0 h-screen bg-[#08384F] z-50 transition-all duration-300 flex flex-col ${
-          collapsed ? "w-[80px]" : "w-[300px]"
+          collapsed ? 'w-[80px]' : 'w-[300px]'
         }`}
       >
         <div className="relative flex justify-center items-center p-6 min-h-[100px]">
@@ -113,7 +119,7 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
                 key={item.tab}
                 onClick={() => handleTabChange(item.tab)}
                 className={`flex items-center w-full h-[54px] px-3 rounded-l-[25px] transition-colors duration-200 relative group outline-none ${
-                  active ? "text-[#08384F]" : "text-white hover:bg-white/5"
+                  active ? 'text-[#08384F]' : 'text-white hover:bg-white/5'
                 }`}
               >
                 {active && (
@@ -121,22 +127,22 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
                     layoutId="activeTab"
                     className="absolute inset-0 bg-white rounded-l-[25px] curve-before curve-after"
                     transition={{
-                      type: "spring",
+                      type: 'spring',
                       stiffness: 350,
                       damping: 30,
-                      restDelta: 0.001,
+                      restDelta: 0.001
                     }}
                   />
                 )}
 
                 <span
                   className={`relative z-10 flex items-center justify-center rounded-full h-10 w-10 shrink-0 transition-colors duration-300 ${
-                    active ? "bg-[#08384F]" : "bg-transparent"
+                    active ? 'bg-[#08384F]' : 'bg-transparent'
                   }`}
                 >
                   <Icon
                     size={18}
-                    className={`${active ? "text-white" : "inherit"}`}
+                    className={`${active ? 'text-white' : 'inherit'}`}
                   />
                 </span>
 
@@ -154,7 +160,7 @@ const AdminSidebar = ({ collapsed, setCollapsed }) => {
           <button
             onClick={handleLogout}
             className={`flex items-center gap-3 text-white px-4 py-2 w-full rounded-full cursor-pointer text-sm hover:bg-white/10 transition-all duration-200 ${
-              collapsed ? "justify-center px-0" : ""
+              collapsed ? 'justify-center px-0' : ''
             }`}
           >
             <LogOut size={18} />

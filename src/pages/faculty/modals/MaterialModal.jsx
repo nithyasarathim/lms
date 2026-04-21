@@ -37,7 +37,7 @@ const MaterialModal = ({
     if (initialData && isOpen) {
       setTitle(initialData.title || '');
       setInstructions(initialData.instructions || '');
-      setSelectedTopicId(initialData.topicId || '');
+      setSelectedTopicId(initialData.topicId?._id || '');
       setAttachments(initialData.attachments || []);
     } else if (isOpen) {
       resetForm();
@@ -57,9 +57,9 @@ const MaterialModal = ({
     if (selectedFile) {
       setFile(selectedFile);
       const newAttachment = {
-        type: 'file',
-        name: selectedFile.name,
-        url: URL.createObjectURL(selectedFile)
+        fileType: 'file',
+        fileName: selectedFile.name,
+        fileUrl: URL.createObjectURL(selectedFile)
       };
       setAttachments([...attachments, newAttachment]);
     }
@@ -68,9 +68,9 @@ const MaterialModal = ({
   const addAttachment = () => {
     if (!subInputValue.trim()) return;
     const newAttachment = {
-      type: subModal,
-      url: subInputValue,
-      name: subInputValue
+      fileType: subModal,
+      fileUrl: subInputValue,
+      fileName: subInputValue
     };
     setAttachments([...attachments, newAttachment]);
     setSubInputValue('');
@@ -80,7 +80,7 @@ const MaterialModal = ({
   const removeAttachment = (index) => {
     const updated = attachments.filter((_, i) => i !== index);
     setAttachments(updated);
-    if (attachments[index].type === 'file') setFile(null);
+    if (attachments[index].fileType === 'file') setFile(null);
   };
 
   const handleSubmit = async () => {
@@ -94,7 +94,7 @@ const MaterialModal = ({
 
       if (file) formData.append('file', file);
 
-      const existingAttachments = attachments.filter((a) => a.type !== 'file');
+      const existingAttachments = attachments.filter((a) => a.fileType !== 'file');
       formData.append('attachments', JSON.stringify(existingAttachments));
 
       const res = initialData
@@ -224,9 +224,9 @@ const MaterialModal = ({
                   >
                     <div className="flex items-center gap-4 overflow-hidden">
                       <div className="p-3 bg-gray-50 rounded-xl text-[#08384F]">
-                        {att.type === 'link' ? (
+                        {att.fileType === 'link' ? (
                           <LinkIcon size={18} />
-                        ) : att.type === 'youtube' ? (
+                        ) : att.fileType === 'youtube' ? (
                           <Youtube size={18} />
                         ) : (
                           <Paperclip size={18} />
@@ -234,10 +234,10 @@ const MaterialModal = ({
                       </div>
                       <div className="flex flex-col overflow-hidden">
                         <span className="text-sm font-bold text-gray-700 truncate">
-                          {att.name || att.url}
+                          {att.fileName || att.fileUrl}
                         </span>
                         <span className="text-[10px] text-gray-400 uppercase font-medium">
-                          {att.type}
+                          {att.fileType}
                         </span>
                       </div>
                     </div>

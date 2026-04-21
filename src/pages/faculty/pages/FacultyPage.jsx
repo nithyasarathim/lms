@@ -1,51 +1,62 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import FacultySidebar from '../components/FacultySidebar';
-import ClassroomPage from '../components/ClassroomPage';
-import CalendarComponent from '../components/CalendarComponent';
-import TimetableComponent from '../components/TimetableComponent';
-
-
-const FacultyDashboardHome = () => (
-  <h1 className="p-6 text-xl font-semibold">Dashboard Home</h1>
-);
+import React, { useEffect, useState } from "react";
+import { matchPath, useLocation, useSearchParams } from "react-router-dom";
+import FacultySidebar from "../components/FacultySidebar";
+import CalendarComponent from "../components/CalendarComponent";
+import TimetableComponent from "../components/TimetableComponent";
+import ClassroomWorkDetailPage from "../../shared/components/ClassroomWorkDetailPage";
+import ClassroomPage from "../../shared/classroom/ClassroomPage";
+import FacultyDashboardHome from "../components/FacultyDashboardHome";
 
 const FacultyDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [collapsed, setCollapsed] = useState(false);
-  const activeTab = searchParams.get('tab') || 'dashboard';
+  const location = useLocation();
+  const activeTab = searchParams.get("tab") || "dashboard";
 
-  const validTabs = ['dashboard', 'classrooms', 'calendar', 'timetable'];
+  const validTabs = ["dashboard", "classrooms", "calendar", "timetable"];
 
   useEffect(() => {
     if (!validTabs.includes(activeTab)) {
-      setSearchParams({ tab: 'dashboard' }, { replace: true });
+      setSearchParams({ tab: "dashboard" }, { replace: true });
     }
   }, [activeTab, setSearchParams]);
 
   const renderComponent = () => {
-    const contentClass = `transition-all duration-300 ${collapsed ? 'pl-[80px]' : 'pl-[300px]'}`;
+    const contentClass = `transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`;
+
+    const isDetailRoute = !!matchPath(
+      "/faculty/dashboard/classroom/:classroomId/post/:postId",
+      location.pathname,
+    );
+
+    if (isDetailRoute) {
+      return (
+        <div className={`${contentClass} h-screen overflow-y-auto`}>
+          <ClassroomWorkDetailPage viewerRole="FACULTY" />
+        </div>
+      );
+    }
 
     switch (activeTab) {
-      case 'dashboard':
+      case "dashboard":
         return (
           <div className={contentClass}>
             <FacultyDashboardHome />
           </div>
         );
-      case 'classrooms':
+      case "classrooms":
         return (
           <div className={contentClass}>
-            <ClassroomPage />
+            <ClassroomPage viewerRole="FACULTY" />
           </div>
         );
-      case 'calendar':
+      case "calendar":
         return (
           <div className={contentClass}>
             <CalendarComponent />
           </div>
         );
-      case 'timetable':
+      case "timetable":
         return (
           <div className={contentClass}>
             <TimetableComponent />

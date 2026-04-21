@@ -8,6 +8,7 @@ import {
   Users,
   GraduationCap,
   CalendarClock,
+  ClipboardCheck,
   Layers,
   LogOut,
   ChevronLeft,
@@ -31,6 +32,11 @@ const HodSidebar = ({ collapsed, setCollapsed }) => {
       label: "Timetable Management",
       icon: CalendarClock,
       tab: "timetable-management",
+    },
+    {
+      label: "Attendance Requests",
+      icon: ClipboardCheck,
+      tab: "attendance-requests",
     },
   ];
 

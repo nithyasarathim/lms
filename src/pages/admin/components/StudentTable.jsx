@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import Eshwar from "../../../assets/EshwarImg.png";
+import React, { useState, useEffect, useRef } from 'react';
+import Eshwar from '../../../assets/EshwarImg.png';
 import {
   Plus,
   Search,
@@ -13,12 +13,12 @@ import {
   Check,
   ChevronUp,
   ChevronDown,
-  X as CloseIcon,
-} from "lucide-react";
-import { getAllStudents} from "../api/admin.api";
-import StudentDetailsModal from "../modals/StudentDetailsModal";
-import toast from "react-hot-toast";
-import * as XLSX from "xlsx";
+  X as CloseIcon
+} from 'lucide-react';
+import { getAllStudents } from '../api/admin.api';
+import StudentDetailsModal from '../modals/StudentDetailsModal';
+import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx';
 
 let studentCache = {};
 export const clearTableCache = () => {
@@ -29,7 +29,7 @@ const StudentTable = ({
   academicYearId,
   onAddClick,
   onEditClick,
-  onStatusClick,
+  onStatusClick
 }) => {
   const [students, setStudents] = useState(() => {
     return academicYearId && studentCache[academicYearId]
@@ -41,20 +41,20 @@ const StudentTable = ({
     return !(academicYearId && studentCache[academicYearId]);
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [showColConfig, setShowColConfig] = useState(false);
   const [sortConfig, setSortConfig] = useState({
-    key: "yearLevel",
-    direction: "asc",
+    key: 'yearLevel',
+    direction: 'asc'
   });
 
-  const [filterDept, setFilterDept] = useState("");
-  const [filterYear, setFilterYear] = useState("");
-  const [filterSection, setFilterSection] = useState("");
-  const [filterSemType, setFilterSemType] = useState("odd");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterDept, setFilterDept] = useState('');
+  const [filterYear, setFilterYear] = useState('');
+  const [filterSection, setFilterSection] = useState('');
+  const [filterSemType, setFilterSemType] = useState('odd');
+  const [filterStatus, setFilterStatus] = useState('');
 
   const [visibleColumns, setVisibleColumns] = useState({
     sNo: true,
@@ -65,7 +65,7 @@ const StudentTable = ({
     section: true,
     year: true,
     sem: true,
-    email: true,
+    email: true
   });
 
   const [extraColumns, setExtraColumns] = useState([]);
@@ -83,8 +83,8 @@ const StudentTable = ({
       if (configRef.current && !configRef.current.contains(e.target))
         setShowColConfig(false);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [academicYearId]);
 
   const fetchData = async () => {
@@ -96,8 +96,8 @@ const StudentTable = ({
       if (studentData.length > 0) {
         const sortedData = studentData.sort((a, b) => {
           if (a.status === b.status)
-            return (a.firstName + " " + a.lastName).localeCompare(
-              b.firstName + " " + b.lastName,
+            return (a.firstName + ' ' + a.lastName).localeCompare(
+              b.firstName + ' ' + b.lastName
             );
           return a.isActive ? -1 : 1;
         });
@@ -108,16 +108,16 @@ const StudentTable = ({
         setStudents([]);
       }
     } catch (err) {
-      toast.error("Failed to load students");
+      toast.error('Failed to load students');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc")
-      direction = "desc";
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc')
+      direction = 'desc';
     setSortConfig({ key, direction });
   };
 
@@ -131,18 +131,18 @@ const StudentTable = ({
         s.registerNumber?.toLowerCase().includes(search) ||
         s.user?.email?.toLowerCase().includes(search);
       const matchesDept =
-        filterDept === "" || s.department?.code === filterDept;
+        filterDept === '' || s.department?.code === filterDept;
       const matchesYear =
-        filterYear === "" || String(s.yearLevel) === filterYear;
+        filterYear === '' || String(s.yearLevel) === filterYear;
       const matchesSection =
-        filterSection === "" ||
+        filterSection === '' ||
         s.section?.name?.toLowerCase() === filterSection.toLowerCase();
       const semNum = Number(s.semesterNumber);
       const isEven = semNum % 2 === 0;
-      const matchesSemType = filterSemType === "odd" ? !isEven : isEven;
+      const matchesSemType = filterSemType === 'odd' ? !isEven : isEven;
       const matchesStatus =
-        filterStatus === "" ||
-        (filterStatus === "active" ? s.isActive : !s.isActive);
+        filterStatus === '' ||
+        (filterStatus === 'active' ? s.isActive : !s.isActive);
       return (
         matchesSearch &&
         matchesDept &&
@@ -153,40 +153,40 @@ const StudentTable = ({
       );
     })
     .sort((a, b) => {
-      if (sortConfig.key === "yearLevel")
-        return sortConfig.direction === "asc"
+      if (sortConfig.key === 'yearLevel')
+        return sortConfig.direction === 'asc'
           ? a.yearLevel - b.yearLevel
           : b.yearLevel - a.yearLevel;
       return 0;
     });
 
   const exportToExcel = () => {
-    if (filteredStudents.length === 0) return toast.error("No data to export");
+    if (filteredStudents.length === 0) return toast.error('No data to export');
     const exportData = filteredStudents.map((s, index) => {
       const row = {};
-      if (visibleColumns.sNo) row["S.No"] = index + 1;
-      if (visibleColumns.rollNumber) row["Roll Number"] = s.rollNumber || "";
+      if (visibleColumns.sNo) row['S.No'] = index + 1;
+      if (visibleColumns.rollNumber) row['Roll Number'] = s.rollNumber || '';
       if (visibleColumns.registerNumber)
-        row["REG. NO"] = s.registerNumber || "";
+        row['REG. NO'] = s.registerNumber || '';
       if (visibleColumns.fullName)
-        row["Student Name"] = `${s.firstName} ${s.lastName}`;
+        row['Student Name'] = `${s.firstName} ${s.lastName}`;
       if (visibleColumns.department)
-        row["Department"] = s.department?.code || "";
-      if (visibleColumns.section) row["Section"] = s.section?.name || "";
-      if (visibleColumns.year) row["Year"] = s.yearLevel || "";
-      if (visibleColumns.sem) row["SEM"] = s.semesterNumber || "";
-      if (visibleColumns.email) row["Email"] = s.user?.email || "";
-      extraColumns.forEach((col) => (row[col.title] = ""));
+        row['Department'] = s.department?.code || '';
+      if (visibleColumns.section) row['Section'] = s.section?.name || '';
+      if (visibleColumns.year) row['Year'] = s.yearLevel || '';
+      if (visibleColumns.sem) row['SEM'] = s.semesterNumber || '';
+      if (visibleColumns.email) row['Email'] = s.user?.email || '';
+      extraColumns.forEach((col) => (row[col.title] = ''));
       return row;
     });
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Students");
-    XLSX.writeFile(wb, "Student_Records.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, 'Students');
+    XLSX.writeFile(wb, 'Student_Records.xlsx');
   };
 
   const handlePrint = () => {
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open('', '_blank');
     const printHtml = `
       <html>
         <head>
@@ -217,26 +217,26 @@ const StudentTable = ({
             </div>
           </div>
           <div class="filter-info">
-            <div><span class="filter-label">Dept:</span> ${filterDept || "All"}</div>
-            <div><span class="filter-label">Sec:</span> ${filterSection || "All"}</div>
-            <div><span class="filter-label">Year:</span> ${filterYear || "All"}</div>
+            <div><span class="filter-label">Dept:</span> ${filterDept || 'All'}</div>
+            <div><span class="filter-label">Sec:</span> ${filterSection || 'All'}</div>
+            <div><span class="filter-label">Year:</span> ${filterYear || 'All'}</div>
             <div><span class="filter-label">Sem Type:</span> ${filterSemType}</div>
-            <div><span class="filter-label">Status:</span> ${filterStatus || "All"}</div>
-            <div><span class="filter-label">Search:</span> ${searchTerm || "None"}</div>
+            <div><span class="filter-label">Status:</span> ${filterStatus || 'All'}</div>
+            <div><span class="filter-label">Search:</span> ${searchTerm || 'None'}</div>
           </div>
           <table>
             <thead>
               <tr>
-                ${visibleColumns.sNo ? "<th>S.No</th>" : ""}
-                ${visibleColumns.rollNumber ? "<th>Roll No</th>" : ""}
-                ${visibleColumns.registerNumber ? "<th>Reg.No</th>" : ""}
-                ${visibleColumns.fullName ? "<th>Name</th>" : ""}
-                ${visibleColumns.department ? "<th>Dept</th>" : ""}
-                ${visibleColumns.section ? "<th>Sec</th>" : ""}
-                ${visibleColumns.year ? "<th>Year</th>" : ""}
-                ${visibleColumns.sem ? "<th>Sem</th>" : ""}
-                ${visibleColumns.email ? "<th>Email</th>" : ""}
-                ${extraColumns.map((col) => `<th>${col.title}</th>`).join("")}
+                ${visibleColumns.sNo ? '<th>S.No</th>' : ''}
+                ${visibleColumns.rollNumber ? '<th>Roll No</th>' : ''}
+                ${visibleColumns.registerNumber ? '<th>Reg.No</th>' : ''}
+                ${visibleColumns.fullName ? '<th>Name</th>' : ''}
+                ${visibleColumns.department ? '<th>Dept</th>' : ''}
+                ${visibleColumns.section ? '<th>Sec</th>' : ''}
+                ${visibleColumns.year ? '<th>Year</th>' : ''}
+                ${visibleColumns.sem ? '<th>Sem</th>' : ''}
+                ${visibleColumns.email ? '<th>Email</th>' : ''}
+                ${extraColumns.map((col) => `<th>${col.title}</th>`).join('')}
               </tr>
             </thead>
             <tbody>
@@ -244,20 +244,20 @@ const StudentTable = ({
                 .map(
                   (s, i) => `
                 <tr>
-                  ${visibleColumns.sNo ? `<td>${i + 1}</td>` : ""}
-                  ${visibleColumns.rollNumber ? `<td>${s.rollNumber || ""}</td>` : ""}
-                  ${visibleColumns.registerNumber ? `<td>${s.registerNumber || ""}</td>` : ""}
-                  ${visibleColumns.fullName ? `<td>${s.firstName} ${s.lastName}</td>` : ""}
-                  ${visibleColumns.department ? `<td>${s.department?.code || ""}</td>` : ""}
-                  ${visibleColumns.section ? `<td>${s.section?.name || ""}</td>` : ""}
-                  ${visibleColumns.year ? `<td>${s.yearLevel || ""}</td>` : ""}
-                  ${visibleColumns.sem ? `<td>${s.semesterNumber || ""}</td>` : ""}
-                  ${visibleColumns.email ? `<td>${s.user?.email || ""}</td>` : ""}
-                  ${extraColumns.map(() => `<td></td>`).join("")}
+                  ${visibleColumns.sNo ? `<td>${i + 1}</td>` : ''}
+                  ${visibleColumns.rollNumber ? `<td>${s.rollNumber || ''}</td>` : ''}
+                  ${visibleColumns.registerNumber ? `<td>${s.registerNumber || ''}</td>` : ''}
+                  ${visibleColumns.fullName ? `<td>${s.firstName} ${s.lastName}</td>` : ''}
+                  ${visibleColumns.department ? `<td>${s.department?.code || ''}</td>` : ''}
+                  ${visibleColumns.section ? `<td>${s.section?.name || ''}</td>` : ''}
+                  ${visibleColumns.year ? `<td>${s.yearLevel || ''}</td>` : ''}
+                  ${visibleColumns.sem ? `<td>${s.semesterNumber || ''}</td>` : ''}
+                  ${visibleColumns.email ? `<td>${s.user?.email || ''}</td>` : ''}
+                  ${extraColumns.map(() => `<td></td>`).join('')}
                 </tr>
-              `,
+              `
                 )
-                .join("")}
+                .join('')}
             </tbody>
           </table>
           <script>
@@ -274,7 +274,7 @@ const StudentTable = ({
     setVisibleColumns((prev) => ({ ...prev, [col]: !prev[col] }));
 
   const addExtraColumn = () => {
-    const title = prompt("Enter Column Title:");
+    const title = prompt('Enter Column Title:');
     if (title) setExtraColumns([...extraColumns, { id: Date.now(), title }]);
   };
 
@@ -338,7 +338,7 @@ const StudentTable = ({
             <div className="relative" ref={configRef}>
               <button
                 onClick={() => setShowColConfig(!showColConfig)}
-                className={`p-2.5 flex items-center gap-2 rounded-xl border transition-all ${showColConfig ? "bg-[#08384F] text-white border-[#08384F]" : "bg-gray-50 text-gray-600 border-gray-100"}`}
+                className={`p-2.5 flex items-center gap-2 rounded-xl border transition-all ${showColConfig ? 'bg-[#08384F] text-white border-[#08384F]' : 'bg-gray-50 text-gray-600 border-gray-100'}`}
               >
                 <Settings2 size={18} />
                 <span className="font-semibold text-sm">Configure Export</span>
@@ -356,10 +356,10 @@ const StudentTable = ({
                         className="w-full flex items-center justify-between px-2 py-1.5 hover:bg-gray-50 rounded-lg"
                       >
                         <span className="text-xs font-semibold text-gray-600 capitalize">
-                          {key.replace(/([A-Z])/g, " $1")}
+                          {key.replace(/([A-Z])/g, ' $1')}
                         </span>
                         <div
-                          className={`w-4 h-4 rounded border flex items-center justify-center ${visibleColumns[key] ? "bg-[#08384F] border-[#08384F]" : "border-gray-300"}`}
+                          className={`w-4 h-4 rounded border flex items-center justify-center ${visibleColumns[key] ? 'bg-[#08384F] border-[#08384F]' : 'border-gray-300'}`}
                         >
                           {visibleColumns[key] && (
                             <Check size={10} className="text-white" />
@@ -383,7 +383,7 @@ const StudentTable = ({
                         <button
                           onClick={() =>
                             setExtraColumns(
-                              extraColumns.filter((c) => c.id !== col.id),
+                              extraColumns.filter((c) => c.id !== col.id)
                             )
                           }
                           className="text-red-400"
@@ -504,12 +504,12 @@ const StudentTable = ({
               <th className="px-2 py-4 text-center">Sec</th>
               <th
                 className="px-4 py-4 text-center cursor-pointer"
-                onClick={() => handleSort("yearLevel")}
+                onClick={() => handleSort('yearLevel')}
               >
                 <div className="flex items-center justify-center gap-1">
-                  Year{" "}
-                  {sortConfig.key === "yearLevel" &&
-                    (sortConfig.direction === "asc" ? (
+                  Year{' '}
+                  {sortConfig.key === 'yearLevel' &&
+                    (sortConfig.direction === 'asc' ? (
                       <ChevronUp size={10} />
                     ) : (
                       <ChevronDown size={10} />
@@ -533,7 +533,7 @@ const StudentTable = ({
                       {index + 1}
                     </td>
                     <td className="px-6 py-2 text-xs text-gray-500 font-bold text-center">
-                      {student.rollNumber || "N/A"}
+                      {student.rollNumber || 'N/A'}
                     </td>
                     <td className="px-4 text-sm text-[#08384F] font-semibold">
                       {student.firstName} {student.lastName}
@@ -544,15 +544,15 @@ const StudentTable = ({
                       </span>
                     </td>
                     <td className="px-4 py-2 text-xs text-gray-600 text-center font-bold">
-                      {student.section?.name === "UNALLOCATED"
-                        ? "U"
-                        : student.section?.name || "N/A"}
+                      {student.section?.name === 'UNALLOCATED'
+                        ? 'U'
+                        : student.section?.name || 'N/A'}
                     </td>
                     <td className="px-4 py-2 text-xs text-gray-600 text-center font-bold">
                       {student.yearLevel}
                     </td>
                     <td className="px-4 py-2 text-xs text-gray-600 text-center font-bold">
-                      {student.semesterNumber || "N/A"}
+                      {student.semesterNumber || 'N/A'}
                     </td>
                     <td className="px-4 py-2 text-center text-xs text-gray-500">
                       {student.user?.email}
@@ -576,7 +576,7 @@ const StudentTable = ({
                         </button>
                         <button
                           onClick={() => onStatusClick(student)}
-                          className={`p-2 rounded-lg ${student.isActive ? "text-red-500 bg-red-50" : "text-green-500 bg-green-50"}`}
+                          className={`p-2 rounded-lg ${student.isActive ? 'text-red-500 bg-red-50' : 'text-green-500 bg-green-50'}`}
                         >
                           <Power size={16} />
                         </button>

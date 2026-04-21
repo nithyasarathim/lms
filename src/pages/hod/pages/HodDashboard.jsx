@@ -1,58 +1,69 @@
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import HodSidebar from "../components/HodSidebar";
-import SectionManagement from "../components/SectionManagement";
-import StaffAllocation from "../components/StaffAllocation";
-import StudentManagement from "../components/StudentManagement";
-import TimeTableManagement from "../components/TimeTableManagement";
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import HodSidebar from '../components/HodSidebar';
+import SectionManagement from '../components/SectionManagement';
+import StaffAllocation from '../components/StaffAllocation';
+import StudentManagement from '../components/StudentManagement';
+import TimeTableManagement from '../components/TimeTableManagement';
+import AttendanceRequests from '../components/AttendanceRequests';
+import Dashboard from '../components/Dashboard';
 
 const HodDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [collapsed, setCollapsed] = useState(false);
-  const activeTab = searchParams.get("tab") || "dashboard";
+  const activeTab = searchParams.get('tab') || 'dashboard';
 
   const validTabs = [
-    "dashboard",
-    "staff-allocation",
-    "timetable-management",
-    "student-management",
-    "section-management",
+    'dashboard',
+    'staff-allocation',
+    'timetable-management',
+    'student-management',
+    'section-management',
+    'attendance-requests'
   ];
 
   useEffect(() => {
     if (!validTabs.includes(activeTab)) {
-      setSearchParams({ tab: "dashboard" }, { replace: true });
+      setSearchParams({ tab: 'dashboard' }, { replace: true });
     }
   }, [activeTab, setSearchParams]);
 
   const renderComponent = () => {
     switch (activeTab) {
-      case "dashboard":
+      case 'dashboard':
         return (
           <div
-            className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
+            className={`transition-all duration-300 ${collapsed ? 'pl-[80px]' : 'pl-[300px]'}`}
           >
-            <h1 className="p-6 text-xl font-semibold">HOD Dashboard</h1>
+            <Dashboard />
           </div>
         );
-      case "staff-allocation":
+      case 'staff-allocation':
         return <StaffAllocation collapsed={collapsed} />;
-      case "timetable-management":
+      case 'timetable-management':
         return (
           <div
-            className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
+            className={`transition-all duration-300 ${collapsed ? 'pl-[80px]' : 'pl-[300px]'}`}
           >
             <TimeTableManagement />
           </div>
         );
-      case "section-management":
+      case 'section-management':
         return <SectionManagement collapsed={collapsed} />;
-      case "student-management":
+      case 'student-management':
         return (
           <div
-            className={`transition-all duration-300 ${collapsed ? "pl-[80px]" : "pl-[300px]"}`}
+            className={`transition-all duration-300 ${collapsed ? 'pl-[80px]' : 'pl-[300px]'}`}
           >
             <StudentManagement />
+          </div>
+        );
+      case 'attendance-requests':
+        return (
+          <div
+            className={`transition-all duration-300 ${collapsed ? 'pl-[80px]' : 'pl-[300px]'}`}
+          >
+            <AttendanceRequests />
           </div>
         );
       default:
