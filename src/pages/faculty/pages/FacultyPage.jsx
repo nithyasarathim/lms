@@ -6,6 +6,7 @@ import TimetableComponent from "../components/TimetableComponent";
 import ClassroomWorkDetailPage from "../../shared/components/ClassroomWorkDetailPage";
 import ClassroomPage from "../../shared/classroom/ClassroomPage";
 import FacultyDashboardHome from "../components/FacultyDashboardHome";
+import AttendanceComponent from "../components/AttendanceComponent";
 
 const FacultyDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,7 +14,13 @@ const FacultyDashboard = () => {
   const location = useLocation();
   const activeTab = searchParams.get("tab") || "dashboard";
 
-  const validTabs = ["dashboard", "classrooms", "calendar", "timetable"];
+  const validTabs = [
+    "dashboard",
+    "classrooms",
+    "calendar",
+    "timetable",
+    "attendance",
+  ];
 
   useEffect(() => {
     if (!validTabs.includes(activeTab)) {
@@ -60,6 +67,12 @@ const FacultyDashboard = () => {
         return (
           <div className={contentClass}>
             <TimetableComponent />
+          </div>
+        );
+      case "attendance":
+        return (
+          <div className={contentClass}>
+            <AttendanceComponent />
           </div>
         );
       default:
