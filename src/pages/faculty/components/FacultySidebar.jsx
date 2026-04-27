@@ -10,6 +10,7 @@ import {
   School,
   CalendarDays,
   Calendar,
+  UserCheck,
 } from "lucide-react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 
@@ -24,6 +25,7 @@ const FacultySidebar = ({ collapsed, setCollapsed }) => {
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, tab: "dashboard" },
     { label: "Classrooms", icon: School, tab: "classrooms" },
+    { label: "Attendance", icon: UserCheck, tab: "attendance" },
     { label: "Calendar", icon: Calendar, tab: "calendar" },
     { label: "Time Table", icon: CalendarDays, tab: "timetable" },
   ];
