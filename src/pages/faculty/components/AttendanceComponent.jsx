@@ -1,109 +1,144 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import HeaderComponent from "../../shared/components/HeaderComponent";
-import {
-  Download,
-  ChevronDown,
-  Eye,
-  Search,
-  FileSpreadsheet,
-  Printer,
-} from "lucide-react";
+import { Search, FileSpreadsheet, Printer } from "lucide-react";
 import * as XLSX from "xlsx";
 import homeImg from "../../../assets/reportImage.svg";
 import Eshwar from "../../../assets/EshwarImg.png";
+import CustomMonthDropdown from "./CustomMonthDropdown";
 import MonthlyAttendanceTable from "./MonthlyAttendanceTable";
 import StudentwiseAttendanceTable from "./StudentwiseAttendanceTable";
 
-const CustomMonthDropdown = ({ selectedMonth, setSelectedMonth }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [hoveredOption, setHoveredOption] = useState(null);
-  const dropdownRef = useRef(null);
+const classwiseDummyData = [
+  {
+    date: "15/06/2026",
+    dateValue: "2026-06-15",
+    month: "JUN",
+    semester: "odd-semester",
+    classHour: "1st Hour",
+    total: 50,
+    present: 44,
+    absent: 6,
+    onduty: 0,
+    percentage: 88,
+  },
+  {
+    date: "19/08/2026",
+    dateValue: "2026-08-19",
+    month: "AUG",
+    semester: "odd-semester",
+    classHour: "2nd Hour",
+    total: 50,
+    present: 47,
+    absent: 3,
+    onduty: 0,
+    percentage: 94,
+  },
+  {
+    date: "08/01/2026",
+    dateValue: "2026-01-08",
+    month: "JAN",
+    semester: "even-semester",
+    classHour: "3rd Hour",
+    total: 48,
+    present: 40,
+    absent: 8,
+    onduty: 0,
+    percentage: 83,
+  },
+  {
+    date: "16/03/2026",
+    dateValue: "2026-03-16",
+    month: "MAR",
+    semester: "even-semester",
+    classHour: "4th Hour",
+    total: 48,
+    present: 43,
+    absent: 5,
+    onduty: 0,
+    percentage: 90,
+  },
+];
 
-  const academicMonths = [
-    { label: "JUN", value: "june" },
-    { label: "JUL", value: "july" },
-    { label: "AUG", value: "august" },
-    { label: "SEP", value: "september" },
-    { label: "OCT", value: "october" },
-    { label: "NOV", value: "november" },
-    { label: "DEC", value: "december" },
-    { label: "JAN", value: "january" },
-    { label: "FEB", value: "february" },
-    { label: "MAR", value: "march" },
-    { label: "APR", value: "april" },
-    { label: "MAY", value: "may" },
-  ];
+const studentwiseDummyData = [
+  {
+    rollNo: "CSE001",
+    name: "Aarushi Sharma",
+    dateValue: "2026-06-15",
+    month: "JUN",
+    semester: "odd-semester",
+    total: 30,
+    present: 28,
+    absent: 2,
+    onduty: 0,
+    attendance: 93,
+  },
+  {
+    rollNo: "CSE002",
+    name: "Bhavna Patel",
+    dateValue: "2026-08-19",
+    month: "AUG",
+    semester: "odd-semester",
+    total: 30,
+    present: 25,
+    absent: 5,
+    onduty: 0,
+    attendance: 83,
+  },
+  {
+    rollNo: "CSE003",
+    name: "Chirag Kumar",
+    dateValue: "2026-01-08",
+    month: "JAN",
+    semester: "even-semester",
+    total: 30,
+    present: 29,
+    absent: 1,
+    onduty: 0,
+    attendance: 97,
+  },
+  {
+    rollNo: "CSE004",
+    name: "Diana Singh",
+    dateValue: "2026-03-16",
+    month: "MAR",
+    semester: "even-semester",
+    total: 30,
+    present: 24,
+    absent: 6,
+    onduty: 0,
+    attendance: 80,
+  },
+  {
+    rollNo: "CSE005",
+    name: "Esha Verma",
+    dateValue: "2026-04-11",
+    month: "APR",
+    semester: "even-semester",
+    total: 30,
+    present: 27,
+    absent: 3,
+    onduty: 0,
+    attendance: 90,
+  },
+];
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false);
-        setHoveredOption(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+const filterAttendanceData = (data, filterMode, selectedMonth, dateFrom, dateTo) => {
+  return data.filter((item) => {
+    if (filterMode === "semester") {
+      return item.semester === selectedMonth;
+    }
 
-  const handleSelect = (val) => {
-    setSelectedMonth(val);
-    setIsOpen(false);
-    setHoveredOption(null);
-  };
+    if (filterMode === "month") {
+      return item.month === selectedMonth;
+    }
 
-  return (
-    <div ref={dropdownRef} className="relative w-full font-['Poppins']">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="border border-gray-300 px-4 focus:outline-none bg-white flex items-center justify-between hover:bg-gray-50 text-xs w-full h-10 rounded-full"
-      >
-        <span className="truncate">{selectedMonth || "Month"}</span>
-        <ChevronDown
-          size={14}
-          className={`transform transition-all ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
+    if (filterMode === "date") {
+      if (!dateFrom || !dateTo) return true;
+      return item.dateValue >= dateFrom && item.dateValue <= dateTo;
+    }
 
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 shadow-xl z-50 text-xs rounded-xl overflow-hidden">
-          <div
-            onClick={() => handleSelect("odd-semester")}
-            className="px-4 py-2.5 hover:bg-gray-100 cursor-pointer border-b border-gray-50 font-semibold"
-          >
-            Odd Semester
-          </div>
-          <div
-            onClick={() => handleSelect("even-semester")}
-            className="px-4 py-2.5 hover:bg-gray-100 cursor-pointer border-b border-gray-50 font-semibold"
-          >
-            Even Semester
-          </div>
-          <div
-            className="relative"
-            onMouseEnter={() => setHoveredOption("month")}
-            onMouseLeave={() => setHoveredOption(null)}
-          >
-            <div className="px-4 py-2.5 hover:bg-gray-100 cursor-pointer flex items-center justify-between">
-              Month <span>→</span>
-            </div>
-            {hoveredOption === "month" && (
-              <div className="absolute left-full top-0 ml-1 max-h-[200px] overflow-auto bg-white border border-gray-200 rounded-xl shadow-xl min-w-[100px]">
-                {academicMonths.map((m) => (
-                  <div
-                    key={m.value}
-                    onClick={() => handleSelect(m.label)}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    {m.label}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    return true;
+  });
 };
 
 const AttendanceComponent = () => {
@@ -111,39 +146,57 @@ const AttendanceComponent = () => {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [filterMode, setFilterMode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
-  // Sample data for demonstration
-  const sampleAttendanceData = [
-    {
-      rollNo: "CSE001",
-      name: "Aarushi Sharma",
-      total: 30,
-      present: 28,
-      attendance: 93,
-    },
-    {
-      rollNo: "CSE002",
-      name: "Bhavna Patel",
-      total: 30,
-      present: 25,
-      attendance: 83,
-    },
-    {
-      rollNo: "CSE003",
-      name: "Chirag Kumar",
-      total: 30,
-      present: 29,
-      attendance: 97,
-    },
-  ];
-
+  const isDateFilterReady = filterMode !== "date" || (dateFrom && dateTo);
   const isReady =
-    selectedClass && selectedSection && selectedSubject && selectedMonth;
+    selectedClass &&
+    selectedSection &&
+    selectedSubject &&
+    selectedMonth &&
+    isDateFilterReady;
 
-  // --- Download Logic ---
+  const filteredClasswiseData = useMemo(
+    () =>
+      filterAttendanceData(
+        classwiseDummyData,
+        filterMode,
+        selectedMonth,
+        dateFrom,
+        dateTo
+      ),
+    [filterMode, selectedMonth, dateFrom, dateTo]
+  );
+
+  const filteredStudentwiseData = useMemo(() => {
+    const filteredByPeriod = filterAttendanceData(
+      studentwiseDummyData,
+      filterMode,
+      selectedMonth,
+      dateFrom,
+      dateTo
+    );
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query || selectedClass === "classwise") {
+      return filteredByPeriod;
+    }
+
+    return filteredByPeriod.filter(
+      (student) =>
+        student.name.toLowerCase().includes(query) ||
+        student.rollNo.toLowerCase().includes(query)
+    );
+  }, [filterMode, selectedMonth, dateFrom, dateTo, searchQuery, selectedClass]);
+
+  const currentReportData =
+    selectedClass === "classwise" ? filteredClasswiseData : filteredStudentwiseData;
+
   const exportToExcel = (data, fileName) => {
-    const exportData = data && data.length > 0 ? data : sampleAttendanceData;
+    const exportData = data && data.length > 0 ? data : currentReportData;
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Attendance");
@@ -151,7 +204,7 @@ const AttendanceComponent = () => {
   };
 
   const handlePrint = () => {
-    const reportData = sampleAttendanceData;
+    const reportData = currentReportData;
     const printWindow = window.open("", "_blank");
     const printHtml = `
       <html>
@@ -160,7 +213,7 @@ const AttendanceComponent = () => {
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
             body { font-family: 'Poppins', sans-serif; color: #333; padding: 20px; }
             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #08384F; padding-bottom: 10px; margin-bottom: 20px; }
-            .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; }
+            .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; }
             table { width: 100%; border-collapse: collapse; }
             th { background: #08384F; color: white; padding: 10px; text-align: left; font-size: 11px; }
             td { padding: 8px; border: 1px solid #eee; font-size: 11px; }
@@ -171,11 +224,22 @@ const AttendanceComponent = () => {
           <div class="info-grid">
             <div><b>Subject:</b> ${selectedSubject}</div>
             <div><b>Section:</b> ${selectedSection}</div>
-            <div><b>Period:</b> ${selectedMonth}</div>
+            <div><b>Filter:</b> ${selectedMonth}</div>
+            <div><b>From:</b> ${dateFrom || "-"}</div>
+            <div><b>To:</b> ${dateTo || "-"}</div>
           </div>
           <table>
-            <thead><tr><th>Roll No</th><th>Name</th><th>Total</th><th>Present</th><th>%</th></tr></thead>
-            <tbody>${reportData.map((s) => `<tr><td>${s.rollNo}</td><td>${s.name}</td><td>${s.total}</td><td>${s.present}</td><td>${s.attendance}%</td></tr>`).join("")}</tbody>
+            <thead><tr><th>S.No</th><th>Date/Roll No</th><th>Name/Hour</th><th>Total</th><th>Present</th><th>Absent</th><th>%</th></tr></thead>
+            <tbody>${reportData
+              .map(
+                (s, index) =>
+                  `<tr><td>${index + 1}</td><td>${s.date || s.rollNo}</td><td>${
+                    s.classHour || s.name
+                  }</td><td>${s.total}</td><td>${s.present}</td><td>${s.absent}</td><td>${
+                    s.percentage || s.attendance
+                  }%</td></tr>`
+              )
+              .join("")}</tbody>
           </table>
         </body>
       </html>`;
@@ -190,7 +254,7 @@ const AttendanceComponent = () => {
         <div className="w-[100%] h-full flex flex-col">
           <HeaderComponent title="Student Attendance" />
 
-          <div className="mx-6 mt-6 flex items-center gap-3 p-2 rounded-full">
+          <div className="mx-6 mt-6 flex flex-wrap items-center gap-3 p-3 rounded-[28px] bg-slate-50">
             <select
               className="border border-gray-200 px-4 h-10 text-xs outline-none w-36 rounded-full bg-white focus:border-[#08384f]"
               value={selectedClass}
@@ -227,32 +291,37 @@ const AttendanceComponent = () => {
               <option value="IT - C">IT - C</option>
             </select>
 
-            <div className="w-36">
+            <div className={selectedClass === "classwise" ? "flex-1" : "w-36"}>
               <CustomMonthDropdown
                 selectedMonth={selectedMonth}
                 setSelectedMonth={setSelectedMonth}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                setDateFrom={setDateFrom}
+                setDateTo={setDateTo}
+                setFilterMode={setFilterMode}
               />
             </div>
 
-            <div className="relative flex-1 h-10">
-              <Search
-                size={14}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="Search students..."
-                className="w-full border border-gray-200 h-full text-xs pl-10 pr-4 outline-none rounded-full focus:border-[#08384f] focus:bg-white"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            {selectedClass !== "classwise" && (
+              <div className="relative flex-1 min-w-[240px] h-10">
+                <Search
+                  size={14}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Search students..."
+                  className="w-full border border-gray-200 h-full text-xs pl-10 pr-4 outline-none rounded-full focus:border-[#08384f] focus:bg-white"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            )}
 
             <button
-              onClick={() =>
-                exportToExcel(sampleAttendanceData, "Attendance_Report")
-              }
-              className="bg-emerald-600 text-white px-6 h-10 text-xs font-semibold flex items-center gap-2 rounded-2xl hover:bg-emerald-700 shadow-sm"
+              onClick={() => exportToExcel(currentReportData, "Attendance_Report")}
+              className="bg-emerald-600 text-white px-5 min-w-[96px] h-10 text-xs font-semibold flex items-center justify-center gap-2 rounded-full hover:bg-emerald-700 shadow-sm"
             >
               <FileSpreadsheet size={14} /> Excel
             </button>
@@ -260,22 +329,24 @@ const AttendanceComponent = () => {
             <button
               onClick={handlePrint}
               disabled={!isReady}
-              className="bg-[#08384f] text-white px-6 h-10 text-xs font-semibold flex items-center gap-2 rounded-2xl hover:bg-[#0c4a68] disabled:opacity-30 shadow-md"
+              className="bg-[#08384f] text-white px-5 min-w-[96px] h-10 text-xs font-semibold flex items-center justify-center gap-2 rounded-full hover:bg-[#0c4a68] disabled:opacity-30 shadow-md"
             >
               <Printer size={14} /> Print
             </button>
           </div>
+
           <div className="flex-1 overflow-auto">
             {isReady ? (
               <div className="mx-3 rounded-sm">
-                {" "}
                 {selectedClass === "classwise" ? (
                   <MonthlyAttendanceTable
+                    data={filteredClasswiseData}
                     selectedMonth={selectedMonth}
                     selectedSubject={selectedSubject}
                   />
                 ) : (
                   <StudentwiseAttendanceTable
+                    data={filteredStudentwiseData}
                     selectedMonth={selectedMonth}
                     selectedSubject={selectedSubject}
                   />

@@ -1,7 +1,7 @@
 import React from "react";
 import { Eye, Download } from "lucide-react";
 
-const data = [
+const defaultData = [
   {
     rollNo: "CSE001",
     name: "Aarushi Sharma",
@@ -49,7 +49,7 @@ const data = [
   },
 ];
 
-const StudentwiseAttendanceTable = ({ selectedMonth, selectedSubject }) => {
+const StudentwiseAttendanceTable = ({ data = defaultData }) => {
   return (
     <div className="mx-6 mt-6 font-['Poppins']">
       <div className="border border-gray-200 rounded-sm overflow-hidden">
@@ -73,54 +73,62 @@ const StudentwiseAttendanceTable = ({ selectedMonth, selectedSubject }) => {
             </tr>
           </thead>
           <tbody className="text-xs">
-            {data.map((item, index) => (
-              <tr
-                key={index}
-                className="border-b border-gray-100 hover:bg-gray-50/50"
-              >
-                <td className="p-4 border-r border-gray-100 text-center text-gray-400 font-bold">
-                  {index + 1}
-                </td>
-                <td className="p-4 border-r border-gray-100 font-semibold text-[#08384F]">
-                  {item.rollNo}
-                </td>
-                <td className="p-4 border-r border-gray-100 text-gray-600">
-                  {item.name}
-                </td>
-                <td className="p-4 border-r border-gray-100 text-center">
-                  {item.total}
-                </td>
-                <td className="p-4 border-r border-gray-100 text-center text-green-600 font-bold">
-                  {item.present}
-                </td>
-                <td className="p-4 border-r border-gray-100 text-center text-red-600 font-bold">
-                  {item.absent}
-                </td>
-                <td className="p-4 border-r border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-16 h-1 bg-gray-100">
-                      <div
-                        className="h-full bg-[#08384F]"
-                        style={{ width: `${item.attendance}%` }}
-                      ></div>
+            {data.length > 0 ? (
+              data.map((item, index) => (
+                <tr
+                  key={`${item.rollNo}-${index}`}
+                  className="border-b border-gray-100 hover:bg-gray-50/50"
+                >
+                  <td className="p-4 border-r border-gray-100 text-center text-gray-400 font-bold">
+                    {index + 1}
+                  </td>
+                  <td className="p-4 border-r border-gray-100 font-semibold text-[#08384F]">
+                    {item.rollNo}
+                  </td>
+                  <td className="p-4 border-r border-gray-100 text-gray-600">
+                    {item.name}
+                  </td>
+                  <td className="p-4 border-r border-gray-100 text-center">
+                    {item.total}
+                  </td>
+                  <td className="p-4 border-r border-gray-100 text-center text-green-600 font-bold">
+                    {item.present}
+                  </td>
+                  <td className="p-4 border-r border-gray-100 text-center text-red-600 font-bold">
+                    {item.absent}
+                  </td>
+                  <td className="p-4 border-r border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-1 bg-gray-100">
+                        <div
+                          className="h-full bg-[#08384F]"
+                          style={{ width: `${item.attendance}%` }}
+                        ></div>
+                      </div>
+                      <span className="font-bold text-[#08384F]">
+                        {item.attendance}%
+                      </span>
                     </div>
-                    <span className="font-bold text-[#08384F]">
-                      {item.attendance}%
-                    </span>
-                  </div>
-                </td>
-                <td className="p-4 text-center">
-                  <div className="flex justify-center gap-3">
-                    <button className="text-blue-500 hover:text-blue-700 transition-colors">
-                      <Eye size={16} />
-                    </button>
-                    <button className="text-[#08384f] hover:text-black transition-colors">
-                      <Download size={16} />
-                    </button>
-                  </div>
+                  </td>
+                  <td className="p-4 text-center">
+                    <div className="flex justify-center gap-3">
+                      <button className="text-blue-500 hover:text-blue-700 transition-colors">
+                        <Eye size={16} />
+                      </button>
+                      <button className="text-[#08384f] hover:text-black transition-colors">
+                        <Download size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="p-6 text-center text-gray-400">
+                  No attendance data found.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
