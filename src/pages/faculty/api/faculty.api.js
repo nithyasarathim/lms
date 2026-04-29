@@ -18,19 +18,33 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+const buildQueryString = (params = {}) => {
+  const query = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      query.set(key, value);
+    }
+  });
+
+  return query.toString();
+};
+
 export const getClassrooms = async (params = {}) => {
   try {
-    const query = new URLSearchParams();
-
-    Object.entries(params || {}).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        query.set(key, value);
-      }
-    });
-
+    const query = buildQueryString(params);
     const response = await apiClient.get(
-      `/api/classroom${query.toString() ? `?${query.toString()}` : ''}`
+      `/api/classroom${query ? `?${query}` : ''}`
     );
+    return response.data;
+  } catch (err) {
+    throw err.response?.data || err.message;
+  }
+};
+
+export const getActiveAcademicYear = async () => {
+  try {
+    const response = await apiClient.get('/api/academic-years?isActive=true');
     return response.data;
   } catch (err) {
     throw err.response?.data || err.message;
@@ -341,6 +355,64 @@ export const getAcademicCalendarInfo = async (dateString) => {
       `/api/academic-calendar/date/${dateString}`
     );
     return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const getClasswiseAttendanceReport = async (params = {}) => {
+  try {
+    const query = buildQueryString(params);
+    const response = await apiClient.get(
+      `/api/students/faculty/attendance/classwise${query ? `?${query}` : ''}`
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const downloadClasswiseAttendanceReport = async (params = {}) => {
+  try {
+    const query = buildQueryString(params);
+    const response = await apiClient.get(
+      `/api/students/faculty/attendance/classwise/download${
+        query ? `?${query}` : ''
+      }`,
+      {
+        responseType: 'blob'
+      }
+    );
+    return response;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const getStudentwiseAttendanceReport = async (params = {}) => {
+  try {
+    const query = buildQueryString(params);
+    const response = await apiClient.get(
+      `/api/students/faculty/attendance/studentwise${query ? `?${query}` : ''}`
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.data;
+  }
+};
+
+export const downloadStudentwiseAttendanceReport = async (params = {}) => {
+  try {
+    const query = buildQueryString(params);
+    const response = await apiClient.get(
+      `/api/students/faculty/attendance/studentwise/download${
+        query ? `?${query}` : ''
+      }`,
+      {
+        responseType: 'blob'
+      }
+    );
+    return response;
   } catch (error) {
     throw error.response?.data || error.data;
   }

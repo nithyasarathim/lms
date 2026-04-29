@@ -1,121 +1,84 @@
-import React from "react";
-import { Eye, Download } from "lucide-react";
+import React from 'react';
+import { Download, Eye } from 'lucide-react';
 
-const defaultData = [
-  {
-    rollNo: "CSE001",
-    name: "Aarushi Sharma",
-    total: 30,
-    present: 28,
-    absent: 2,
-    onduty: 0,
-    attendance: 93,
-  },
-  {
-    rollNo: "CSE002",
-    name: "Bhavna Patel",
-    total: 30,
-    present: 25,
-    absent: 5,
-    onduty: 0,
-    attendance: 83,
-  },
-  {
-    rollNo: "CSE003",
-    name: "Chirag Kumar",
-    total: 30,
-    present: 29,
-    absent: 1,
-    onduty: 0,
-    attendance: 97,
-  },
-  {
-    rollNo: "CSE004",
-    name: "Diana Singh",
-    total: 30,
-    present: 24,
-    absent: 6,
-    onduty: 0,
-    attendance: 80,
-  },
-  {
-    rollNo: "CSE005",
-    name: "Esha Verma",
-    total: 30,
-    present: 27,
-    absent: 3,
-    onduty: 0,
-    attendance: 90,
-  },
-];
+const StudentwiseAttendanceTable = ({
+  variant = 'period',
+  data = [],
+  onViewDetails,
+  onDownloadRow
+}) => {
+  const isSemesterView = variant === 'semester';
 
-const StudentwiseAttendanceTable = ({ data = defaultData }) => {
   return (
-    <div className="mx-6 mt-6 font-['Poppins']">
-      <div className="border border-gray-200 rounded-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-[#08384F] text-white text-[11px] uppercase">
+    <div className="mt-4 font-['Poppins']">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <table className="w-full border-collapse text-left">
+          <thead className="bg-[#08384F] text-[11px] uppercase text-white">
             <tr>
-              <th className="p-4 border-r border-[#0c4a68]">S.No</th>
-              <th className="p-4 border-r border-[#0c4a68]">Roll No</th>
-              <th className="p-4 border-r border-[#0c4a68]">Name</th>
-              <th className="p-4 border-r border-[#0c4a68] text-center">
-                Total
-              </th>
-              <th className="p-4 border-r border-[#0c4a68] text-center text-green-300">
-                Present
-              </th>
-              <th className="p-4 border-r border-[#0c4a68] text-center text-red-300">
-                Absent
-              </th>
-              <th className="p-4 border-r border-[#0c4a68]">Percentage</th>
+              {isSemesterView && <th className="p-4">Month</th>}
+              <th className="p-4">Roll no</th>
+              <th className="p-4">Student Name</th>
+              <th className="p-4 text-center">Total Classes</th>
+              <th className="p-4 text-center text-green-300">Present Count</th>
+              <th className="p-4 text-center text-red-300">Absent Count</th>
+              <th className="p-4 text-center text-blue-200">Onduty Count</th>
+              <th className="p-4">Attendance Percentage</th>
               <th className="p-4 text-center">Action</th>
             </tr>
           </thead>
           <tbody className="text-xs">
-            {data.length > 0 ? (
+            {data.length ? (
               data.map((item, index) => (
                 <tr
-                  key={`${item.rollNo}-${index}`}
-                  className="border-b border-gray-100 hover:bg-gray-50/50"
+                  key={
+                    item.monthValue
+                      ? `${item.studentId}-${item.monthValue}`
+                      : `${item.studentId}-${index}`
+                  }
+                  className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
                 >
-                  <td className="p-4 border-r border-gray-100 text-center text-gray-400 font-bold">
-                    {index + 1}
+                  {isSemesterView && (
+                    <td className="p-4 font-medium text-[#08384F]">{item.month}</td>
+                  )}
+                  <td className="p-4 font-medium text-[#08384F]">{item.rollNo}</td>
+                  <td className="p-4">{item.name}</td>
+                  <td className="p-4 text-center">{item.totalClasses}</td>
+                  <td className="p-4 text-center font-semibold text-green-600">
+                    {item.presentCount}
                   </td>
-                  <td className="p-4 border-r border-gray-100 font-semibold text-[#08384F]">
-                    {item.rollNo}
+                  <td className="p-4 text-center font-semibold text-red-600">
+                    {item.absentCount}
                   </td>
-                  <td className="p-4 border-r border-gray-100 text-gray-600">
-                    {item.name}
+                  <td className="p-4 text-center font-semibold text-blue-600">
+                    {item.onDutyCount}
                   </td>
-                  <td className="p-4 border-r border-gray-100 text-center">
-                    {item.total}
-                  </td>
-                  <td className="p-4 border-r border-gray-100 text-center text-green-600 font-bold">
-                    {item.present}
-                  </td>
-                  <td className="p-4 border-r border-gray-100 text-center text-red-600 font-bold">
-                    {item.absent}
-                  </td>
-                  <td className="p-4 border-r border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1 bg-gray-100">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-1.5 w-16 rounded-full bg-gray-100">
                         <div
-                          className="h-full bg-[#08384F]"
-                          style={{ width: `${item.attendance}%` }}
-                        ></div>
+                          className="h-full rounded-full bg-[#1565c0]"
+                          style={{ width: `${item.attendancePercentage || 0}%` }}
+                        />
                       </div>
-                      <span className="font-bold text-[#08384F]">
-                        {item.attendance}%
+                      <span className="font-semibold text-[#08384F]">
+                        {item.attendancePercentage || 0}%
                       </span>
                     </div>
                   </td>
-                  <td className="p-4 text-center">
-                    <div className="flex justify-center gap-3">
-                      <button className="text-blue-500 hover:text-blue-700 transition-colors">
+                  <td className="p-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails?.(item)}
+                        className="text-[#1565c0] transition-colors hover:text-[#0d47a1]"
+                      >
                         <Eye size={16} />
                       </button>
-                      <button className="text-[#08384f] hover:text-black transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => onDownloadRow?.(item)}
+                        className="text-[#1565c0] transition-colors hover:text-[#0d47a1]"
+                      >
                         <Download size={16} />
                       </button>
                     </div>
@@ -124,7 +87,10 @@ const StudentwiseAttendanceTable = ({ data = defaultData }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="p-6 text-center text-gray-400">
+                <td
+                  colSpan={isSemesterView ? 9 : 8}
+                  className="p-6 text-center text-sm text-gray-400"
+                >
                   No attendance data found.
                 </td>
               </tr>

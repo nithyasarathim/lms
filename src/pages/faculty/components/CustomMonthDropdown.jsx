@@ -1,180 +1,160 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
-
-const academicMonths = [
-  { label: "JUN", value: "june" },
-  { label: "JUL", value: "july" },
-  { label: "AUG", value: "august" },
-  { label: "SEP", value: "september" },
-  { label: "OCT", value: "october" },
-  { label: "NOV", value: "november" },
-  { label: "DEC", value: "december" },
-  { label: "JAN", value: "january" },
-  { label: "FEB", value: "february" },
-  { label: "MAR", value: "march" },
-  { label: "APR", value: "april" },
-  { label: "MAY", value: "may" },
-];
+import React, { useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 const CustomMonthDropdown = ({
-  selectedMonth,
-  setSelectedMonth,
-  dateFrom,
-  dateTo,
-  setDateFrom,
-  setDateTo,
-  setFilterMode,
+  disabled = false,
+  selectedLabel = '',
+  semesterOptionLabel = '',
+  monthOptions = [],
+  dateFrom = '',
+  dateTo = '',
+  onSelectSemester,
+  onSelectMonth,
+  onDateFromChange,
+  onDateToChange,
+  onApplyDateRange
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
         setActiveSubMenu(null);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSemesterSelect = (label, mode) => {
-    setSelectedMonth(label);
-    setFilterMode?.(mode);
+  const closeDropdown = () => {
     setIsOpen(false);
     setActiveSubMenu(null);
   };
 
-  const handleMonthSelect = (label) => {
-    setSelectedMonth(label);
-    setFilterMode?.("month");
-    setIsOpen(false);
-    setActiveSubMenu(null);
+  const applyDateRange = () => {
+    onApplyDateRange?.();
+    closeDropdown();
   };
 
-  const getDisplayText = () => {
-    if (selectedMonth === "date-range") {
-      if (dateFrom && dateTo) return `${dateFrom} - ${dateTo}`;
-      return "Custom Range";
-    }
-    return selectedMonth ? `Filter: ${selectedMonth}` : "Select Period";
-  };
+  const buttonText = selectedLabel || 'Select Period';
 
   return (
-    <div
-      ref={dropdownRef}
-      className="relative inline-block w-full max-w-[240px] font-['Poppins']"
-    >
+    <div ref={dropdownRef} className="relative w-full font-['Poppins']">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="border border-gray-300 px-4 focus:outline-none bg-white flex items-center justify-between hover:bg-gray-50 text-xs w-full h-10 rounded-full transition-colors"
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen((previous) => !previous)}
+        className="flex h-10 w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-4 text-xs text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
       >
-        <span className="truncate font-medium text-gray-700">
-          {getDisplayText()}
-        </span>
+        <span className="truncate">{buttonText}</span>
         <ChevronDown
           size={14}
-          className={`ml-2 transform transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
         />
       </button>
 
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 shadow-2xl z-50 text-xs rounded-xl min-w-[180px] py-1 animate-in fade-in zoom-in duration-150">
-          <div
-            onClick={() => handleSemesterSelect("Odd Semester", "semester")}
-            className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 font-medium text-gray-700"
-          >
-            Odd Semester
-          </div>
-          <div
-            onClick={() => handleSemesterSelect("Even Semester", "semester")}
-            className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-50 font-medium text-gray-700"
-          >
-            Even Semester
-          </div>
+      {isOpen && !disabled && (
+        <div className="absolute left-0 top-full z-50 mt-2 min-w-[220px] rounded-xl border border-gray-200 bg-white py-1 text-xs shadow-2xl">
+          {semesterOptionLabel && (
+            <button
+              type="button"
+              onClick={() => {
+                onSelectSemester?.();
+                closeDropdown();
+              }}
+              className="w-full border-b border-gray-100 px-4 py-2.5 text-left font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              {semesterOptionLabel}
+            </button>
+          )}
 
           <div
-            className={`px-4 py-2.5 duration-300 hover:bg-gray-50 cursor-pointer flex items-center justify-between border-b border-gray-50 transition-colors ${
-              activeSubMenu === "month"
-                ? "bg-[#08384F]/10 font-bold  text-[#08384F]"
-                : "text-gray-700"
+            className={`flex cursor-pointer items-center justify-between border-b border-gray-100 px-4 py-2.5 transition-colors ${
+              activeSubMenu === 'month'
+                ? 'bg-[#08384F]/10 font-semibold text-[#08384F]'
+                : 'text-gray-700 hover:bg-gray-50'
             }`}
-            onMouseEnter={() => setActiveSubMenu("month")}
+            onMouseEnter={() => setActiveSubMenu('month')}
           >
-            <span>Specific Month</span>
+            <span>Month</span>
             <ChevronRight size={14} />
           </div>
 
           <div
-            className={`px-4 py-2.5 hover:bg-gray-50 cursor-pointer flex items-center justify-between transition-colors ${
-              activeSubMenu === "date"
-                ? "bg-[#08384F]/10 font-bold  text-[#08384F]"
-                : "text-gray-700"
+            className={`flex cursor-pointer items-center justify-between px-4 py-2.5 transition-colors ${
+              activeSubMenu === 'date'
+                ? 'bg-[#08384F]/10 font-semibold text-[#08384F]'
+                : 'text-gray-700 hover:bg-gray-50'
             }`}
-            onMouseEnter={() => setActiveSubMenu("date")}
+            onMouseEnter={() => setActiveSubMenu('date')}
           >
-            <span>Custom Date</span>
+            <span>Date Range</span>
             <ChevronRight size={14} />
           </div>
 
-          {activeSubMenu === "month" && (
+          {activeSubMenu === 'month' && (
             <div
-              className="absolute left-full top-0 ml-2 bg-white border border-gray-200 rounded-xl shadow-2xl min-w-[120px] max-h-[280px] overflow-y-auto py-1 animate-in slide-in-from-left-2 duration-150"
+              className="absolute left-full top-0 ml-2 min-w-[180px] rounded-xl border border-gray-200 bg-white py-1 shadow-2xl"
               onMouseLeave={() => setActiveSubMenu(null)}
             >
-              {academicMonths.map((m) => (
-                <div
-                  key={m.value}
-                  onClick={() => handleMonthSelect(m.label)}
-                  className="px-4 py-2 hover:bg-[#08384F]/10 hover:text-[#08384F] cursor-pointer transition-colors"
-                >
-                  {m.label}
-                </div>
-              ))}
+              {monthOptions.length ? (
+                monthOptions.map((monthOption) => (
+                  <button
+                    key={monthOption.value}
+                    type="button"
+                    onClick={() => {
+                      onSelectMonth?.(monthOption);
+                      closeDropdown();
+                    }}
+                    className="w-full px-4 py-2 text-left text-gray-700 transition-colors hover:bg-[#08384F]/10 hover:text-[#08384F]"
+                  >
+                    {monthOption.label}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-gray-400">No months available</div>
+              )}
             </div>
           )}
 
-          {activeSubMenu === "date" && (
+          {activeSubMenu === 'date' && (
             <div
-              className="absolute left-full top-0 ml-2 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 min-w-[240px] animate-in slide-in-from-left-2 duration-150"
+              className="absolute left-full top-0 ml-2 min-w-[260px] rounded-xl border border-gray-200 bg-white p-4 shadow-2xl"
               onMouseLeave={() => setActiveSubMenu(null)}
             >
               <div className="flex flex-col gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+                <div>
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-gray-400">
                     From Date
                   </label>
                   <input
                     type="date"
                     value={dateFrom}
-                    onChange={(e) => {
-                      setDateFrom(e.target.value);
-                      setSelectedMonth("date-range");
-                      setFilterMode?.("date");
-                    }}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-xs w-full focus:ring-2 focus:ring-[#08384F]/10 focus:border-[#08384F]/40 outline-none transition-all"
+                    onChange={(event) => onDateFromChange?.(event.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none transition-colors focus:border-[#08384F]"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">
+                <div>
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-gray-400">
                     To Date
                   </label>
                   <input
                     type="date"
                     value={dateTo}
-                    onChange={(e) => {
-                      setDateTo(e.target.value);
-                      setSelectedMonth("date-range");
-                      setFilterMode?.("date");
-                    }}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-xs w-full focus:ring-2 focus:ring-[#08384F]/10 focus:border-[#08384F]/40 outline-none transition-all"
+                    onChange={(event) => onDateToChange?.(event.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none transition-colors focus:border-[#08384F]"
                   />
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
-                  className="w-full bg-[#08384F]/90 text-white font-semibold py-2 rounded-lg mt-1 hover:bg-[#08384F] active:scale-[0.98] transition-all shadow-md shadow-[#08384F]/10"
+                  type="button"
+                  onClick={applyDateRange}
+                  className="rounded-lg bg-[#08384F] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#0c4a68]"
                 >
                   Apply Range
                 </button>

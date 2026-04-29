@@ -1,363 +1,833 @@
-import React, { useMemo, useState } from "react";
-import HeaderComponent from "../../shared/components/HeaderComponent";
-import { Search, FileSpreadsheet, Printer } from "lucide-react";
-import * as XLSX from "xlsx";
-import homeImg from "../../../assets/reportImage.svg";
-import Eshwar from "../../../assets/EshwarImg.png";
-import CustomMonthDropdown from "./CustomMonthDropdown";
-import MonthlyAttendanceTable from "./MonthlyAttendanceTable";
-import StudentwiseAttendanceTable from "./StudentwiseAttendanceTable";
+import React, { useEffect, useMemo, useState } from 'react';
+import { Download, Search, X } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import toast from 'react-hot-toast';
+import HeaderComponent from '../../shared/components/HeaderComponent';
+import {
+  downloadClasswiseAttendanceReport,
+  downloadStudentwiseAttendanceReport,
+  getActiveAcademicYear,
+  getClassrooms,
+  getClasswiseAttendanceReport,
+  getStudentwiseAttendanceReport
+} from '../api/faculty.api';
+import homeImg from '../../../assets/reportImage.svg';
+import CustomMonthDropdown from './CustomMonthDropdown';
+import MonthlyAttendanceTable from './MonthlyAttendanceTable';
+import StudentwiseAttendanceTable from './StudentwiseAttendanceTable';
 
-const classwiseDummyData = [
-  {
-    date: "15/06/2026",
-    dateValue: "2026-06-15",
-    month: "JUN",
-    semester: "odd-semester",
-    classHour: "1st Hour",
-    total: 50,
-    present: 44,
-    absent: 6,
-    onduty: 0,
-    percentage: 88,
-  },
-  {
-    date: "19/08/2026",
-    dateValue: "2026-08-19",
-    month: "AUG",
-    semester: "odd-semester",
-    classHour: "2nd Hour",
-    total: 50,
-    present: 47,
-    absent: 3,
-    onduty: 0,
-    percentage: 94,
-  },
-  {
-    date: "08/01/2026",
-    dateValue: "2026-01-08",
-    month: "JAN",
-    semester: "even-semester",
-    classHour: "3rd Hour",
-    total: 48,
-    present: 40,
-    absent: 8,
-    onduty: 0,
-    percentage: 83,
-  },
-  {
-    date: "16/03/2026",
-    dateValue: "2026-03-16",
-    month: "MAR",
-    semester: "even-semester",
-    classHour: "4th Hour",
-    total: 48,
-    present: 43,
-    absent: 5,
-    onduty: 0,
-    percentage: 90,
-  },
+const MONTH_LABELS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
 ];
 
-const studentwiseDummyData = [
-  {
-    rollNo: "CSE001",
-    name: "Aarushi Sharma",
-    dateValue: "2026-06-15",
-    month: "JUN",
-    semester: "odd-semester",
-    total: 30,
-    present: 28,
-    absent: 2,
-    onduty: 0,
-    attendance: 93,
+const STATUS_STYLES = {
+  Present: {
+    dot: 'bg-emerald-400',
+    text: 'text-emerald-600'
   },
-  {
-    rollNo: "CSE002",
-    name: "Bhavna Patel",
-    dateValue: "2026-08-19",
-    month: "AUG",
-    semester: "odd-semester",
-    total: 30,
-    present: 25,
-    absent: 5,
-    onduty: 0,
-    attendance: 83,
+  Absent: {
+    dot: 'bg-rose-400',
+    text: 'text-rose-600'
   },
-  {
-    rollNo: "CSE003",
-    name: "Chirag Kumar",
-    dateValue: "2026-01-08",
-    month: "JAN",
-    semester: "even-semester",
-    total: 30,
-    present: 29,
-    absent: 1,
-    onduty: 0,
-    attendance: 97,
-  },
-  {
-    rollNo: "CSE004",
-    name: "Diana Singh",
-    dateValue: "2026-03-16",
-    month: "MAR",
-    semester: "even-semester",
-    total: 30,
-    present: 24,
-    absent: 6,
-    onduty: 0,
-    attendance: 80,
-  },
-  {
-    rollNo: "CSE005",
-    name: "Esha Verma",
-    dateValue: "2026-04-11",
-    month: "APR",
-    semester: "even-semester",
-    total: 30,
-    present: 27,
-    absent: 3,
-    onduty: 0,
-    attendance: 90,
-  },
-];
+  OnDuty: {
+    dot: 'bg-blue-400',
+    text: 'text-blue-600'
+  }
+};
 
-const filterAttendanceData = (data, filterMode, selectedMonth, dateFrom, dateTo) => {
-  return data.filter((item) => {
-    if (filterMode === "semester") {
-      return item.semester === selectedMonth;
+const pad = (value) => String(value).padStart(2, '0');
+
+const toRoman = (value) => {
+  const romanMap = [
+    { value: 10, symbol: 'X' },
+    { value: 9, symbol: 'IX' },
+    { value: 5, symbol: 'V' },
+    { value: 4, symbol: 'IV' },
+    { value: 1, symbol: 'I' }
+  ];
+
+  let remaining = Number(value) || 0;
+  let result = '';
+
+  romanMap.forEach(({ value: romanValue, symbol }) => {
+    while (remaining >= romanValue) {
+      result += symbol;
+      remaining -= romanValue;
     }
-
-    if (filterMode === "month") {
-      return item.month === selectedMonth;
-    }
-
-    if (filterMode === "date") {
-      if (!dateFrom || !dateTo) return true;
-      return item.dateValue >= dateFrom && item.dateValue <= dateTo;
-    }
-
-    return true;
   });
+
+  return result || String(value || '');
+};
+
+const buildAcademicMonths = (academicYear) => {
+  if (!academicYear?.startYear || !academicYear?.endYear) return [];
+
+  const startMonth = Number(academicYear.startMonth || 6);
+  const endMonth = Number(academicYear.endMonth || 5);
+  const startDate = new Date(Date.UTC(academicYear.startYear, startMonth - 1, 1));
+  const endDate = new Date(Date.UTC(academicYear.endYear, endMonth - 1, 1));
+
+  if (
+    Number.isNaN(startDate.getTime()) ||
+    Number.isNaN(endDate.getTime()) ||
+    startDate > endDate
+  ) {
+    return [];
+  }
+
+  const months = [];
+  const cursor = new Date(startDate);
+
+  while (cursor <= endDate && months.length < 18) {
+    const year = cursor.getUTCFullYear();
+    const monthNumber = cursor.getUTCMonth() + 1;
+    months.push({
+      value: `${year}-${pad(monthNumber)}`,
+      label: MONTH_LABELS[monthNumber - 1],
+      shortLabel: MONTH_LABELS[monthNumber - 1].slice(0, 3)
+    });
+    cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+  }
+
+  return months;
+};
+
+const getSemesterType = (semesterNumber) =>
+  Number(semesterNumber) % 2 === 0 ? 'even' : 'odd';
+
+const getClassLabel = (classroom) => {
+  const yearLabel = toRoman(Math.ceil(Number(classroom?.semesterNumber || 1) / 2));
+  const departmentCode = classroom?.department?.code || '';
+  const sectionName = classroom?.sectionId?.name || '';
+  return [yearLabel, departmentCode, sectionName].filter(Boolean).join(' ');
+};
+
+const getStatusLabel = (status) => (status === 'OnDuty' ? 'On Duty' : status);
+
+const parseFileNameFromHeaders = (headers) => {
+  const disposition = headers?.['content-disposition'] || headers?.['Content-Disposition'];
+  if (!disposition) return null;
+
+  const match = disposition.match(/filename="?([^"]+)"?/i);
+  return match?.[1] || null;
+};
+
+const triggerBlobDownload = (response, fallbackName) => {
+  const blob = new Blob([response.data]);
+  const fileName = parseFileNameFromHeaders(response.headers) || fallbackName;
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+const exportRowsToExcel = (rows, fileName, sheetName = 'Attendance') => {
+  const workbook = XLSX.utils.book_new();
+  const worksheet = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Info: 'No data available' }]);
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  XLSX.writeFile(workbook, `${fileName}.xlsx`);
+};
+
+const DetailDrawer = ({
+  detail,
+  searchValue,
+  onSearchChange,
+  onClose
+}) => {
+  const filteredItems = useMemo(() => {
+    const query = String(searchValue || '').trim().toLowerCase();
+    if (!query) return detail?.items || [];
+
+    return (detail?.items || []).filter((item) =>
+      [item.title, item.subtitle, item.status, item.remarks]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query))
+    );
+  }, [detail, searchValue]);
+
+  if (!detail) return null;
+
+  const summary = detail.summary || {};
+
+  return (
+    <aside className="w-[300px] shrink-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-[#282526]">{detail.title}</h3>
+          {detail.subtitle ? (
+            <p className="mt-1 text-[11px] text-gray-500">{detail.subtitle}</p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-gray-500">
+        {summary.presentCount !== undefined && (
+          <span className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            Present - {summary.presentCount}
+          </span>
+        )}
+        {summary.absentCount !== undefined && (
+          <span className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-rose-400" />
+            Absent - {summary.absentCount}
+          </span>
+        )}
+        {summary.onDutyCount !== undefined && (
+          <span className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-blue-400" />
+            On Duty - {summary.onDutyCount}
+          </span>
+        )}
+      </div>
+
+      <div className="relative mt-4">
+        <Search
+          size={14}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        />
+        <input
+          type="text"
+          value={searchValue}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Search..."
+          className="h-9 w-full rounded-lg border border-gray-200 pl-9 pr-3 text-xs outline-none transition-colors focus:border-[#08384F]"
+        />
+      </div>
+
+      <div className="mt-4 max-h-[500px] space-y-3 overflow-y-auto pr-1">
+        {filteredItems.length ? (
+          filteredItems.map((item) => {
+            const style = STATUS_STYLES[item.status] || STATUS_STYLES.Absent;
+            return (
+              <div
+                key={item.id}
+                className="flex items-start justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium text-[#282526]">
+                    {item.title}
+                  </p>
+                  {item.subtitle ? (
+                    <p className="mt-1 text-[11px] text-gray-500">{item.subtitle}</p>
+                  ) : null}
+                  {item.remarks ? (
+                    <p className="mt-1 text-[11px] text-gray-400">{item.remarks}</p>
+                  ) : null}
+                </div>
+                <span className={`flex items-center gap-1 text-[11px] font-medium ${style.text}`}>
+                  <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+                  {getStatusLabel(item.status)}
+                </span>
+              </div>
+            );
+          })
+        ) : (
+          <div className="rounded-xl border border-dashed border-gray-200 px-4 py-8 text-center text-xs text-gray-400">
+            No matching records found.
+          </div>
+        )}
+      </div>
+    </aside>
+  );
 };
 
 const AttendanceComponent = () => {
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [filterMode, setFilterMode] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [classrooms, setClassrooms] = useState([]);
+  const [activeAcademicYear, setActiveAcademicYear] = useState(null);
+  const [filtersLoading, setFiltersLoading] = useState(true);
+  const [viewType, setViewType] = useState('');
+  const [selectedSubjectId, setSelectedSubjectId] = useState('');
+  const [selectedClassroomId, setSelectedClassroomId] = useState('');
+  const [periodState, setPeriodState] = useState({
+    reportType: '',
+    month: '',
+    fromDate: '',
+    toDate: ''
+  });
+  const [searchInput, setSearchInput] = useState('');
+  const [submittedSearch, setSubmittedSearch] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportData, setReportData] = useState(null);
+  const [detailDrawer, setDetailDrawer] = useState(null);
+  const [detailSearch, setDetailSearch] = useState('');
 
-  const isDateFilterReady = filterMode !== "date" || (dateFrom && dateTo);
-  const isReady =
-    selectedClass &&
-    selectedSection &&
-    selectedSubject &&
-    selectedMonth &&
-    isDateFilterReady;
+  useEffect(() => {
+    const loadFilters = async () => {
+      setFiltersLoading(true);
 
-  const filteredClasswiseData = useMemo(
+      try {
+        const [classroomResponse, academicYearResponse] = await Promise.all([
+          getClassrooms({ status: 'active' }),
+          getActiveAcademicYear()
+        ]);
+
+        setClassrooms(classroomResponse?.data?.classrooms || []);
+        setActiveAcademicYear(
+          academicYearResponse?.data?.academicYears?.[0] || null
+        );
+      } catch (error) {
+        toast.error(error?.message || 'Failed to load attendance filters');
+      } finally {
+        setFiltersLoading(false);
+      }
+    };
+
+    loadFilters();
+  }, []);
+
+  const subjectOptions = useMemo(() => {
+    const subjectMap = new Map();
+
+    classrooms.forEach((classroom) => {
+      const subject = classroom?.subjectId;
+      if (!subject?._id) return;
+
+      if (!subjectMap.has(subject._id)) {
+        subjectMap.set(subject._id, {
+          value: subject._id,
+          label: subject.name,
+          code: subject.code,
+          classrooms: []
+        });
+      }
+
+      subjectMap.get(subject._id).classrooms.push(classroom);
+    });
+
+    return [...subjectMap.values()].sort((left, right) =>
+      left.label.localeCompare(right.label)
+    );
+  }, [classrooms]);
+
+  const classOptions = useMemo(() => {
+    return classrooms
+      .filter((classroom) => classroom?.subjectId?._id === selectedSubjectId)
+      .map((classroom) => ({
+        value: classroom._id,
+        label: getClassLabel(classroom),
+        semesterType: getSemesterType(classroom.semesterNumber),
+        classroom
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label));
+  }, [classrooms, selectedSubjectId]);
+
+  const selectedClassroom = useMemo(
     () =>
-      filterAttendanceData(
-        classwiseDummyData,
-        filterMode,
-        selectedMonth,
-        dateFrom,
-        dateTo
-      ),
-    [filterMode, selectedMonth, dateFrom, dateTo]
+      classOptions.find((classroom) => classroom.value === selectedClassroomId)
+        ?.classroom || null,
+    [classOptions, selectedClassroomId]
   );
 
-  const filteredStudentwiseData = useMemo(() => {
-    const filteredByPeriod = filterAttendanceData(
-      studentwiseDummyData,
-      filterMode,
-      selectedMonth,
-      dateFrom,
-      dateTo
-    );
-    const query = searchQuery.trim().toLowerCase();
+  const selectedSemesterType = selectedClassroom
+    ? getSemesterType(selectedClassroom.semesterNumber)
+    : '';
 
-    if (!query || selectedClass === "classwise") {
-      return filteredByPeriod;
+  const monthOptions = useMemo(() => {
+    const months = buildAcademicMonths(activeAcademicYear);
+    if (!selectedSemesterType || !months.length) return [];
+
+    const midpoint = Math.ceil(months.length / 2);
+    const relevantMonths =
+      selectedSemesterType === 'odd' ? months.slice(0, midpoint) : months.slice(midpoint);
+
+    return relevantMonths.map((month) => ({
+      value: month.value,
+      label: month.label,
+      shortLabel: month.shortLabel
+    }));
+  }, [activeAcademicYear, selectedSemesterType]);
+
+  const selectedPeriodLabel = useMemo(() => {
+    if (periodState.reportType === 'semester') {
+      return selectedSemesterType === 'odd' ? 'Odd Semester' : 'Even Semester';
     }
 
-    return filteredByPeriod.filter(
-      (student) =>
-        student.name.toLowerCase().includes(query) ||
-        student.rollNo.toLowerCase().includes(query)
+    if (periodState.reportType === 'month') {
+      const selectedMonth = monthOptions.find(
+        (month) => month.value === periodState.month
+      );
+      return selectedMonth?.label || 'Month';
+    }
+
+    if (periodState.reportType === 'date-range') {
+      if (periodState.fromDate && periodState.toDate) {
+        return `${periodState.fromDate} - ${periodState.toDate}`;
+      }
+      return 'Date Range';
+    }
+
+    return '';
+  }, [monthOptions, periodState, selectedSemesterType]);
+
+  const isPeriodReady =
+    periodState.reportType === 'semester' ||
+    (periodState.reportType === 'month' && periodState.month) ||
+    (periodState.reportType === 'date-range' &&
+      periodState.fromDate &&
+      periodState.toDate);
+
+  const canFetchReport = Boolean(viewType && selectedClassroomId && isPeriodReady);
+  const studentwiseSearchRequired = viewType === 'studentwise';
+  const studentwiseHasSearch = Boolean(submittedSearch.trim());
+
+  useEffect(() => {
+    setSelectedClassroomId('');
+    setPeriodState({
+      reportType: '',
+      month: '',
+      fromDate: '',
+      toDate: ''
+    });
+    setSubmittedSearch('');
+    setSearchInput('');
+    setReportData(null);
+    setDetailDrawer(null);
+    setDetailSearch('');
+  }, [selectedSubjectId, viewType]);
+
+  useEffect(() => {
+    setPeriodState({
+      reportType: '',
+      month: '',
+      fromDate: '',
+      toDate: ''
+    });
+    setSubmittedSearch('');
+    setSearchInput('');
+    setReportData(null);
+    setDetailDrawer(null);
+    setDetailSearch('');
+  }, [selectedClassroomId]);
+
+  useEffect(() => {
+    setDetailDrawer(null);
+    setDetailSearch('');
+  }, [
+    periodState.reportType,
+    periodState.month,
+    periodState.fromDate,
+    periodState.toDate,
+    submittedSearch
+  ]);
+
+  useEffect(() => {
+    if (viewType === 'studentwise' && !searchInput.trim() && submittedSearch) {
+      setSubmittedSearch('');
+    }
+  }, [searchInput, submittedSearch, viewType]);
+
+  useEffect(() => {
+    if (!canFetchReport) {
+      setReportData(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadReport = async () => {
+      setReportLoading(true);
+
+      try {
+        const params = {
+          classroomId: selectedClassroomId,
+          reportType: periodState.reportType
+        };
+
+        if (periodState.reportType === 'month') {
+          params.month = periodState.month;
+        }
+
+        if (periodState.reportType === 'date-range') {
+          params.fromDate = periodState.fromDate;
+          params.toDate = periodState.toDate;
+        }
+
+        if (studentwiseSearchRequired && studentwiseHasSearch) {
+          params.search = submittedSearch.trim();
+        }
+
+        const response =
+          viewType === 'classwise'
+            ? await getClasswiseAttendanceReport(params)
+            : await getStudentwiseAttendanceReport(params);
+
+        if (!isCancelled) {
+          setReportData(response?.data || null);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setReportData(null);
+          toast.error(error?.message || 'Failed to load attendance report');
+        }
+      } finally {
+        if (!isCancelled) {
+          setReportLoading(false);
+        }
+      }
+    };
+
+    loadReport();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    canFetchReport,
+    periodState.fromDate,
+    periodState.month,
+    periodState.reportType,
+    periodState.toDate,
+    selectedClassroomId,
+    studentwiseHasSearch,
+    studentwiseSearchRequired,
+    submittedSearch,
+    viewType
+  ]);
+
+  const handleSearchSubmit = () => {
+    if (!searchInput.trim()) {
+      setSubmittedSearch('');
+      return;
+    }
+
+    setSubmittedSearch(searchInput.trim());
+  };
+
+  const buildReportParams = () => {
+    const params = {
+      classroomId: selectedClassroomId,
+      reportType: periodState.reportType
+    };
+
+    if (periodState.reportType === 'month') {
+      params.month = periodState.month;
+    }
+
+    if (periodState.reportType === 'date-range') {
+      params.fromDate = periodState.fromDate;
+      params.toDate = periodState.toDate;
+    }
+
+    if (viewType === 'studentwise' && submittedSearch.trim()) {
+      params.search = submittedSearch.trim();
+    }
+
+    return params;
+  };
+
+  const handleDownloadReport = async () => {
+    if (!canFetchReport) {
+      toast.error('Select the report filters first');
+      return;
+    }
+
+    if (viewType === 'studentwise' && !submittedSearch.trim()) {
+      toast.error('Search a student before downloading the report');
+      return;
+    }
+
+    try {
+      const response =
+        viewType === 'classwise'
+          ? await downloadClasswiseAttendanceReport(buildReportParams())
+          : await downloadStudentwiseAttendanceReport(buildReportParams());
+
+      triggerBlobDownload(response, 'attendance_report.xlsx');
+    } catch (error) {
+      toast.error(error?.message || 'Failed to download attendance report');
+    }
+  };
+
+  const handleRowDownload = (row) => {
+    if (!row) return;
+
+    if (viewType === 'classwise' && periodState.reportType === 'semester') {
+      exportRowsToExcel(
+        [
+          {
+            Month: row.month,
+            'Total Classes': row.totalClasses,
+            'Present Count': row.presentCount,
+            'Absent Count': row.absentCount,
+            'On Duty Count': row.onDutyCount,
+            'Attendance Percentage': `${row.attendancePercentage}%`
+          }
+        ],
+        `${row.month || 'classwise'}_summary`
+      );
+      return;
+    }
+
+    const detailRows = (row.details?.items || []).map((item) => ({
+      Title: item.title,
+      Subtitle: item.subtitle || '',
+      Status: getStatusLabel(item.status),
+      Remarks: item.remarks || ''
+    }));
+
+    exportRowsToExcel(
+      detailRows,
+      `${row.dateValue || row.monthValue || row.studentId || 'attendance'}_details`
     );
-  }, [filterMode, selectedMonth, dateFrom, dateTo, searchQuery, selectedClass]);
-
-  const currentReportData =
-    selectedClass === "classwise" ? filteredClasswiseData : filteredStudentwiseData;
-
-  const exportToExcel = (data, fileName) => {
-    const exportData = data && data.length > 0 ? data : currentReportData;
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
 
-  const handlePrint = () => {
-    const reportData = currentReportData;
-    const printWindow = window.open("", "_blank");
-    const printHtml = `
-      <html>
-        <head>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-            body { font-family: 'Poppins', sans-serif; color: #333; padding: 20px; }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #08384F; padding-bottom: 10px; margin-bottom: 20px; }
-            .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 12px; }
-            table { width: 100%; border-collapse: collapse; }
-            th { background: #08384F; color: white; padding: 10px; text-align: left; font-size: 11px; }
-            td { padding: 8px; border: 1px solid #eee; font-size: 11px; }
-          </style>
-        </head>
-        <body>
-          <div class="header"><img src="${Eshwar}" height="50" /><div><h2 style="color:#08384F">Attendance Report</h2></div></div>
-          <div class="info-grid">
-            <div><b>Subject:</b> ${selectedSubject}</div>
-            <div><b>Section:</b> ${selectedSection}</div>
-            <div><b>Filter:</b> ${selectedMonth}</div>
-            <div><b>From:</b> ${dateFrom || "-"}</div>
-            <div><b>To:</b> ${dateTo || "-"}</div>
-          </div>
-          <table>
-            <thead><tr><th>S.No</th><th>Date/Roll No</th><th>Name/Hour</th><th>Total</th><th>Present</th><th>Absent</th><th>%</th></tr></thead>
-            <tbody>${reportData
-              .map(
-                (s, index) =>
-                  `<tr><td>${index + 1}</td><td>${s.date || s.rollNo}</td><td>${
-                    s.classHour || s.name
-                  }</td><td>${s.total}</td><td>${s.present}</td><td>${s.absent}</td><td>${
-                    s.percentage || s.attendance
-                  }%</td></tr>`
-              )
-              .join("")}</tbody>
-          </table>
-        </body>
-      </html>`;
-    printWindow.document.write(printHtml);
-    printWindow.document.close();
-    printWindow.print();
-  };
+  const showInitialState = !viewType || !selectedSubjectId || !selectedClassroomId || !isPeriodReady;
+  const showStudentwiseEmptyState =
+    viewType === 'studentwise' && canFetchReport && !submittedSearch.trim();
+
+  const reportRows = reportData?.rows || [];
+  const reportSummary = reportData?.summary || null;
 
   return (
-    <section className="w-full h-screen flex flex-col bg-white font-['Poppins']">
-      <div className="flex w-full h-full">
-        <div className="w-[100%] h-full flex flex-col">
+    <section className="flex h-screen w-full flex-col bg-white font-['Poppins']">
+      <div className="flex h-full w-full">
+        <div className="flex h-full w-full flex-col">
           <HeaderComponent title="Student Attendance" />
 
-          <div className="mx-6 mt-6 flex flex-wrap items-center gap-3 p-3 rounded-[28px] bg-slate-50">
+          <div className="mx-6 mt-4 flex flex-wrap items-center gap-3">
             <select
-              className="border border-gray-200 px-4 h-10 text-xs outline-none w-36 rounded-full bg-white focus:border-[#08384f]"
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
+              value={viewType}
+              onChange={(event) => setViewType(event.target.value)}
+              className="h-10 w-28 rounded-lg border border-gray-200 px-3 text-xs outline-none transition-colors focus:border-[#08384F]"
             >
-              <option value="" disabled>
-                View Type
-              </option>
+              <option value="">Select</option>
               <option value="classwise">Classwise</option>
-              <option value="studentwise">Studentwise</option>
+              <option value="studentwise">Student wise</option>
             </select>
 
             <select
-              className="border border-gray-200 px-4 h-10 text-xs outline-none w-44 rounded-full bg-white focus:border-[#08384f]"
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
+              value={selectedSubjectId}
+              onChange={(event) => setSelectedSubjectId(event.target.value)}
+              disabled={!viewType || filtersLoading}
+              className="h-10 w-44 rounded-lg border border-gray-200 px-3 text-xs outline-none transition-colors focus:border-[#08384F] disabled:cursor-not-allowed disabled:bg-gray-100"
             >
-              <option value="" disabled>
-                Select Subject
-              </option>
-              <option value="Cyber security">Cyber Security</option>
-              <option value="Python">Python</option>
+              <option value="">Select Subject</option>
+              {subjectOptions.map((subject) => (
+                <option key={subject.value} value={subject.value}>
+                  {subject.label}
+                </option>
+              ))}
             </select>
 
             <select
-              className="border border-gray-200 px-4 h-10 text-xs outline-none w-36 rounded-full bg-white focus:border-[#08384f]"
-              value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
+              value={selectedClassroomId}
+              onChange={(event) => setSelectedClassroomId(event.target.value)}
+              disabled={!selectedSubjectId}
+              className="h-10 w-36 rounded-lg border border-gray-200 px-3 text-xs outline-none transition-colors focus:border-[#08384F] disabled:cursor-not-allowed disabled:bg-gray-100"
             >
-              <option value="" disabled>
-                Section
-              </option>
-              <option value="CSE - A">CSE - A</option>
-              <option value="IT - C">IT - C</option>
+              <option value="">Select Class</option>
+              {classOptions.map((classroom) => (
+                <option key={classroom.value} value={classroom.value}>
+                  {classroom.label}
+                </option>
+              ))}
             </select>
 
-            <div className={selectedClass === "classwise" ? "flex-1" : "w-36"}>
+            <div className="w-36">
               <CustomMonthDropdown
-                selectedMonth={selectedMonth}
-                setSelectedMonth={setSelectedMonth}
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                setDateFrom={setDateFrom}
-                setDateTo={setDateTo}
-                setFilterMode={setFilterMode}
+                disabled={!selectedClassroom}
+                selectedLabel={selectedPeriodLabel}
+                semesterOptionLabel={
+                  selectedSemesterType
+                    ? selectedSemesterType === 'odd'
+                      ? 'Odd Semester'
+                      : 'Even Semester'
+                    : ''
+                }
+                monthOptions={monthOptions}
+                dateFrom={periodState.fromDate}
+                dateTo={periodState.toDate}
+                onSelectSemester={() =>
+                  setPeriodState({
+                    reportType: 'semester',
+                    month: '',
+                    fromDate: '',
+                    toDate: ''
+                  })
+                }
+                onSelectMonth={(monthOption) =>
+                  setPeriodState({
+                    reportType: 'month',
+                    month: monthOption.value,
+                    fromDate: '',
+                    toDate: ''
+                  })
+                }
+                onDateFromChange={(value) =>
+                  setPeriodState((previous) => ({
+                    ...previous,
+                    reportType: 'date-range',
+                    fromDate: value
+                  }))
+                }
+                onDateToChange={(value) =>
+                  setPeriodState((previous) => ({
+                    ...previous,
+                    reportType: 'date-range',
+                    toDate: value
+                  }))
+                }
+                onApplyDateRange={() =>
+                  setPeriodState((previous) => ({
+                    ...previous,
+                    reportType: 'date-range'
+                  }))
+                }
               />
             </div>
 
-            {selectedClass !== "classwise" && (
-              <div className="relative flex-1 min-w-[240px] h-10">
-                <Search
-                  size={14}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="text"
-                  placeholder="Search students..."
-                  className="w-full border border-gray-200 h-full text-xs pl-10 pr-4 outline-none rounded-full focus:border-[#08384f] focus:bg-white"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+            {viewType === 'studentwise' && (
+              <div className="flex min-w-[260px] flex-1 items-center gap-2">
+                <div className="relative flex-1">
+                  <Search
+                    size={14}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        handleSearchSubmit();
+                      }
+                    }}
+                    placeholder="Search name and roll no"
+                    className="h-10 w-full rounded-lg border border-gray-200 pl-9 pr-3 text-xs outline-none transition-colors focus:border-[#08384F]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSearchSubmit}
+                  disabled={!canFetchReport}
+                  className="rounded-lg border border-[#1565c0] px-4 py-2 text-xs font-semibold text-[#1565c0] transition-colors hover:bg-[#1565c0] hover:text-white disabled:cursor-not-allowed disabled:border-gray-300 disabled:text-gray-300"
+                >
+                  Search
+                </button>
               </div>
             )}
 
             <button
-              onClick={() => exportToExcel(currentReportData, "Attendance_Report")}
-              className="bg-emerald-600 text-white px-5 min-w-[96px] h-10 text-xs font-semibold flex items-center justify-center gap-2 rounded-full hover:bg-emerald-700 shadow-sm"
+              type="button"
+              onClick={handleDownloadReport}
+              disabled={
+                !canFetchReport || (viewType === 'studentwise' && !submittedSearch.trim())
+              }
+              className="ml-auto flex h-10 min-w-[160px] items-center justify-center gap-2 rounded-lg bg-[#1565c0] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#0d47a1] disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              <FileSpreadsheet size={14} /> Excel
-            </button>
-
-            <button
-              onClick={handlePrint}
-              disabled={!isReady}
-              className="bg-[#08384f] text-white px-5 min-w-[96px] h-10 text-xs font-semibold flex items-center justify-center gap-2 rounded-full hover:bg-[#0c4a68] disabled:opacity-30 shadow-md"
-            >
-              <Printer size={14} /> Print
+              <Download size={14} />
+              Download Report
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto">
-            {isReady ? (
-              <div className="mx-3 rounded-sm">
-                {selectedClass === "classwise" ? (
-                  <MonthlyAttendanceTable
-                    data={filteredClasswiseData}
-                    selectedMonth={selectedMonth}
-                    selectedSubject={selectedSubject}
+          <div className="mx-6 mt-4 flex-1 overflow-auto pb-6">
+            {reportSummary ? (
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-sm text-[#282526]">
+                  <p>{reportSummary.title}</p>
+                  <span className="font-semibold text-[#08384F]">
+                    {reportSummary.attendancePercentage || 0}%
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 rounded-full bg-[#D6E5F8]">
+                  <div
+                    className="h-full rounded-full bg-[#1565c0]"
+                    style={{ width: `${reportSummary.attendancePercentage || 0}%` }}
                   />
-                ) : (
-                  <StudentwiseAttendanceTable
-                    data={filteredStudentwiseData}
-                    selectedMonth={selectedMonth}
-                    selectedSubject={selectedSubject}
-                  />
-                )}
+                </div>
+              </div>
+            ) : null}
+
+            {filtersLoading || reportLoading ? (
+              <div className="flex h-[70%] flex-col items-center justify-center gap-4 text-center">
+                <img src={homeImg} alt="Loading" className="w-56 opacity-70" />
+                <p className="text-sm font-medium text-gray-500">
+                  Loading attendance report...
+                </p>
+              </div>
+            ) : showInitialState ? (
+              <div className="flex h-[70%] flex-col items-center justify-center gap-4 text-center">
+                <img src={homeImg} alt="Attendance" className="w-64" />
+                <h2 className="text-xl font-semibold text-[#282526]">
+                  Select the Class and Section to view the attendance
+                </h2>
+                <p className="max-w-xl text-sm text-gray-500">
+                  Choose the report type, subject, class, and period to load the
+                  faculty attendance report for the current academic year.
+                </p>
+              </div>
+            ) : showStudentwiseEmptyState ? (
+              <div className="flex h-[70%] flex-col items-center justify-center gap-4 text-center">
+                <img src={homeImg} alt="Search Student" className="w-64" />
+                <h2 className="text-xl font-semibold text-[#282526]">
+                  Search the Student to view the attendance
+                </h2>
+                <p className="max-w-xl text-sm text-gray-500">
+                  Studentwise reports stay empty until you search by student name,
+                  roll number, or register number.
+                </p>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full gap-4 text-center ">
-                <img src={homeImg} alt="Home" className="w-64" />
-                <h1 className="font-bold text-xl text-gray-700">
-                  Select the filters to generate the report.
-                </h1>
+              <div className="flex items-start gap-4">
+                <div className="min-w-0 flex-1">
+                  {viewType === 'classwise' ? (
+                    <MonthlyAttendanceTable
+                      variant={periodState.reportType === 'semester' ? 'semester' : 'period'}
+                      data={reportRows}
+                      onViewDetails={(row) => {
+                        setDetailDrawer(row.details || null);
+                        setDetailSearch('');
+                      }}
+                      onDownloadRow={handleRowDownload}
+                    />
+                  ) : (
+                    <StudentwiseAttendanceTable
+                      variant={periodState.reportType === 'semester' ? 'semester' : 'period'}
+                      data={reportRows}
+                      onViewDetails={(row) => {
+                        setDetailDrawer(row.details || null);
+                        setDetailSearch('');
+                      }}
+                      onDownloadRow={handleRowDownload}
+                    />
+                  )}
+                </div>
+
+                {detailDrawer ? (
+                  <DetailDrawer
+                    detail={detailDrawer}
+                    searchValue={detailSearch}
+                    onSearchChange={setDetailSearch}
+                    onClose={() => {
+                      setDetailDrawer(null);
+                      setDetailSearch('');
+                    }}
+                  />
+                ) : null}
               </div>
             )}
           </div>
